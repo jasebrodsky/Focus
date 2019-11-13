@@ -1,114 +1,148 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow
- */
+import React, { Component } from "react";
+import { StyleSheet, AsyncStorage } from "react-native";
+import codePush from "react-native-code-push";
+import firebase from 'react-native-firebase';
 
-import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
+import { Container, Content, Text, View, Root } from "native-base";
+import Modal from "react-native-modalbox";
+import MainStackRouter from "./Routers/MainStackRouter";
+import ProgressBar from "./components/loaders/ProgressBar";
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import theme from "./themes/base-theme";
 
-const App: () => React$Node = () => {
-  return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
-  );
-};
+
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  container: {
+    flex: 1,
+    width: null,
+    height: null
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
+  modal: {
+    justifyContent: "center",
+    alignItems: "center"
   },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
+  modal1: {
+    height: 300
+  }
 });
 
-export default App;
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showDownloadingModal: false,
+      showInstalling: false,
+      downloadProgress: 0
+    };
+  }
+
+  componentDidMount() {
+    
+    // CodePush.sync(
+    //   { updateDialog: true, installMode: CodePush.InstallMode.IMMEDIATE },
+    //   status => {
+    //     switch (status) {
+    //       case CodePush.SyncStatus.DOWNLOADING_PACKAGE:
+    //         this.setState({ showDownloadingModal: true });
+    //         this._modal.open();
+    //         break;
+    //       case CodePush.SyncStatus.INSTALLING_UPDATE:
+    //         this.setState({ showInstalling: true });
+    //         break;
+    //       case CodePush.SyncStatus.UPDATE_INSTALLED:
+    //         this._modal.close();
+    //         this.setState({ showDownloadingModal: false });
+    //         break;
+    //       default:
+    //         break;
+    //     }
+    //   },
+    //   ({ receivedBytes, totalBytes }) => {
+    //     this.setState({ downloadProgress: receivedBytes / totalBytes * 100 });
+    //   }
+    // );
+  }
+
+
+  
+
+  render() {
+    if (this.state.showDownloadingModal) {
+      return (
+        <Container
+          theme={theme}
+          style={{ backgroundColor: theme.defaultBackgroundColor }}
+        >
+          <Content style={styles.container}>
+            <Modal
+              style={[styles.modal, styles.modal1]}
+              backdrop={false}
+              ref={c => {
+                this._modal = c;
+              }}
+              swipeToClose={false}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  alignSelf: "stretch",
+                  justifyContent: "center",
+                  padding: 20
+                }}
+              >
+                {this.state.showInstalling
+                  ? <Text
+                      style={{
+                        color: theme.brandPrimary,
+                        textAlign: "center",
+                        marginBottom: 15,
+                        fontSize: 15
+                      }}
+                    >
+                      Installing update...
+                    </Text>
+                  : <View
+                      style={{
+                        flex: 1,
+                        alignSelf: "stretch",
+                        justifyContent: "center",
+                        padding: 20
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: theme.brandPrimary,
+                          textAlign: "center",
+                          marginBottom: 15,
+                          fontSize: 15
+                        }}
+                      >
+                        Downloading update...
+                        {" "}
+                        {`${parseInt(this.state.downloadProgress, 10)} %`}
+                      </Text>
+                      <ProgressBar
+                        color="theme.brandPrimary"
+                        progress={parseInt(this.state.downloadProgress, 10)}
+                      />
+                    </View>}
+              </View>
+            </Modal>
+          </Content>
+        </Container>
+      );
+    }
+
+    return <Root><MainStackRouter /></Root>;
+  }
+}
+
+let codePushOptions = { 
+  checkFrequency: codePush.CheckFrequency.ON_APP_RESUME, 
+  installMode: codePush.InstallMode.ON_NEXT_RESUME 
+}
+
+App = codePush(codePushOptions)(App);
+
+module.exports = App
