@@ -10,6 +10,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@ptomasroos/react-native-multi-slider": "^1.0.0",
     "appcenter": "2.5.0",
     "appcenter-analytics": "2.5.0",
     "appcenter-crashes": "2.5.0",
@@ -37,6 +38,7 @@
     "react-native-firebase-auth": "^1.0.1",
     "react-native-fontawesome": "7.0.0",
     "react-native-geocoding": "0.4.0",
+    "react-native-gesture-handler": "^1.5.0",
     "react-native-gifted-chat": "0.11.3",
     "react-native-google-sign-in": "^1.0.16",
     "react-native-image-crop-picker": "0.26.1",
@@ -58,8 +60,7 @@
     "redux-persist": "6.0.0",
     "redux-thunk": "^2.2.0",
     "remote-redux-devtools": "^0.5.0",
-    "rn-fetch-blob": "0.11.2",
-    "@ptomasroos/react-native-multi-slider": "^1.0.0"
+    "rn-fetch-blob": "0.11.2"
   },
   "devDependencies": {
     "@babel/core": "^7.7.2",

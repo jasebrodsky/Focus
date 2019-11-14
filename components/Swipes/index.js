@@ -6,7 +6,7 @@ import { DrawerNavigator, NavigationActions } from "react-navigation";
 import ImageViewer from 'react-native-image-zoom-viewer';
 import Overlay from 'react-native-modal-overlay';
 import ProgressCircle from 'react-native-progress-circle';
-import Swiper from 'react-native-deck-swiper';
+// import Swiper from 'react-native-deck-swiper';
 import TimerMixin from 'react-timer-mixin';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 
@@ -570,136 +570,13 @@ class Swipes extends Component {
                 </Button>
               </View>
             </View>}
-        </View>
+          </View>
 
-        <View style={{flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'absolute', left: loadingLeftPosition, top: height/2}}>
+          <View style={{flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'absolute', left: loadingLeftPosition, top: height/2}}>
             <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
-         </View>
-        
-          <Swiper
-            ref={swiper => {
-              this.swiper = swiper
-            }}
-            verticalSwipe = {false}
-            onTapCard={() => this.setState({ imageViewerVisible: true, matchAbout: this.state.profiles[cardIndex].about, matchEducation: this.state.profiles[cardIndex].education, matchBirthday: this.state.profiles[cardIndex].birthday, matchWork: this.state.profiles[cardIndex].work, matchGender: this.state.profiles[cardIndex].gender, matchCityState: this.state.profiles[cardIndex].city_state, matchEducation: this.state.profiles[cardIndex].education,  matchImages: Object.values(this.state.profiles[cardIndex].images) })} 
-            cardIndex={this.state.cardIndex}
-            backgroundColor={'#4FD0E9'}
-            stackSeparation={12}
-            stackSize={10}
-            onSwiped={(index) => console.log('onSwiped at index: '+index)}
-            //onSwipedAll={(index) => this.getMatches(this.state.userId)} 
-            onSwipedAll={(index) => this.setState({ swipesStatsShow: true, allSwiped: true })}
-            cards={this.state.profiles}
-            onSwipedRight={(index) => this.onSwiped(index,'right',true)}//this.state.profile[]cardIndex.potential_match 
-            onSwipedLeft={(index) => this.onSwiped(index,'left',false)} 
-            overlayLabels={{
-              bottom: {
-                title: 'Date with Jason',
-                style: {
-                  label: {
-                    backgroundColor: 'black',
-                    borderColor: 'black',
-                    color: 'white',
-                    borderWidth: 1
-                  },
-                  wrapper: {
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }
-                }
-              },
-              left: {
-                title: 'NOPE',
-                style: {
-                  label: {
-                    backgroundColor: 'black',
-                    borderColor: 'black',
-                    color: 'white',
-                    borderWidth: 1
-                  },
-                  wrapper: {
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    justifyContent: 'flex-start',
-                    marginTop: 30,
-                    marginLeft: -30
-                  }
-                }
-              },
-              right: {
-                title: 'LIKE',
-                style: {
-                  label: {
-                    backgroundColor: 'black',
-                    borderColor: 'black',
-                    color: 'white',
-                    borderWidth: 1
-                  },
-                  wrapper: {
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    justifyContent: 'flex-start',
-                    marginTop: 30,
-                    marginLeft: 30
-                  }
-                }
-              },
-              top: {
-                title: 'SUPER LIKE',
-                style: {
-                  label: {
-                    backgroundColor: 'black',
-                    borderColor: 'black',
-                    color: 'white',
-                    borderWidth: 1
-                  },
-                  wrapper: {
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }
-                }
-              }
-            }}
-            //keyExtractor={(cardData) => {alert('card key is: '+cardData.key)}}
-
-            renderCard={(card,index) => {
-                var item =JSON.parse(JSON.stringify(card));
-
-                return (
-                  <Card style={{ elevation: 3 }}>
-
-                    <CardItem cardBody>
-
-                      <View style={{
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',                        
-                      }}>
-                        <ImageBackground
-                          resizeMode="cover"
-                          style={{ width: '100%', height: height-230 }}
-                          source={{uri: Object.values(item.images)[0].url}}
-                        />
-                      </View>
-
-                     </CardItem>
-                    <CardItem>
-                      <Left>
-                        <Body>
-                          <Text style={{fontWeight: "bold"}} >{this.calculateAge(item.birthday)}, {item.gender}, {item.city_state}</Text>
-                          <Text>{item.education} </Text>
-                          <Text style={{marginBottom: 4}} note>{item.work} </Text>
-                          <Text numberOfLines={1} note>{item.about} </Text>
-                        </Body>
-                      </Left>
-                    </CardItem>
-                  </Card>
-                )
-            }}>
-          </Swiper>
-
+          </View>
+          
+          <Text> Swiper component here.</Text>
 
         </View>
 
