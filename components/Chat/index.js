@@ -5,7 +5,9 @@ import * as firebase from "firebase";
 import { Modal } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import { DrawerNavigator, NavigationActions } from "react-navigation";
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faFlag, faArrowLeft, faImages } from '@fortawesome/free-solid-svg-icons';
+import { withNavigation } from "react-navigation";
 import {
   ActionSheet,
   Card,
@@ -24,12 +26,18 @@ import {
   Thumbnail,
   Right,
   Body,
-  View, 
+  View,
+  H3
 } from "native-base";
 
 import { GiftedChat } from 'react-native-gifted-chat';
-// import TimerCountdown from 'react-native-timer-countdown'
+//import TimerCountdown from 'react-native-timer-countdown'
+import TimerMachine from 'react-timer-machine';
+import moment from "moment";
+import momentDurationFormatSetup from "moment-duration-format";
 
+
+const primaryColor = "#8A6077";
 var BUTTONS = ["Unmatch", "Report & Block", "Cancel"];
 var DESTRUCTIVE_INDEX = 2;
 var CANCEL_INDEX = 2;
@@ -46,6 +54,7 @@ class Chat extends Component {
       removed: false,
       timeLeft: null,
       matchDate: null,
+      matchActive: true,
       name: null,
       birthday: '',
       gender: '',
@@ -62,7 +71,68 @@ class Chat extends Component {
       about: ''
       //image: null
     }
+
   }
+
+
+  //configure navigation
+  static navigationOptions = ({ navigation }) => {
+    return {
+      headerLeft: () => (
+        <Button transparent onPress={() => navigation.goBack()}>
+          <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faArrowLeft } />
+       </Button>
+      ),
+      headerTitle: () => (
+        <Title>{navigation.getParam('name')}</Title>
+      ),
+      
+      // headerRight: () => (
+      //   <Button transparent onPress={navigation.getParam('block')}>
+      //     <FontAwesomeIcon style={{right: 16, fontSize: 32, color: '#B2B2FF'}} icon={ faFlag } />
+      //  </Button>
+      // ),
+
+      //NEED TO FIGURE OUT HOW TO PASS NAVIGATION OBJECT DOWN TO ACTIONSHEET AND ALERT CHILD COMPONENTS. Can call the function via getParam, only when it's in the parent component, like above. 
+      headerRight: () => (
+        <Button transparent onPress={() =>
+          
+          ActionSheet.show(
+            {
+              options: BUTTONS,
+              cancelButtonIndex: CANCEL_INDEX,
+              destructiveButtonIndex: DESTRUCTIVE_INDEX
+              
+            },
+            buttonIndex => {
+
+              //handle blocking profile
+              if ((buttonIndex) == 0){
+
+                navigation.getParam('block')
+              
+                //handle block and report a user
+              }else if ((buttonIndex) == 1){
+
+                Alert.alert(
+                  'Report & Block',
+                  'We take reports seriously and will investigate this person as well as block them from interacting with you in the future. If you just want to unmatch tap "unmatch" instead.',
+                  [
+                    {text: 'Unmatch', onPress: () => navigation.getParam('block')},
+                    {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                    //{text: 'Report & Block', onPress: () => this.blockOrReport('report')},
+                  ],
+                  { cancelable: false }
+                )         
+              }
+            }
+          )} >
+          <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faFlag } />
+       </Button>
+      )
+    };
+  };
+
 
   //retrive msg from backend
   loadMessages(callback) {
@@ -87,7 +157,6 @@ class Chat extends Component {
   }
 
 
-
   componentWillMount() {
 
     const { state, navigate } = this.props.navigation;
@@ -98,6 +167,7 @@ class Chat extends Component {
     let about = state.params.about; //might make more sense to pull from db instead of previous componnet, since now won't be able to deeplink into chat
     let birthday = state.params.birthday;
     let gender = state.params.gender;
+    let reviews = state.params.reviews;
     let city_state = state.params.city_state;
     let education = state.params.education;
     let work = state.params.work;
@@ -124,6 +194,9 @@ class Chat extends Component {
         
         //create valure for the blur radius
         var blurRadius = dataSnapshot.val().blur;
+
+        //create valure for the match status 
+        var chatActive = dataSnapshot.val().active;
 
         //get name of user who is not me.
         var participantsList = dataSnapshot.val().participants;
@@ -156,6 +229,9 @@ class Chat extends Component {
         //save participiant Name
         var participantName = participantUser[1].name;
 
+        //set name to nav prop, to make available to the header
+        this.props.navigation.setParams({ name: participantName });
+
         //save name of logged in user
         var participantLoggedInUserName = participantLoggedInUser[1].name;
 
@@ -178,11 +254,12 @@ class Chat extends Component {
             city_state: city_state,
             education: education,
             work: work,
+            reviews: reviews,
             name: participantName,
             userName: participantLoggedInUserName,
             blur: dataSnapshot.val().blur,
-            chatActive: true,
-            timeLeft: dataSnapshot.val().time_left, //should be conversation start date. js would subtract today's date from that = time_left
+            chatActive: chatActive,
+            //timeLeft: dataSnapshot.val().time_left, //should be conversation start date. js would subtract today's date from that = time_left
             matchDate: dataSnapshot.val().match_date,
             matchActive: match_state == 'active' ? true : false,
             image: imagesArray[0].url,
@@ -362,6 +439,51 @@ class Chat extends Component {
       return age;
   }
 
+  //function to renderReviews into markup
+  _renderReview = (reviews) => {
+    const { navigate } = this.props.navigation;
+
+      //return markup for each review
+      return ( 
+      reviews ? (
+      <View style={{marginTop: 10}} >
+        {Object.values(reviews).map((review, index) => (
+          <Card>
+          <List>
+            <ListItem avatar noBorder>
+              <Left>
+                <Thumbnail large source={{uri: review.photo}} />
+              </Left>
+              <Body>
+                <Text style={{color: primaryColor}}>{review.name+' says:'}</Text>
+                <Text note>{review.reason}</Text>
+              </Body>
+            </ListItem>
+          </List>
+        </Card>
+        ))}
+      </View>) : null
+      );
+    }
+
+    //handle scroll of profile by growing/shrinking container when user scrolls and expects that. 
+    _handleScroll = (event: Object) => {
+
+      var currentOffset = event.nativeEvent.contentOffset.y;
+      var direction = currentOffset > this.offset ? 'down' : 'up';
+      this.offset = currentOffset;
+      if((direction == 'down') && (currentOffset > 0) && (this.state.profileMaxHeight == '15%')){
+      
+        //grow up to 15%
+        this.setState({ profileMaxHeight: '40%'});
+
+      }else if ((direction == 'up') && (currentOffset < 0) && ((this.state.profileMaxHeight == '40%')) ){
+        
+        //shrink down to 15%
+        this.setState({ profileMaxHeight: '15%'});
+           
+      }
+    }
 
   render() {
 
@@ -370,9 +492,16 @@ class Chat extends Component {
     let currentDate = new Date();
     let timeRemaining =  86000000 - (currentDate.getTime() - this.state.matchDate);
     timeRemaining = timeRemaining > 0 ? timeRemaining : 0;
+
+    console.log('match date is: '+ this.state.matchDate);
+    console.log('chatActive is: '+ this.state.chatActive);
+    console.log('matchActive is: '+ this.state.matchActive);
+  
+    //console.log('time remaining is: '+ timeRemaining);
     let {height, width} = Dimensions.get('window');
     let image = this.state.image; //pull first image from images array instead.
     let about = this.state.about;
+    let chatActive = this.state.chatActive;
     let matchActive = this.state.matchActive;
     let name = this.state.name;
     let birthday = this.state.birthday;
@@ -381,6 +510,7 @@ class Chat extends Component {
     let city_state = this.state.city_state;
     let education = this.state.education;
     let work = this.state.work;
+    let reviews = this.state.reviews;
 
 
     return (
@@ -390,7 +520,7 @@ class Chat extends Component {
             visible={this.state.imageViewerVisible} 
             transparent={true}
             animationType="slide">
-
+          
               <ImageViewer 
                 index = {this.state.imageIndex}
                 imageUrls={this.state.images}
@@ -400,95 +530,74 @@ class Chat extends Component {
               />
 
                 <View 
-                  flex={0}
-                  alignItems="flex-start"
-                  justifyContent="center"
+                  flex={1}
+                  // alignItems="flex-start"
+                  // justifyContent="center"
                   borderWidth={1}
                   borderColor="grey"
                   borderRadius={5}
                   backgroundColor="white"
                   maxHeight= {this.state.profileMaxHeight} //profileMaxHeight
-                  
+                 
                 >
                   <ScrollView 
-                    flexGrow={0}
+                    ref='ScrollView_Reference'
+                    onScroll={this._handleScroll}
+                    scrollEventThrottle={16}
                     contentContainerStyle={{
                       padding: 15,
                       backgroundColor:'white'
                     }}>
-                      <TouchableOpacity onPress={() => this.toggleProfile() }>
-                        <View>                        
-                          <Text style={{fontWeight: "bold"}} >{name}</Text>                      
-                          <Text>{age}, {gender}, {city_state}</Text>
-                          <Text>{education}</Text>
-                          <Text style={{marginBottom: 15}} note>{work}</Text>
-                          <Text note>{about}</Text>                   
-                        </View>
+                      <TouchableOpacity>
+                        <Card transparent>   
+                          {/* <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{name}</H3> */}
+                          <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{age}, {gender}, {city_state}</H3>
+                          <Text numberOfLines={1} style={{}} >{work} </Text>
+                          <Text numberOfLines={1} style={{marginBottom: 10}} >{education} </Text>
+                          <Text note style={{marginTop: 10}}>{about}</Text>
+                        </Card>
+                        {this._renderReview(this.state.reviews)}
                       </TouchableOpacity>
                   </ScrollView>
                 </View>          
           </Modal> 
-
-        <Header>
-          <Left>
-            <Button transparent onPress={() => this.goBack()}>                              
-              <Icon name="ios-arrow-back" />
-            </Button>
-          </Left>
-
-          <Body>
-            <Title>{this.state.name}</Title>
-          </Body>
-
-          <Right>
-              <Button transparent   onPress={() =>
-                  ActionSheet.show(
-                    {
-                      options: BUTTONS,
-                      cancelButtonIndex: CANCEL_INDEX,
-                      destructiveButtonIndex: DESTRUCTIVE_INDEX
-                      
-                    },
-                    buttonIndex => {
-
-                      //handle blocking profile
-                      if ((buttonIndex) == 0){
-                        this.blockOrReport();
-
-                      //handle block and report a user
-                      }else if ((buttonIndex) == 1){
-
-                        Alert.alert(
-                          'Report & Block',
-                          'We take reports seriously and will investigate this person as well as block them from interacting with you in the future. If you just want to unmatch tap "unmatch" instead.',
-                          [
-                            {text: 'Unmatch', onPress: () => this.blockOrReport()},
-                            {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-                            {text: 'Report & Block', onPress: () => this.blockOrReport('report')},
-                          ],
-                          { cancelable: false }
-                        ) 
-                
-                      }
-                    }
-                  )}
-            >
-                <Icon name="ios-more" />
-              </Button>
-          </Right>
-        </Header>
         
-        <View style={{paddingLeft:10, paddingRight:10, alignItems:'center', flexDirection:'row', justifyContent: 'center'}}>
+        <View style={{padding:10,  alignItems:'center', flexDirection:'row', justifyContent: 'center'}}>
           <Text style={{fontWeight:'600', color:'red', paddingLeft: 5}}>TIME REMAINING: </Text>
           <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', width:200}}> 
-            // <TimerCountdown
-            //   initialSecondsRemaining={ timeRemaining }
-            //   onTimeElapsed={() => this.setState({ matchActive: false, timeLeft:0})}
-            //   allowFontScaling={true}
-            //   style={{ fontSize: 20 }}
-            />
+          <TimerMachine
+              timeStart={timeRemaining} // start at 10 seconds
+              timeEnd={0 * 1000} // end at 20 seconds
+              started={true}
+              paused={false}
+              countdown={true} // use as stopwatch
+              interval={1000} // tick every 1 second
+              formatTimer={(time, ms) =>
+                moment.duration(ms, "milliseconds").format("h:mm:ss")
+              }
+              onStart={time =>
+                console.info(`Timer started: ${JSON.stringify(time)}`)
+              }
+              onStop={time =>
+                console.info(`Timer stopped: ${JSON.stringify(time)}`)
+              }
+              // onTick={time =>
+              //   console.info(`Timer ticked: ${JSON.stringify(time)}`)
+              // }
+              onPause={time =>
+                console.info(`Timer paused: ${JSON.stringify(time)}`)
+              }
+              onResume={time =>
+                console.info(`Timer resumed: ${JSON.stringify(time)}`)
+              }
+              onComplete={time =>
+                this.setState({ chatActive: false, timeRemaining:0})
+              }
+          />            
           </Text> 
-              <Icon name="ios-person" onPress={() => this.setState({ imageViewerVisible: true})} style={{fontSize: 30, color: 'grey', paddingTop: 5, paddingRight: 5 }}/>
+        
+              <FontAwesomeIcon onPress={() => this.setState({ imageViewerVisible: true})} size={ 28 } style={{ right: 15, color: 'grey',}} icon={ faImages } />
+
         </View>
 
         <View>
@@ -522,8 +631,11 @@ class Chat extends Component {
     );
   }
 
-
   componentDidMount() {
+    
+    //send blockOrReport function to nav as param, so that it can be referenced in the navigation. 
+    this.props.navigation.setParams({ block: this.blockOrReport });
+
     this.loadMessages((message) => {
       this.setState((previousState) => {
         return {
@@ -553,5 +665,5 @@ let styles = StyleSheet.create({
  }
 });
 
-export default Chat;
+export default withNavigation(Chat);
 

@@ -1,36 +1,37 @@
 import React, { Component } from 'react';
-import { Dimensions, ActivityIndicator, ImageBackground, TouchableOpacity, TouchableHighlight, Modal,ScrollView,StyleSheet,Share,Text,View,TouchableWithoutFeedback } from 'react-native'
+import { Dimensions, ActivityIndicator, Image, ImageBackground, TouchableOpacity, Modal,ScrollView,Share } from 'react-native'
 import RNFirebase from "react-native-firebase";
+import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import * as firebase from "firebase";
-import { DrawerNavigator, NavigationActions } from "react-navigation";
 import ImageViewer from 'react-native-image-zoom-viewer';
-import Overlay from 'react-native-modal-overlay';
-import ProgressCircle from 'react-native-progress-circle';
-// import Swiper from 'react-native-deck-swiper';
-import TimerMixin from 'react-timer-mixin';
-import FontAwesome, { Icons } from 'react-native-fontawesome';
-
+import Swiper from 'react-native-deck-swiper';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faCog, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock } from '@fortawesome/free-solid-svg-icons';
 import {
   Badge,
   Card,
   CardItem,
   Container,
-  DeckSwiper,
-  Header,
-  Title,
-  Toast,  
-  Content,
   Button,
-  Icon,
-  Left,
+  Text,
+  Body,
+  View,
   Thumbnail,
+  ListItem,
+  List,
+  Left,
   Right,
-  Body
+  H1,
+  H2,
+  H3,
+  Icon,
 } from "native-base";
+
+const primaryColor = "#8A6077";
+//let potential_match = true; //update this line for testing - 371
 
 
 class Swipes extends Component {
-  
   constructor (props) {
     super(props)
     this.state = {
@@ -49,11 +50,10 @@ class Swipes extends Component {
       loading: true,
       unreadChatCount: 0,
       showChatCount: false,
-      isEmpty: false,
+      isEmpty: true,
       allSwiped: false,
       imageViewerVisible: false,
       profileMaxHeight: "15%",
-      swipesStatsShow: false,
       swipeCountStart: 0,
       query_start: null,
       query_end: null,
@@ -61,7 +61,47 @@ class Swipes extends Component {
     }
   }
 
+
+
+  //configure navigation
+  static navigationOptions = ({ navigation }) => {
+    return {
+      headerLeft: () => (
+        <Button transparent onPress={() => navigation.navigate('Settings')}>
+          <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faCog } />
+       </Button>
+      ),
+      headerTitle: () => (<FontAwesomeIcon size={ 40 } style={{fontSize: 32, color: 'lightgrey'}} icon={ faUsers } />
+      ),
+      headerRight: () => (
+        <Button transparent onPress={() => navigation.navigate('Messages')} >
+          <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faComments } />
+          { navigation.getParam('showChatCount') &&
+            <Badge style={{ position: 'absolute', right: 4 }}>
+              <Text>{navigation.getParam('unreadChatCount')}</Text>
+            </Badge>
+          }
+       </Button>
+      )
+    };
+  };
+
   componentDidMount() {
+
+    //subscribe to blur event from navigation, to capture when screen changes. If so, update swipe count with appropriate count from the session. 
+    const didBlurSubscription = this.props.navigation.addListener(
+      'didBlur',
+      payload => {
+        //save flag that user has now seen their daily match.
+        let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+
+        //update swipe count in db in order to compute remaining matches. 
+        userRef.update({
+          swipe_count: this.state.swipeCountStart + this.state.cardIndex,
+          last_swipe_sesh_date: new Date().getTime()
+        });
+      }
+    );
 
     //save userId of logged in user, to use for later db queries. 
     const userId = firebase.auth().currentUser.uid;
@@ -80,7 +120,7 @@ class Swipes extends Component {
     firebase.database().ref('/users/' + userId).once('value', ((snapshot) => {
                 
         //set state with user data. 
-        this.setState({ 
+        this.setState({
             user_name: snapshot.val().first_name,
             user_images: snapshot.val().images,
             user_about: snapshot.val().about,
@@ -89,8 +129,10 @@ class Swipes extends Component {
             user_city_state: snapshot.val().city_state,
             user_education: snapshot.val().education,
             user_work: snapshot.val().work,
-            swipeCountStart: snapshot.val().swipe_count         
-        }),
+            user_reviews: snapshot.val().reviews,
+            swipeCountStart: snapshot.val().swipe_count,
+            showInstructionsSwipes: snapshot.val().showInstructionsSwipes,
+        }), this.showInstructions(snapshot.val().showInstructionsSwipes),
           RNFirebase.analytics().setAnalyticsCollectionEnabled(true);
           RNFirebase.analytics().setCurrentScreen('Swipes', 'Swipes');
           RNFirebase.analytics().setUserId(userId);
@@ -117,12 +159,12 @@ class Swipes extends Component {
             this.setState({
               unreadChatCount: Object.keys(chatSnapshot.toJSON()).length,
               showChatCount: true
-            }) 
+            }), this.props.navigation.setParams({ unreadChatCount: this.state.unreadChatCount, showChatCount: true });
           }else{
             this.setState({
               unreadChatCount: 0,
               showChatCount: false
-            }) 
+            }), this.props.navigation.setParams({ unreadChatCount: this.state.unreadChatCount, showChatCount: false });
 
           }
         })
@@ -135,13 +177,22 @@ class Swipes extends Component {
     firebase.database().ref('/matches/' + userId).off('value');
   }
 
+  //function to show instructions, only show when showInstructions from state is true. 
+  showInstructions = (showInstructionsSwipes) => {
+    //alert(this.state.showInstructionsSwipes);
+    if (showInstructionsSwipes) {
+      openOverlay();
+    };
+  } 
+
+
   getMatches(userId) {
     fetch('https://us-central1-blurred-195721.cloudfunctions.net/getMatches?userid='+userId)
       .then((response) => response.json())
       .then((responseJson) => {
-        
+      
         console.log('responseJson is: '+JSON.stringify(responseJson));
-
+    
         // for each match userid inside responeJson
         let promises = responseJson.map((match) => {
           
@@ -181,7 +232,8 @@ class Swipes extends Component {
           }else{
             this.setState({ 
               profiles: profileObj,
-              loading: false
+              loading: false,
+              isEmpty: false,
             });
           }
        
@@ -190,22 +242,8 @@ class Swipes extends Component {
   }
 
 
-  //Close match modal. Eventually redirect directly to chat componenent specific to match's conversation. 
-  closeModal(redirect) {
-    const { navigate } = this.props.navigation;
-    this.setState({swipesStatsShow:false});
-    if(redirect == true){
-      navigate("Messages");
-    }
-  }
-
-  showModal() {
-    this.setState({swipesStatsShow:true});
-  }
-
-
   //function to call when a new match is intiated.
-  pushNewMatch = (images, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match) => {
+  pushNewMatch = (images, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match) => {
 
     user_name = this.state.user_name;
     user_images = this.state.user_images;
@@ -215,11 +253,10 @@ class Swipes extends Component {
     user_city_state = this.state.user_city_state;
     user_education = this.state.user_education;
     user_work = this.state.user_work;
+    user_reviews = this.state.user_reviews;
 
     //create ref to conversations obj
     conversationRef = firebase.database().ref('conversations/');
-
-
 
     //push new conversation obj for new match
     //make sure that users who already matched, don't show up in match queue. Otherwise duplicate conversations will occur.  
@@ -261,6 +298,9 @@ class Swipes extends Component {
           //create ref to set new conversations key/value pair witin users object.
           let conversationsMatchesRef2 = firebase.database().ref('/users/'+userid_match+'/').child("conversations");
 
+          console.log("reviews_match is: "+JSON.stringify(reviews_match));
+          console.log("user_reviews is: "+JSON.stringify(user_reviews));
+
           //set new match object
           matchesRef1.set({
             blur: "40", //start blur at this amount
@@ -273,6 +313,7 @@ class Swipes extends Component {
             city_state: city_state_match,
             education: education_match,
             work: work_match,
+            reviews: reviews_match ? reviews_match : {},
             active: 'true',
             match_date: new Date().getTime(),
             match_id: match_id,
@@ -293,6 +334,7 @@ class Swipes extends Component {
             city_state: user_city_state,
             education: user_education,
             work: user_work,
+            reviews: user_reviews ? user_reviews : {},
             active: 'true',
             match_date: new Date().getTime(),
             match_id: match_id,
@@ -324,11 +366,11 @@ class Swipes extends Component {
   }
 
   //Function to save new swipe object
-  pushNewSwipe = (like, userid, userid_match, match_status, name_match, about_match, imagesObj, birthday_match, gender_match, city_state_match, education_match, work_match) => {
+  pushNewSwipe = (like, userid, userid_match, match_status, name_match, about_match, imagesObj, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match) => {
 
     //save potential_match into bool var. 
-    //let potential_match = (match_status == 'potential_match') ? true : false;
-    let potential_match = true;
+    let potential_match = (match_status == 'potential_match') ? true : false;
+    //let potential_match = true; //comment out for testing
 
 
     //define ref to users' swipe object
@@ -352,7 +394,7 @@ class Swipes extends Component {
       // create new match object
       if ((potential_match == true) && (like == true)) { 
          //alert("save new match!");
-         this.pushNewMatch(imagesObj, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match);
+         this.pushNewMatch(imagesObj, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match);
       }
 
         // let Analytics = RNFirebase.analytics();
@@ -361,39 +403,6 @@ class Swipes extends Component {
         });
 
   }
-
-  //Share function when sharing referral code native share functionality. 
-  onShare = () => {
-
-    //fetch from getCode cloud function
-    fetch('https://us-central1-blurred-195721.cloudfunctions.net/getCode?userid='+this.state.userId)
-    .then((response) => response.json())
-    .then((responseJson) => {
-               
-        //save code var.
-        let code = responseJson.sharable_code;
-        let codeDelete = responseJson.code_id;
-
-        //prompt native share functionality 
-        Share.share({
-          message: 'I think you\'ll love Helm. It\'s a different type of dating where only men invited by women can join. You\'ll need this code to enter: '+code,
-          url: 'https://itunes.apple.com/us/app/hinge/id595287172',
-          title: 'Wow, have you seen this yet?'
-        }).then(({action, activityType}) => {
-          if(action === Share.dismissedAction) {
-            //delete unsent code from db
-            firebase.database().ref('codes/' + codeDelete).remove();
-
-          } 
-          else {
-            console.log('Share successful');
-          }
-        })
-    })
-    .catch(function(error) {
-        alert("Data could not be saved." + error);
-    });
-  };
 
   //Function to save new swipe object
   calculateAge (dateString) {// birthday is a date
@@ -447,7 +456,8 @@ class Swipes extends Component {
           this.state.profiles[cardIndex].gender, //match gender
           this.state.profiles[cardIndex].city_state, //match city
           this.state.profiles[cardIndex].education,  // match job
-          this.state.profiles[cardIndex].work  // match work
+          this.state.profiles[cardIndex].work, // match work
+          this.state.profiles[cardIndex].reviews  // match reviews
 
 
         ),this.setState({ cardIndex: cardIndex+1});//update card index in state, so that image modal has correct images 
@@ -484,36 +494,80 @@ class Swipes extends Component {
     }, millisTillBatch);
   }
 
-  enableNavigation = (view) => {
+  renderBlurChilds() {
+    return (
+      <View >
+          <Text style={{textAlign: 'center', color: 'white', margin: 35}}> You will have 10 matches each day. If a match is mutual, you'll be able to message each other. With every message photos will focus. </Text>          
+      </View>
+    );
+}
+
+  //function to renderReviews into markup
+  _renderReview = (reviews) => {
     const { navigate } = this.props.navigation;
 
-    //save flag that user has now seen their daily match.
-    let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+      //return markup for each review
+      return ( 
 
-    console.log('swipecountstart is: '+this.state.swipeCountStart + 'card index is: '+ this.state.cardIndex);
-    //update swipe count in db in order to compute remaining matches. 
-    userRef.update({
-      swipe_count: this.state.swipeCountStart + this.state.cardIndex,
-      last_swipe_sesh_date: new Date().getTime()
-    });
-
-    //navigate to appropriate view;
-    if (view == 'Settings'){
-      navigate("Settings");
-    }else{
-      navigate("Messages");
+      reviews ? (
+      <View style={{marginTop: 10}} >
+        {Object.values(reviews).map((review, index) => (
+          <Card>
+          <List>
+            <ListItem avatar noBorder>
+              <Left>
+                <Thumbnail large source={{uri: review.photo}} />
+              </Left>
+              <Body>
+                <Text style={{color: primaryColor}}>{review.name+' says:'}</Text>
+                <Text note>{review.reason}</Text>
+              </Body>
+            </ListItem>
+          </List>
+        </Card>
+        ))}
+      </View>) : null
+      );
     }
-    
+
+  //handle scroll of profile by growing/shrinking container when user scrolls and expects that. 
+  _handleScroll = (event: Object) => {
+
+    var currentOffset = event.nativeEvent.contentOffset.y;
+    var direction = currentOffset > this.offset ? 'down' : 'up';
+    this.offset = currentOffset;
+
+    if((direction == 'down') && (currentOffset > 0)){
+      this.setState({ profileMaxHeight: 400});
+
+    }else if ((direction == 'up') && (currentOffset < 0)){
+      this.setState({ profileMaxHeight: '15%'}),
+          //scroll to top
+          this.refs.ScrollView_Reference.scrollTo({x: 0, y: 0, animated: false});
+    }
   }
 
-
-
+  
 
   render () {
     const { navigate } = this.props.navigation;
     const dimensions = Dimensions.get('window');
     const height = dimensions.height;
-    const width = dimensions.width
+    const width = dimensions.width;
+    let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+
+    // console.log('cards is: '+cards);
+    // console.log('cards (stringified) is: '+JSON.stringify(cards));
+
+    console.log('this.state.profiles is: '+this.state.profiles);
+
+    // console.log('this.state.profiles (stringified) is: '+JSON.stringify(this.state.profiles));
+
+      //JSON.stringify(this.state.profiles);
+        
+    //this.state.profiles;
+    let profiles = [this.state.profiles];
+
 
     //determine width of device in order for custom margin between iphones
     let deviceWidth = Dimensions.get('window').width
@@ -534,66 +588,179 @@ class Swipes extends Component {
 
 
     return (
-      <Container style={{ flex: 1 }} >
-          <Header>
-            <Left>
-              <Button transparent onPress={() => this.enableNavigation('Settings') }>
-               <FontAwesome style={{fontSize: 32, color: '#B2B2FF'}}>{Icons.cog}</FontAwesome>
-              </Button>
-            </Left>
-            <Body>
-              <FontAwesome style={{fontSize: 32, color: '#B2B2FF'}}>{Icons.users}</FontAwesome>
-            </Body>
-            <Right>
-              <Button transparent onPress={() => this.enableNavigation('Messages') }>
+      <Container >
 
-               <FontAwesome style={{fontSize: 32, color: '#B2B2FF'}}>{Icons.comments}</FontAwesome>
-      
-                { this.state.showChatCount && 
-                  <Badge style={{ position: 'absolute', left: 25 }}>
-                    <Text>{this.state.unreadChatCount}</Text>
-                  </Badge>
-                }
-              </Button>
-            </Right>
-          </Header>
-        <View style={{ marginTop: -50}}>
+      <BlurOverlay
+        radius={14}
+        downsampling={2}
+        brightness={-200}
+        onPress={() => {
+            closeOverlay();
+            //alert('closed');
+            userRef.update({showInstructionsSwipes: false})
+        }}
+        customStyles={{alignItems: 'center', justifyContent: 'center'}}
+        blurStyle="dark"
+        children={this.renderBlurChilds()}
+      />
 
-         <View style={{flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'absolute', left: width/6, top: height/2}}>
-          {(this.state.isEmpty || this.state.allSwiped) && 
-            <View>
-              <Text> Come back tomorrow for more matches.</Text>
-              <Text>Please help us grow by sharing with friends</Text>
-              <View style ={{marginTop: 20}}>
-                <Button onPress={this.onShare} rounded block bordered>
-                  <Text>Invite friend</Text>
+          <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between'}}>
+            { ((this.state.isEmpty || this.state.allSwiped) && !this.state.loading ) && 
+              <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                <Button transparent onPress = {() => navigate("Refer", {flow: 'refer' })} >
+                    <FontAwesomeIcon size={ 68 } style={{marginBottom: 55, color: primaryColor}} icon={ faUserClock } />
                 </Button>
-              </View>
-            </View>}
-          </View>
+                <Text style={{color: primaryColor}}> Come back tomorrow for more matches.</Text>
+                <Text style={{color: primaryColor}}>Refer a friend.</Text>
+                <View style ={{marginTop: 20}}>
+                  <Button bordered style={{padding: 10, borderColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'refer' })}>
+                    <Text style={{color: primaryColor}}>Generate Refer Code</Text>
+                  </Button>
+                </View>
+              </View>}
 
-          <View style={{flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'absolute', left: loadingLeftPosition, top: height/2}}>
-            <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
-          </View>
-          
-          <Text> Swiper component here.</Text>
+            { (this.state.loading) &&
+              <View style={{flex: 1, justifyContent: 'center'}}>
+                <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
+              </View>           
+            }
+            
+            {/* only show swiper if loading is false - loading finished  */}
+            { ((!this.state.isEmpty || !this.state.allSwiped ) && !this.state.loading ) && 
+            <View style={{position: 'relative', bottom: 40, flex: 1, justifyContent: 'flex-start'}}>
+              <Swiper
+                cards={this.state.profiles}
+                ref = {swiper => {this.swiper = swiper}}
+                verticalSwipe = {false}
+                onTapCard={() => this.setState({ imageViewerVisible: true, matchAbout: this.state.profiles[cardIndex].about, matchReviews: this.state.profiles[cardIndex].reviews, matchEducation: this.state.profiles[cardIndex].education, matchBirthday: this.state.profiles[cardIndex].birthday, matchWork: this.state.profiles[cardIndex].work, matchGender: this.state.profiles[cardIndex].gender, matchCityState: this.state.profiles[cardIndex].city_state, matchEducation: this.state.profiles[cardIndex].education,  matchImages: Object.values(this.state.profiles[cardIndex].images) })} 
+                cardIndex={this.state.cardIndex}
+                backgroundColor={'white'}
+                stackSeparation={11}
+                stackSize={6}
+                animateCardOpacity = {true}
+                //shake to go back. 
+                onSwiped={(index) => console.log('onSwiped at index: '+index)}
+                //onSwipedAll={(index) => this.getMatches(this.state.userId)} 
+                onSwipedAll={(index) => this.setState({ allSwiped: true, isEmpty: true })}
+                cards={this.state.profiles}
+                onSwipedRight={(index) => this.onSwiped(index,'right',true)}//this.state.profile[]cardIndex.potential_match 
+                onSwipedLeft={(index) => this.onSwiped(index,'left',false)} 
+                overlayLabels={{
+                  bottom: {
+                    title: 'Date with Jason',
+                    style: {
+                      label: {
+                        backgroundColor: 'black',
+                        borderColor: 'black',
+                        color: 'white',
+                        borderWidth: 1
+                      },
+                      wrapper: {
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }
+                    }
+                  },
+                  left: {
+                    title: 'NOPE',
+                    style: {
+                      label: {
+                        backgroundColor: 'black',
+                        borderColor: 'black',
+                        color: 'white',
+                        borderWidth: 1
+                      },
+                      wrapper: {
+                        flexDirection: 'column',
+                        alignItems: 'flex-end',
+                        justifyContent: 'flex-start',
+                        marginTop: 30,
+                        marginLeft: -30
+                      }
+                    }
+                  },
+                  right: {
+                    title: 'LIKE',
+                    style: {
+                      label: {
+                        backgroundColor: 'black',
+                        borderColor: 'black',
+                        color: 'white',
+                        borderWidth: 1
+                      },
+                      wrapper: {
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        justifyContent: 'flex-start',
+                        marginTop: 30,
+                        marginLeft: 30
+                      }
+                    }
+                  },
+                  top: {
+                    title: 'SUPER LIKE',
+                    style: {
+                      label: {
+                        backgroundColor: 'black',
+                        borderColor: 'black',
+                        color: 'white',
+                        borderWidth: 1
+                      },
+                      wrapper: {
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }
+                    }
+                  }
+                }}                
+                renderCard={(card) => {
+                  
+                  return (
+                  <Card style={{ elevation: 3 }}>
+                    <CardItem cardBody>
+                      <View style={{
+                        flex: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',                        
+                      }}>
+                        <ImageBackground
+                          resizeMode="cover"
+                          style={{ width: '100%', height: height-220 }}
+                          source={{uri: Object.values(card.images)[0].url}}
+                        /> 
+                      </View>
+                    </CardItem>                  
+                    <CardItem>
+                        <Body>
+                          {/* <H3 style={{ textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday)}, {card.gender}, {card.city_state}</H3> */}
+                          <H3 style={{ textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday)}, {card.gender}, {card.city_state}</H3>
 
-        </View>
+                          {/* <View style={{flex: 1, flexDirection: 'row'}}>
+                              <FontAwesomeIcon size={ 15 } style={{color: 'black'}} icon={ faBook } />
+                          </View>
+                          <Text style={{paddingLeft: 25}} numberOfLines={1}>{card.education} </Text>
+                          
+                          <View style={{flex: 1, flexDirection: 'row'}}>
+                              <FontAwesomeIcon size={ 15 } style={{color: 'black'}} icon={ faBriefcase } />
+                          </View>
+                          <Text style={{paddingLeft: 25}} numberOfLines={1}>{card.work} </Text>
+ */}
 
+                          <Text style={{}} numberOfLines={1}>{card.education} </Text>
+                          <Text style={{}} numberOfLines={1}>{card.work} </Text>
+                          <Text style={{marginTop: 10}} numberOfLines={1} note>{card.about} </Text>                           
+                        </Body>
+                    </CardItem>            
+                  </Card>)
+                }}
+>
+            </Swiper>
+            </View>         
+            }
 
-
-
-
-
-
-
-
-
-          <Modal 
-            visible={this.state.imageViewerVisible} 
-            transparent={true}
-            animationType="slide">
-
+            <Modal visible={this.state.imageViewerVisible} transparent={true} animationType="slide">
               <ImageViewer 
                 index = {this.state.imageIndex}
                 imageUrls={this.state.matchImages}
@@ -601,37 +768,35 @@ class Swipes extends Component {
                 onSwipeDown = {() => this.setState({ imageViewerVisible: false, imageIndex: 0, profileMaxHeight: '15%'})}
                 onClick = {() => this.setState({ imageViewerVisible: false, imageIndex: 0,  profileMaxHeight: '15%'})}
               />
-
                 <View 
-                  flex={0}
-                  alignItems="flex-start"
-                  justifyContent="center"
+                  flex={1}
                   borderWidth={1}
                   borderColor="grey"
                   borderRadius={5}
                   backgroundColor="white"
                   maxHeight= {this.state.profileMaxHeight} //profileMaxHeight
-                  
                 >
                   <ScrollView 
-                    flexGrow={0}
+                   ref='ScrollView_Reference'
+                   onScroll={this._handleScroll}
+                   scrollEventThrottle={16}
                     contentContainerStyle={{
                       padding: 15,
                       backgroundColor:'white'
                     }}>
-                      <TouchableOpacity onPress={() => this.toggleProfile() }>
-                        <View>   
-
-                          <Text style={{fontWeight: "bold"}} >{this.calculateAge(this.state.matchBirthday)}, {this.state.matchGender}, {this.state.matchCityState}</Text>
-                          <Text style={{marginBottom: 4}} note>{this.state.matchWork} </Text>
-                          <Text style={{marginBottom: 4}} note>{this.state.matchEducation} </Text>
-                          <Text numberOfLines={2} note>{this.state.matchAbout} </Text>
-
-                        </View>
-                      </TouchableOpacity>
+                      <TouchableOpacity >
+                        <Card transparent>   
+                          <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.calculateAge(this.state.matchBirthday)}, {this.state.matchGender}, {this.state.matchCityState}</H3>
+                          <Text numberOfLines={1} style={{}}>{this.state.matchWork} </Text>
+                          <Text numberOfLines={1} style={{marginBottom: 10}}>{this.state.matchEducation} </Text>
+                          <Text note>{this.state.matchAbout}</Text>
+                        </Card>
+                        {this._renderReview(this.state.matchReviews)}
+                      </TouchableOpacity>  
                   </ScrollView>
                 </View>          
           </Modal> 
+        </View>
 
       </Container>
     )

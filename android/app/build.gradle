@@ -179,6 +179,9 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-blur-overlay')
+    implementation project(':@react-native-community_geolocation')
+    implementation project(':react-native-fbsdk')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
 

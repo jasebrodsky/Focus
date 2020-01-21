@@ -3,6 +3,12 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 target 'Focus' do
   # Pods for Focus
+  pod 'Firebase/Core', '~> 6.13.0'
+  
+  pod 'Firebase/Messaging'
+  pod 'RNFirebase', :path => '../node_modules/react-native-firebase/ios'
+
+  pod 'GoogleAppMeasurement', '~> 6.1.6'
   pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
   pod 'FBReactNativeSpec', :path => "../node_modules/react-native/Libraries/FBReactNativeSpec"
   pod 'RCTRequired', :path => "../node_modules/react-native/Libraries/RCTRequired"
@@ -30,9 +36,19 @@ target 'Focus' do
   pod 'ReactCommon/turbomodule/core', :path => "../node_modules/react-native/ReactCommon"
   pod 'Yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
 
+  pod 'react-native-fbsdk', :path => '../node_modules/react-native-fbsdk'
+  pod 'FBSDKCoreKit'
+  pod 'FBSDKLoginKit'
+  pod 'FBSDKShareKit'
+
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
+  
+  pod 'react-native-geolocation', :path => '../node_modules/@react-native-community/geolocation'
+
+
+  pod 'SajjadBlurOverlay', :path => '../node_modules/react-native-blur-overlay'
 
   target 'FocusTests' do
     inherit! :search_paths

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, StyleSheet, AlertIOS, Share } from 'react-native';
+import { ActivityIndicator, StyleSheet, Alert, Share } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import RNfirebase from 'react-native-firebase';
 
@@ -16,6 +16,10 @@ import {
   Body,
   View
 } from "native-base";
+
+const primaryColor = "#8A6077";
+
+//LINE 234 TO TURN ON REDIRECT FOR TESTING - BUILD INTO CONFIG
 
 const styles = StyleSheet.create({
   buttonCircle: {
@@ -50,18 +54,19 @@ const slidesFemale = [
   {
     key: '1',
     title: 'Welcome to Focus',
-    text: 'Dating for the modern people.',
+    text: "Focus on what's important." ,
+    // text: "Only women decide who can join." ,
     image: require('./assets/banner-welcome.jpg'),
     imageStyle: styles.image,
-    backgroundColor: '#22bcb5',
+    backgroundColor: primaryColor,
   },
   {
     key: '2',
     title: 'Better conversations',
-    text: 'With each message photos will unblur.',
+    text: 'With each message, photos will re-focus.',
     image: require('./assets/banner-chat.jpg'),
     imageStyle: styles.image,
-    backgroundColor: '#22bcb5',
+    backgroundColor: primaryColor,
   },
   {
     key: '3',
@@ -69,7 +74,7 @@ const slidesFemale = [
     text: 'Men need to be invited by a female.',
     image: require('./assets/banner-gentlemen.jpg'),
     imageStyle: styles.image,
-    backgroundColor: '#22bcb5',
+    backgroundColor: primaryColor,
   }
 ];
 
@@ -77,19 +82,19 @@ const slidesMale = [
   {
     key: '1',
     title: 'Welcome to Focus',
-    text: 'Dating for the modern people.',
+    text: "Focus on what's important." ,
     image: require('./assets/banner-welcome.jpg'),
     //image: {uri: 'https://edmullen.net/test/rc.jpg', cache: 'force-cache'},
     imageStyle: styles.image,
-    backgroundColor: '#22bcb5',
+    backgroundColor: primaryColor,
   },
   {
     key: '2',
     title: 'Better conversations',
-    text: 'With each message photos will unblur.',
+    text: 'With each message, photos will re-focus.',
     image: require('./assets/banner-chat.jpg'),
     imageStyle: styles.image,
-    backgroundColor: '#22bcb5',
+    backgroundColor: primaryColor,
   },
   {
     key: '3',
@@ -97,7 +102,7 @@ const slidesMale = [
     text: 'Men need to be invited by a female.',
     image: require('./assets/banner-gentlemen.jpg'),
     imageStyle: styles.image,
-    backgroundColor: '#22bcb5',
+    backgroundColor: primaryColor,
   }
 ];
 
@@ -109,110 +114,43 @@ class Intro extends Component {
     //set state to convos var
     this.state = {
       loading: true,
-      gender: 'Male',
+      gender: '',
+      userId: ''
     }
 
   }
-  static navigationOptions = ({ navigation }) => {
-    return {
-      title: null,
-    }
+
+  //hide nav bar on the login screen
+  static navigationOptions = {
+    header: null,
   };
 
-  
 
   componentWillMount() {
 
-    const userId = firebase.auth().currentUser.uid;
-    const route = this.props.navigation.state.routeName;
+    const { state } = this.props.navigation;
 
-
-    //query for logged in users information needed and set state with it.     
-    firebase.database().ref('/users/' + userId).once('value', ((userSnap) => {
-                
-      //set state with user data. 
+    //if returned gender is male, return male flow, for all other genders returned, return female flow
+    let gender = (state.params.gender == 'male') ? 'male' : 'female';
+    let userId = state.params.user_id;
+  
+     //set state with user data. 
       this.setState({ 
         userId: userId,
-        gender: userSnap.val().gender,
-      })
-      
-
-      // // let Analytics = RNFirebase.analytics();
-      // RNFirebase.analytics().logEvent('swipeEvent', {
-      //   like: like.toString()
-      // });
-
-    })), 
+        gender: gender
+      });    
 
       RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
       RNfirebase.analytics().setUserId(userId);
       RNfirebase.analytics().setCurrentScreen('Intro', 'Intro');
-    
   }
-
-
-
-  //Share function when sharing referral code native share functionality. 
-  _onShare = () => {
-
-    //fetch from getCode cloud function
-    fetch('https://us-central1-blurred-195721.cloudfunctions.net/getCode?userid='+this.state.userId)
-    .then((response) => response.json())
-    .then((responseJson) => {
-               
-        //save code var.
-        let code = responseJson.sharable_code;
-        let codeDelete = responseJson.code_id;
-
-        //prompt native share functionality 
-        Share.share({
-          message: 'You gotta check out Focus. It\'s a dating app where only men invited by women can join. You\'ll need this code to enter: '+code,
-          url: 'https://helmdating.com/invited.html',
-          title: 'Wow, have you seen this yet?'
-        }).then(({action, activityType}) => {
-
-          let Analytics = RNfirebase.analytics();
-          if(action === Share.dismissedAction) {
-            //delete unsent code from db
-            firebase.database().ref('codes/' + codeDelete).remove();
-
-            //record in analytics that share was dismissed 
-            Analytics.logEvent('shareDialogDismissed', {
-              testParam: 'testParamValue1'
-            });
-
-            //redirect to settings component
-            const { navigate } = this.props.navigation;
-            navigate("Settings");
-
-          } 
-          else {
-            console.log('Share successful');
-           
-            //record in analytics that share was dismissed 
-            Analytics.logEvent('shareDialogSent', {
-              testParam: 'testParamValue1'
-            });
-
-            //redirect to settings component
-            const { navigate } = this.props.navigation;
-            navigate("Settings");
-
-          }
-        })
-    })
-    .catch(function(error) {
-        alert("Data could not be saved." + error);
-    });
-  };
-
   
   //check code is valid
   _checkCode = (userCode) => {
     //save analytics in let
     let Analytics = RNfirebase.analytics();
     //call firebase if code exists and is not expired
-    firebase.database().ref("/codes").orderByChild("sharable_code").equalTo(userCode).once("value",codeSnap => {
+    firebase.database().ref("/codes").orderByChild("sharable_code").equalTo(userCode.toUpperCase()).once("value",codeSnap => {
         //check if code exists
         if (codeSnap.exists()){
 
@@ -221,6 +159,9 @@ class Intro extends Component {
           let key = Object.keys(code);
           let codeData = code[key];
           let expired = codeData.expired;
+          let reason = codeData.reason;
+          let name_creator = codeData.name_creator;
+          let photo_creator = codeData.photo_creator;
                 
           //check if code is also expired
           if(expired == true){
@@ -233,7 +174,7 @@ class Intro extends Component {
               codeData: 'codeData'
             });
 
-            AlertIOS.alert('Whoops!','Code: '+userCode+' has already been used. Please ask your friend for another.');
+            Alert.alert('Whoops!','Code: '+userCode+' has already been used. Please ask your friend for another.');
 
           }else{
             const { navigate } = this.props.navigation;
@@ -246,17 +187,33 @@ class Intro extends Component {
               codeData: 'codeData'
             });
 
-            //update code to expired at the specific code key and redirect to settings
-            firebase.database().ref('/codes/'+key).update({expired_date: new Date().getTime(), expired: true});
+            //update code to expired at the specific code key and add created_for as well, to reference later. 
+            firebase.database().ref('/codes/'+key).update({expired_date: new Date().getTime(), expired: true, created_for: this.state.userId });
             
+            //save db ref for profile 
+            firebaseProfileRef = firebase.database().ref('/users/' + this.state.userId);
+            
+            // save reference to where to save the new review object 
+            firebaseProfileRefReviews = firebase.database().ref('/users/'+this.state.userId+'/reviews/'+key);
+
+            //update code_accepted to true
+            firebaseProfileRef.update({code_accepted: true});
+
+            //build review object to update db with. 
+            let reviewObj = {name: name_creator, photo: photo_creator, reason: reason, code_key: key[0]}
+
+            //push new review into users profile object
+            firebaseProfileRefReviews.set(reviewObj);
+
             //alert welcome message, then navigate to settings. 
-            AlertIOS.alert(
+            Alert.alert(
               'Welcome to Focus!',
               'Click ok to enter community.',
               [
                 {
                   text: 'Ok',
                   onPress: () => navigate("Settings"),
+                  //onPress: () => navigate("Swipes"),
                 },
               ],
             );
@@ -272,21 +229,23 @@ class Intro extends Component {
           Analytics.logEvent('codeInvalid', {
             codeData: 'codeData'
           });         
-          //AlertIOS.alert('Whoops!','Code: '+userCode+' does not exist. Please ask your friend for another.');
+          
+          //alert user that code does not exist. 
+          //Alert.alert('Whoops!','Code: '+userCode+' does not exist. Please ask your friend for another.');
 
           //let people in for testing
-          const { navigate } = this.props.navigation;
+          // const { navigate } = this.props.navigation;
 
-          AlertIOS.alert(
-              'Welcome to Focus!',
-              'actually check code before launching.',
-              [
-                {
-                  text: 'Ok',
-                  onPress: () => navigate("Swipes"),
-                },
-              ],
-            );
+          // Alert.alert(
+          //     'Welcome to Focus!',
+          //     'actually check code before launching.',
+          //     [
+          //       {
+          //         text: 'Ok',
+          //         onPress: () => navigate("Settings"),
+          //       },
+          //     ],
+          //   );
         }
     });
   }
@@ -298,7 +257,25 @@ class Intro extends Component {
     //if gender is male then render redeem code flow. 
     if (this.state.gender == 'male'){
 
-      AlertIOS.prompt(
+
+      // // Works on both Android and iOS
+      // Alert.alert(
+      //   'Alert Title',
+      //   'My Alert Msg',
+      //   [
+      //     {text: 'Ask me later', onPress: () => console.log('Ask me later pressed')},
+      //     {
+      //       text: 'Cancel',
+      //       onPress: () => console.log('Cancel Pressed'),
+      //       style: 'cancel',
+      //     },
+      //     {text: 'OK', onPress: () => console.log('OK Pressed')},
+      //   ],
+      //   {cancelable: false},
+      // );
+
+
+      Alert.prompt(
         'Enter code',
         'Enter your referral code you received from a friend',
         [
@@ -317,7 +294,9 @@ class Intro extends Component {
 
     }else{
       //user must be female, render invite friend flow
-      this._onShare();
+      //redirect to settings component, with onCancel param as "Intro", so that user is redirected to Settings afterwards. 
+      const { navigate } = this.props.navigation;
+      navigate("Refer", {onCancel: 'Intro', flow: 'invite'});
     }
   }
 

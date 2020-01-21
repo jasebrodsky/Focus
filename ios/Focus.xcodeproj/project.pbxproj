@@ -13,29 +13,64 @@
 		13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		151D2FD21593481CB10259AA /* Feather.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8AE9215DFBD940A0AAE20899 /* Feather.ttf */; };
 		2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* FocusTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* FocusTests.m */; };
-		3A68BB013B8AD16BD95A7EBA /* libPods-Focus.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 687B7228FC47046C5C1C51BE /* libPods-Focus.a */; };
+		303EA96FB0B64A45AE57C93E /* EvilIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C6D79CCB72E44B23A48D88C2 /* EvilIcons.ttf */; };
+		389E191EF6B08A5213E029E7 /* libPods-Focus.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 687B7228FC47046C5C1C51BE /* libPods-Focus.a */; };
+		49AD638EB50742FCAC327796 /* Octicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 13C57095D8C448E9A2CED8F0 /* Octicons.ttf */; };
+		4A6ABC2DFDAB4B1298A49643 /* Roboto_medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9EDD041E59C243E69B1D5EFD /* Roboto_medium.ttf */; };
+		5A2615B123B6BB20009EDCE5 /* images in Resources */ = {isa = PBXBuildFile; fileRef = 5A2615B023B6BB20009EDCE5 /* images */; };
+		5A67DBE823B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
+		5A67DBE923B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
+		5A67DBEA23B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
+		5A67DBEB23B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
+		5AB7EB0423B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */; };
+		5AB7EB0523B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */; };
+		5AB7EB0623B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */; };
+		5AB7EB0923B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0723B59A8B00DA7014 /* FBSDKLoginKit.framework */; };
+		5AB7EB0A23B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0723B59A8B00DA7014 /* FBSDKLoginKit.framework */; };
+		5AB7EB0B23B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0723B59A8B00DA7014 /* FBSDKLoginKit.framework */; };
+		5AB7EB0E23B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0C23B59A9900DA7014 /* FBSDKShareKit.framework */; };
+		5AB7EB0F23B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0C23B59A9900DA7014 /* FBSDKShareKit.framework */; };
+		5AB7EB1023B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0C23B59A9900DA7014 /* FBSDKShareKit.framework */; };
+		5ACAEC6123B48ADE0051F25E /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5ACAEC6023B48ADE0051F25E /* JavaScriptCore.framework */; };
+		5ACAEC6223B48AEB0051F25E /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5ACAEC6023B48ADE0051F25E /* JavaScriptCore.framework */; };
+		5F36FE435E01497893BEA02C /* Foundation.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0C449E26CFFF40A7A6816620 /* Foundation.ttf */; };
+		6AA652A02E514E92A899ED16 /* Entypo.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3C866FCD01F3484393EEF525 /* Entypo.ttf */; };
+		71EF0A916D3B4FEF8A3602B6 /* rubicon-icon-font.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B5A5BDE6052D4D89B0AC263F /* rubicon-icon-font.ttf */; };
+		7311559D95524285A38C82C6 /* Fontisto.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 790FB8AAE1F24A6BB6BC77E4 /* Fontisto.ttf */; };
 		96233D9B8BDDDA4B79B8BDFE /* libPods-Focus-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 02EB3E63AB83E74ECB88F004 /* libPods-Focus-tvOS.a */; };
+		9B63457C995C45448A6B18F3 /* MaterialIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 96BC37CD81C74AA0B88016A5 /* MaterialIcons.ttf */; };
+		9F4CF942900F487B8CB79092 /* Zocial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 06959BB04F7443858E972989 /* Zocial.ttf */; };
+		A9C10F0DD17A4EA19A79DCDC /* AntDesign.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A1303B48FEF34A74A0037A9C /* AntDesign.ttf */; };
 		AAE25DD30E0114EBBCFA6496 /* libPods-FocusTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D5B77E7BD34E59B36EE9D23 /* libPods-FocusTests.a */; };
+		AEB49FC3A7A84C45A4BEFE63 /* MaterialCommunityIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8D1585A52AA9490BADA41962 /* MaterialCommunityIcons.ttf */; };
+		BA786B61E7814E4F98408D20 /* FontAwesome5_Brands.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5FF0A8B828F04C10BE0A2840 /* FontAwesome5_Brands.ttf */; };
+		BC1C1E56DCC3489195206728 /* FontAwesome5_Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 93C2627B66FF4408A7FBAFDA /* FontAwesome5_Regular.ttf */; };
+		C1E67E6F26A54A46AE9E6398 /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8F181ECE9BDB4104AF4D8246 /* SimpleLineIcons.ttf */; };
+		CF12D3F05B9C493D95389AE9 /* FontAwesome5_Solid.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8A8F9A69BF0340738F88533D /* FontAwesome5_Solid.ttf */; };
+		DB3A3329679140C19B92CCF1 /* FontAwesome.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3CF866DFE320430B824916C6 /* FontAwesome.ttf */; };
+		E307B7D13FB845E1A9212F7D /* Ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 24F9067D368246B8A0ECFD29 /* Ionicons.ttf */; };
+		E9623F6FFA2845F5B90A82BC /* Roboto.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E2D32CEC2D964498861D5F00 /* Roboto.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		00E356F41AD99517003FC87E /* PBXContainerItemProxy */ = {
+		5AB7EAE723B51EA800DA7014 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = Focus;
 		};
-		2D02E4911E0B4A5D006451C7 /* PBXContainerItemProxy */ = {
+		5AB7EAE923B51EB300DA7014 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 2D02E47A1E0B4A5D006451C7;
-			remoteInfo = "Focus-tvOS";
+			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
+			remoteInfo = Focus;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -45,6 +80,8 @@
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* FocusTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FocusTests.m; sourceTree = "<group>"; };
 		02EB3E63AB83E74ECB88F004 /* libPods-Focus-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Focus-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		06959BB04F7443858E972989 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/native-base/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
+		0C449E26CFFF40A7A6816620 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/native-base/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Focus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Focus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Focus/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Focus/AppDelegate.m; sourceTree = "<group>"; };
@@ -52,21 +89,47 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Focus/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Focus/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Focus/main.m; sourceTree = "<group>"; };
+		13C57095D8C448E9A2CED8F0 /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/native-base/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
+		24F9067D368246B8A0ECFD29 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/native-base/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		2D02E47B1E0B4A5D006451C7 /* Focus-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Focus-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* Focus-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Focus-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C866FCD01F3484393EEF525 /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/native-base/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
+		3CF866DFE320430B824916C6 /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/native-base/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
 		3D401065B8919D5F94F56EE8 /* Pods-FocusTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FocusTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-FocusTests/Pods-FocusTests.release.xcconfig"; sourceTree = "<group>"; };
 		435D7E89229BFF5CCF77057F /* Pods-Focus-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOSTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Focus-tvOSTests/Pods-Focus-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
+		5A2615AE23B6BADD009EDCE5 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = images; path = ../images; sourceTree = "<group>"; };
+		5A2615B023B6BB20009EDCE5 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = images; path = ../images; sourceTree = "<group>"; };
+		5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../Other/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		5A67DBEC23B68C2000EDBC47 /* Focus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Focus.entitlements; path = Focus/Focus.entitlements; sourceTree = "<group>"; };
+		5AB7EAFA23B5399F00DA7014 /* libFBSDKCoreKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libFBSDKCoreKit.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		5AB7EB0023B595C000DA7014 /* libFBSDKShareKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libFBSDKShareKit.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKCoreKit.framework; path = ../../../Documents/FacebookSDK/FBSDKCoreKit.framework; sourceTree = "<group>"; };
+		5AB7EB0723B59A8B00DA7014 /* FBSDKLoginKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKLoginKit.framework; path = ../../../Documents/FacebookSDK/FBSDKLoginKit.framework; sourceTree = "<group>"; };
+		5AB7EB0C23B59A9900DA7014 /* FBSDKShareKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKShareKit.framework; path = ../../../Documents/FacebookSDK/FBSDKShareKit.framework; sourceTree = "<group>"; };
+		5ACAEC5823B47B2A0051F25E /* libFBSDKLoginKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libFBSDKLoginKit.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		5ACAEC6023B48ADE0051F25E /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.2.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
+		5FF0A8B828F04C10BE0A2840 /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Brands.ttf; path = "../node_modules/native-base/Fonts/FontAwesome5_Brands.ttf"; sourceTree = "<group>"; };
 		687B7228FC47046C5C1C51BE /* libPods-Focus.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Focus.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		790FB8AAE1F24A6BB6BC77E4 /* Fontisto.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Fontisto.ttf; path = "../node_modules/native-base/Fonts/Fontisto.ttf"; sourceTree = "<group>"; };
 		885AA1025A10B020F3696430 /* Pods-Focus-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOS.release.xcconfig"; path = "Pods/Target Support Files/Pods-Focus-tvOS/Pods-Focus-tvOS.release.xcconfig"; sourceTree = "<group>"; };
+		8A8F9A69BF0340738F88533D /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/native-base/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
+		8AE9215DFBD940A0AAE20899 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/native-base/Fonts/Feather.ttf"; sourceTree = "<group>"; };
+		8D1585A52AA9490BADA41962 /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/native-base/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
+		8F181ECE9BDB4104AF4D8246 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/native-base/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
+		93C2627B66FF4408A7FBAFDA /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/native-base/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
+		96BC37CD81C74AA0B88016A5 /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/native-base/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		9A424E1327F1AE55146CDADC /* libPods-Focus-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Focus-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D5B77E7BD34E59B36EE9D23 /* libPods-FocusTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-FocusTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9EDD041E59C243E69B1D5EFD /* Roboto_medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Roboto_medium.ttf; path = "../node_modules/native-base/Fonts/Roboto_medium.ttf"; sourceTree = "<group>"; };
+		A1303B48FEF34A74A0037A9C /* AntDesign.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = AntDesign.ttf; path = "../node_modules/native-base/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
 		B0371AF1D384F0F9923EF5F7 /* Pods-Focus.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus.release.xcconfig"; path = "Pods/Target Support Files/Pods-Focus/Pods-Focus.release.xcconfig"; sourceTree = "<group>"; };
+		B5A5BDE6052D4D89B0AC263F /* rubicon-icon-font.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "rubicon-icon-font.ttf"; path = "../node_modules/native-base/Fonts/rubicon-icon-font.ttf"; sourceTree = "<group>"; };
+		C6D79CCB72E44B23A48D88C2 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/native-base/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
 		D1DB6CF49D4F8AA424EB0AFD /* Pods-Focus-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOS.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Focus-tvOS/Pods-Focus-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		D3874A912D2F5B04C4970A12 /* Pods-FocusTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FocusTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-FocusTests/Pods-FocusTests.debug.xcconfig"; sourceTree = "<group>"; };
+		E2D32CEC2D964498861D5F00 /* Roboto.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Roboto.ttf; path = "../node_modules/native-base/Fonts/Roboto.ttf"; sourceTree = "<group>"; };
 		E63666F93B0F70B3EE46EE39 /* Pods-Focus.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Focus/Pods-Focus.debug.xcconfig"; sourceTree = "<group>"; };
 		E8D5C7403DF5891922A6D465 /* Pods-Focus-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOSTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Focus-tvOSTests/Pods-Focus-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
-		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,7 +137,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5AB7EB0E23B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */,
 				AAE25DD30E0114EBBCFA6496 /* libPods-FocusTests.a in Frameworks */,
+				5AB7EB0423B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */,
+				5AB7EB0923B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,7 +148,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3A68BB013B8AD16BD95A7EBA /* libPods-Focus.a in Frameworks */,
+				389E191EF6B08A5213E029E7 /* libPods-Focus.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,6 +157,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				96233D9B8BDDDA4B79B8BDFE /* libPods-Focus-tvOS.a in Frameworks */,
+				5AB7EB0523B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */,
+				5AB7EB0F23B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */,
+				5AB7EB0A23B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */,
+				5ACAEC6123B48ADE0051F25E /* JavaScriptCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -98,6 +168,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5ACAEC6223B48AEB0051F25E /* JavaScriptCore.framework in Frameworks */,
+				5AB7EB0623B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */,
+				5AB7EB1023B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */,
+				5AB7EB0B23B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */,
 				0A65B7230921A13FB5508D4E /* libPods-Focus-tvOSTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -122,11 +196,39 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		0AC9B0524192448CB17922A6 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A1303B48FEF34A74A0037A9C /* AntDesign.ttf */,
+				3C866FCD01F3484393EEF525 /* Entypo.ttf */,
+				C6D79CCB72E44B23A48D88C2 /* EvilIcons.ttf */,
+				8AE9215DFBD940A0AAE20899 /* Feather.ttf */,
+				3CF866DFE320430B824916C6 /* FontAwesome.ttf */,
+				5FF0A8B828F04C10BE0A2840 /* FontAwesome5_Brands.ttf */,
+				93C2627B66FF4408A7FBAFDA /* FontAwesome5_Regular.ttf */,
+				8A8F9A69BF0340738F88533D /* FontAwesome5_Solid.ttf */,
+				790FB8AAE1F24A6BB6BC77E4 /* Fontisto.ttf */,
+				0C449E26CFFF40A7A6816620 /* Foundation.ttf */,
+				24F9067D368246B8A0ECFD29 /* Ionicons.ttf */,
+				8D1585A52AA9490BADA41962 /* MaterialCommunityIcons.ttf */,
+				96BC37CD81C74AA0B88016A5 /* MaterialIcons.ttf */,
+				13C57095D8C448E9A2CED8F0 /* Octicons.ttf */,
+				9EDD041E59C243E69B1D5EFD /* Roboto_medium.ttf */,
+				E2D32CEC2D964498861D5F00 /* Roboto.ttf */,
+				B5A5BDE6052D4D89B0AC263F /* rubicon-icon-font.ttf */,
+				8F181ECE9BDB4104AF4D8246 /* SimpleLineIcons.ttf */,
+				06959BB04F7443858E972989 /* Zocial.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 		13B07FAE1A68108700A75B9A /* Focus */ = {
 			isa = PBXGroup;
 			children = (
+				5A67DBEC23B68C2000EDBC47 /* Focus.entitlements */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
+				5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -139,8 +241,13 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
+				5AB7EB0023B595C000DA7014 /* libFBSDKShareKit.a */,
+				5AB7EAFA23B5399F00DA7014 /* libFBSDKCoreKit.a */,
+				5ACAEC5823B47B2A0051F25E /* libFBSDKLoginKit.a */,
+				5AB7EB0723B59A8B00DA7014 /* FBSDKLoginKit.framework */,
+				5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */,
+				5AB7EB0C23B59A9900DA7014 /* FBSDKShareKit.framework */,
+				5ACAEC6023B48ADE0051F25E /* JavaScriptCore.framework */,
 				687B7228FC47046C5C1C51BE /* libPods-Focus.a */,
 				02EB3E63AB83E74ECB88F004 /* libPods-Focus-tvOS.a */,
 				9A424E1327F1AE55146CDADC /* libPods-Focus-tvOSTests.a */,
@@ -159,12 +266,15 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				5A2615AE23B6BADD009EDCE5 /* images */,
+				5A2615B023B6BB20009EDCE5 /* images */,
 				13B07FAE1A68108700A75B9A /* Focus */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* FocusTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				97F946FBDF3CDE7890096910 /* Pods */,
+				0AC9B0524192448CB17922A6 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -212,7 +322,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				00E356F51AD99517003FC87E /* PBXTargetDependency */,
+				5AB7EAEA23B51EB300DA7014 /* PBXTargetDependency */,
 			);
 			name = FocusTests;
 			productName = FocusTests;
@@ -229,6 +339,7 @@
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
+				AFCE9A1FAA2D5B87D9B847AF /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -271,7 +382,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				2D02E4921E0B4A5D006451C7 /* PBXTargetDependency */,
+				5AB7EAE823B51EA800DA7014 /* PBXTargetDependency */,
 			);
 			name = "Focus-tvOSTests";
 			productName = "Focus-tvOSTests";
@@ -284,12 +395,20 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0940;
+				LastUpgradeCheck = 940;
 				ORGANIZATIONNAME = Facebook;
 				TargetAttributes = {
 					00E356ED1AD99517003FC87E = {
 						CreatedOnToolsVersion = 6.2;
 						TestTargetID = 13B07F861A680F5B00A75B9A;
+					};
+					13B07F861A680F5B00A75B9A = {
+						DevelopmentTeam = F583Y3M9CR;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 					2D02E47A1E0B4A5D006451C7 = {
 						CreatedOnToolsVersion = 8.2.1;
@@ -307,6 +426,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -328,6 +448,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A67DBE923B685A400EDBC47 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -335,8 +456,29 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A2615B123B6BB20009EDCE5 /* images in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
+				A9C10F0DD17A4EA19A79DCDC /* AntDesign.ttf in Resources */,
+				6AA652A02E514E92A899ED16 /* Entypo.ttf in Resources */,
+				303EA96FB0B64A45AE57C93E /* EvilIcons.ttf in Resources */,
+				151D2FD21593481CB10259AA /* Feather.ttf in Resources */,
+				DB3A3329679140C19B92CCF1 /* FontAwesome.ttf in Resources */,
+				BA786B61E7814E4F98408D20 /* FontAwesome5_Brands.ttf in Resources */,
+				BC1C1E56DCC3489195206728 /* FontAwesome5_Regular.ttf in Resources */,
+				CF12D3F05B9C493D95389AE9 /* FontAwesome5_Solid.ttf in Resources */,
+				7311559D95524285A38C82C6 /* Fontisto.ttf in Resources */,
+				5F36FE435E01497893BEA02C /* Foundation.ttf in Resources */,
+				E307B7D13FB845E1A9212F7D /* Ionicons.ttf in Resources */,
+				AEB49FC3A7A84C45A4BEFE63 /* MaterialCommunityIcons.ttf in Resources */,
+				9B63457C995C45448A6B18F3 /* MaterialIcons.ttf in Resources */,
+				49AD638EB50742FCAC327796 /* Octicons.ttf in Resources */,
+				4A6ABC2DFDAB4B1298A49643 /* Roboto_medium.ttf in Resources */,
+				E9623F6FFA2845F5B90A82BC /* Roboto.ttf in Resources */,
+				71EF0A916D3B4FEF8A3602B6 /* rubicon-icon-font.ttf in Resources */,
+				5A67DBE823B685A400EDBC47 /* GoogleService-Info.plist in Resources */,
+				C1E67E6F26A54A46AE9E6398 /* SimpleLineIcons.ttf in Resources */,
+				9F4CF942900F487B8CB79092 /* Zocial.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,6 +487,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */,
+				5A67DBEA23B685A400EDBC47 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,6 +495,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A67DBEB23B685A400EDBC47 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -370,7 +514,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
+			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		2D02E4CB1E0B4B27006451C7 /* Bundle React Native Code And Images */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -450,6 +594,64 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		AFCE9A1FAA2D5B87D9B847AF /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-Focus/Pods-Focus-resources.sh",
+				"${PODS_ROOT}/FBSDKCoreKit/FacebookSDKStrings.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/QBImagePickerController/QBImagePicker.bundle",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Entypo.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Feather.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Fontisto.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Foundation.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Octicons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Zocial.ttf",
+				"${PODS_ROOT}/RSKImageCropper/RSKImageCropper/RSKImageCropperStrings.bundle",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FacebookSDKStrings.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/QBImagePicker.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AntDesign.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Entypo.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EvilIcons.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Feather.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FontAwesome.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FontAwesome5_Brands.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FontAwesome5_Regular.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FontAwesome5_Solid.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Fontisto.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Foundation.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Ionicons.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/MaterialCommunityIcons.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/MaterialIcons.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Octicons.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SimpleLineIcons.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Zocial.ttf",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RSKImageCropperStrings.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Focus/Pods-Focus-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		C172A4844DC4BA90D0D234F2 /* [CP] Check Pods Manifest.lock */ = {
@@ -552,15 +754,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		00E356F51AD99517003FC87E /* PBXTargetDependency */ = {
+		5AB7EAE823B51EA800DA7014 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 13B07F861A680F5B00A75B9A /* Focus */;
-			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
+			targetProxy = 5AB7EAE723B51EA800DA7014 /* PBXContainerItemProxy */;
 		};
-		2D02E4921E0B4A5D006451C7 /* PBXTargetDependency */ = {
+		5AB7EAEA23B51EB300DA7014 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2D02E47A1E0B4A5D006451C7 /* Focus-tvOS */;
-			targetProxy = 2D02E4911E0B4A5D006451C7 /* PBXContainerItemProxy */;
+			target = 13B07F861A680F5B00A75B9A /* Focus */;
+			targetProxy = 5AB7EAE923B51EB300DA7014 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -590,8 +792,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
-					"-ObjC",
 					"-lc++",
+					"-ObjC",
 					"$(inherited)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
@@ -610,8 +812,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
-					"-ObjC",
 					"-lc++",
+					"-ObjC",
 					"$(inherited)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
@@ -625,16 +827,19 @@
 			baseConfigurationReference = E63666F93B0F70B3EE46EE39 /* Pods-Focus.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Focus/Focus.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
+				DEVELOPMENT_TEAM = F583Y3M9CR;
 				INFOPLIST_FILE = Focus/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-ObjC",
 					"-lc++",
+					"-ObjC",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.helm.focus;
 				PRODUCT_NAME = Focus;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -645,15 +850,18 @@
 			baseConfigurationReference = B0371AF1D384F0F9923EF5F7 /* Pods-Focus.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Focus/Focus.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = F583Y3M9CR;
 				INFOPLIST_FILE = Focus/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-ObjC",
 					"-lc++",
+					"-ObjC",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.helm.focus;
 				PRODUCT_NAME = Focus;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -676,8 +884,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-ObjC",
 					"-lc++",
+					"-ObjC",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.facebook.REACT.Focus-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -704,8 +912,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-ObjC",
 					"-lc++",
+					"-ObjC",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.facebook.REACT.Focus-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -724,6 +932,7 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_TESTABILITY = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -731,8 +940,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-ObjC",
 					"-lc++",
+					"-ObjC",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.facebook.REACT.Focus-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -752,14 +961,15 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = "Focus-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
-					"-ObjC",
 					"-lc++",
+					"-ObjC",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.facebook.REACT.Focus-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -800,6 +1010,12 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"/Users/$(USER)/Documents/FacebookSDK",
+					"$(inherited)",
+					"\"$(SRCROOT)/../..\"",
+					"\"$(SRCROOT)/../..\"",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -853,6 +1069,12 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"/Users/$(USER)/Documents/FacebookSDK",
+					"$(inherited)",
+					"\"$(SRCROOT)/../..\"",
+					"\"$(SRCROOT)/../..\"",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;

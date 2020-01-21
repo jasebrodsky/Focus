@@ -1,148 +1,95 @@
-import React, { Component } from "react";
-import { StyleSheet, AsyncStorage } from "react-native";
-import codePush from "react-native-code-push";
+import * as React from 'react';
 import firebase from 'react-native-firebase';
+import { Button, View, Text } from 'react-native';
+import { createAppContainer } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
+import { Root } from "native-base";
+import Login from "./components/login/";
+import Intro from "./components/Intro";
+import Messages from "./components/Messages";
+import Chat from "./components/Chat";
+import Swipes from "./components/Swipes";
+import Settings from "./components/Settings";
+import Refer from "./components/Refer";
 
-import { Container, Content, Text, View, Root } from "native-base";
-import Modal from "react-native-modalbox";
-import MainStackRouter from "./Routers/MainStackRouter";
-import ProgressBar from "./components/loaders/ProgressBar";
 
-import theme from "./themes/base-theme";
+// const RootStack = createStackNavigator(
+//   {
+//     Login: Login,
+//     Intro: Intro,
+//     Settings: Settings,
+//     Swipes: Swipes,
+//     Messages: Messages,
+//     Chat: Chat,
+//     Refer: Refer,
+//   },
+//   {
+//     initialRouteName: 'Login',
+//   }
+// );
 
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: null,
-    height: null
+// use below to implement modal for settings. looks wiered bc there's no place for a save button. 
+const MainStack = createStackNavigator(
+  {
+    Login: {
+      screen: Login,
+    },
+    Intro: {
+      screen: Intro,
+    },
+    Swipes: {
+      screen: Swipes,
+    },
+    Messages: {
+      screen: Messages,
+    },
+    Chat: {
+      screen: Chat,
+    },    
+    Settings: {
+      screen: Settings,
+    }
   },
-  modal: {
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  modal1: {
-    height: 300
-  }
-});
+  {
+    /* Same configuration as before */
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      showDownloadingModal: false,
-      showInstalling: false,
-      downloadProgress: 0
-    };
-  }
-
-  componentDidMount() {
-    
-    // CodePush.sync(
-    //   { updateDialog: true, installMode: CodePush.InstallMode.IMMEDIATE },
-    //   status => {
-    //     switch (status) {
-    //       case CodePush.SyncStatus.DOWNLOADING_PACKAGE:
-    //         this.setState({ showDownloadingModal: true });
-    //         this._modal.open();
-    //         break;
-    //       case CodePush.SyncStatus.INSTALLING_UPDATE:
-    //         this.setState({ showInstalling: true });
-    //         break;
-    //       case CodePush.SyncStatus.UPDATE_INSTALLED:
-    //         this._modal.close();
-    //         this.setState({ showDownloadingModal: false });
-    //         break;
-    //       default:
-    //         break;
-    //     }
-    //   },
-    //   ({ receivedBytes, totalBytes }) => {
-    //     this.setState({ downloadProgress: receivedBytes / totalBytes * 100 });
-    //   }
-    // );
-  }
-
-
-  
-
-  render() {
-    if (this.state.showDownloadingModal) {
-      return (
-        <Container
-          theme={theme}
-          style={{ backgroundColor: theme.defaultBackgroundColor }}
-        >
-          <Content style={styles.container}>
-            <Modal
-              style={[styles.modal, styles.modal1]}
-              backdrop={false}
-              ref={c => {
-                this._modal = c;
-              }}
-              swipeToClose={false}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  alignSelf: "stretch",
-                  justifyContent: "center",
-                  padding: 20
-                }}
-              >
-                {this.state.showInstalling
-                  ? <Text
-                      style={{
-                        color: theme.brandPrimary,
-                        textAlign: "center",
-                        marginBottom: 15,
-                        fontSize: 15
-                      }}
-                    >
-                      Installing update...
-                    </Text>
-                  : <View
-                      style={{
-                        flex: 1,
-                        alignSelf: "stretch",
-                        justifyContent: "center",
-                        padding: 20
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: theme.brandPrimary,
-                          textAlign: "center",
-                          marginBottom: 15,
-                          fontSize: 15
-                        }}
-                      >
-                        Downloading update...
-                        {" "}
-                        {`${parseInt(this.state.downloadProgress, 10)} %`}
-                      </Text>
-                      <ProgressBar
-                        color="theme.brandPrimary"
-                        progress={parseInt(this.state.downloadProgress, 10)}
-                      />
-                    </View>}
-              </View>
-            </Modal>
-          </Content>
-        </Container>
-      );
+    navigationOptions: {
+      animationEnabled: true,
+      },
+      headerTransitionPreset: 'fade-in-place',
+      transitionConfig: () => {
+          return {
+              transitionSpec: {
+                  duration: 300, //Easier to see the navigation animation
+              }
+      }
     }
 
-    return <Root><MainStackRouter /></Root>;
+
+  }
+);
+
+
+const RootStack = createStackNavigator(
+  {
+    Main: {
+      screen: MainStack,
+    },
+    Refer: {
+      screen: Refer,
+    },
+  },
+  {
+    mode: 'modal',
+    headerMode: 'none',
+  }
+);
+
+
+const AppContainer = createAppContainer(RootStack);
+
+export default class App extends React.Component {
+  render() {
+    return <Root><AppContainer /></Root>;
   }
 }
-
-let codePushOptions = { 
-  checkFrequency: codePush.CheckFrequency.ON_APP_RESUME, 
-  installMode: codePush.InstallMode.ON_NEXT_RESUME 
-}
-
-App = codePush(codePushOptions)(App);
-
-module.exports = App

@@ -1,32 +1,23 @@
 import React, { Component } from 'react';
-import {Dimensions, ActivityIndicator, ScrollView, ListView } from 'react-native';
+import {Dimensions, ActivityIndicator, ScrollView, Share} from 'react-native';
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
-import { DrawerNavigator, NavigationActions } from "react-navigation";
-import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faUsers, faComments,faInbox } from '@fortawesome/free-solid-svg-icons';
+import ProgressCircle from 'react-native-progress-circle';
 import {
-  Card,
-  CardItem,
   Container,
-  DeckSwiper,
-  Header,
-  Title,
-  Content,
   Text,
   Button,
-  Icon,
-  Left,
   List,
   ListItem,
   Thumbnail,
-  Right,
   Separator,
   Body,
   View
 } from "native-base";
 
-import ProgressCircle from 'react-native-progress-circle';
-
+const primaryColor = "#8A6077";
 
 class Messages extends Component {
 
@@ -41,10 +32,54 @@ class Messages extends Component {
       isEmpty: false,
       expiredMatches: false
     }
-
   }
 
+  //configure navigation
+  static navigationOptions = ({ navigation }) => {
+    return {
+      headerLeft: () => (
+        <Button transparent onPress={() => navigation.navigate('Swipes')}>
+          <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faUsers } />
+        </Button>
+      ),
+      headerTitle: () => (
+          <FontAwesomeIcon size={ 40 } style={{ color: 'lightgrey'}} icon={ faComments } />
+      )
+    };
+  };
 
+  //Share function when sharing referral code native share functionality. 
+  onShare = () => {
+
+    //fetch from getCode cloud function
+    fetch('https://us-central1-blurred-195721.cloudfunctions.net/getCode?userid='+this.state.userId)
+    .then((response) => response.json())
+    .then((responseJson) => {
+               
+        //save code var.
+        let code = responseJson.sharable_code;
+        let codeDelete = responseJson.code_id;
+
+        //prompt native share functionality 
+        Share.share({
+          message: 'I think you\'ll love Focus. It\'s a different type of dating where only men invited by women can join. You\'ll need this code to enter: '+code,
+          url: 'https://itunes.apple.com/us/app/hinge/id595287172',
+          title: 'Wow, have you seen this yet?'
+        }).then(({action, activityType}) => {
+          if(action === Share.dismissedAction) {
+            //delete unsent code from db
+            firebase.database().ref('codes/' + codeDelete).remove();
+
+          } 
+          else {
+            console.log('Share successful');
+          }
+        })
+    })
+    .catch(function(error) {
+        alert("Data could not be saved." + error);
+    });
+  };
   //RE FORMATE IMAGES NOW THAT IT'S AN OBJECT (NOT AN ARRAY)
 
   //render each ListItem element
@@ -62,6 +97,7 @@ class Messages extends Component {
     let city_state = object.city_state;
     let education = object.education;
     let work = object.work;
+    let reviews = object.reviews;
     let match_date = object.match_date;
     let last_message = object.last_message;
     let last_message_date = object.last_message_date;
@@ -77,7 +113,7 @@ class Messages extends Component {
     if (type == 'active' && match_state == 'active'){
       
       return(
-        <ListItem key={i} onPress={() => navigate("Chat", {match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur })}>        
+        <ListItem key={i} onPress={() => navigate("Chat", {match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur, reviews: reviews })}>        
           <ProgressCircle
               matchStatus = {match_state}
               blur={blur}
@@ -101,7 +137,7 @@ class Messages extends Component {
     }else if (type == 'expired' && match_state == 'expired'){
       
       return(
-        <ListItem key={i} onPress={() => navigate("Chat", {match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, images:images, blurRadius: blur })}>        
+        <ListItem key={i} onPress={() => navigate("Chat", {match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, images:images, blurRadius: blur, reviews: reviews })}>        
           <ProgressCircle
               blur={blur}
               matchStatus = {match_state}
@@ -213,28 +249,30 @@ class Messages extends Component {
 
     return (
       <Container>
-        <Header>
-          <Left>
-            <Button transparent onPress={() => navigate("Swipes")}>
-              <FontAwesome style={{fontSize: 32, color: '#B2B2FF'}}>{Icons.users}</FontAwesome>
-            </Button>
-          </Left>
-          <Body>
-            <FontAwesome style={{fontSize: 32, color: '#B2B2FF'}}>{Icons.comments}</FontAwesome>
-          </Body>
-          <Right>
-          </Right>
-        </Header>
-        <View>
-          <View style={{flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'absolute', left: width/4, top: height/2}}>
-            {this.state.isEmpty && <Text> Sorry no messages yet :( </Text>}
-          </View>
-          <View style={{flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'absolute', left: width/2, top: height/2}}>
+        <View style={{  flex: 1, padding: 0 }}>
+
+          {(this.state.loading ) && 
+          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
           </View>
-        </View>
-        <Container>
+          }
 
+          {(this.state.isEmpty  && !this.state.loading ) &&          
+          <View style={{flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+            <Button transparent onPress = {() => navigate("Refer", {flow: 'refer' })} >
+                <FontAwesomeIcon size={ 68 } style={{marginBottom: 55, color: primaryColor}} icon={ faInbox } />
+            </Button>
+            <Text style={{color: primaryColor}}> No messages yet. </Text>
+            <Text style={{color: primaryColor}}>Refer a friend.</Text>
+            <View style ={{marginTop: 20}}>
+              <Button bordered style={{padding: 10, borderColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'refer' })}>
+                <Text style={{color: primaryColor}}>Generate Refer Code</Text>
+              </Button>
+            </View>
+          </View>
+          }
+
+          {(!this.state.isEmpty  && !this.state.loading ) &&          
           <ScrollView style={{  flex: 1, padding: 0 }}>
             <List>
               {
@@ -254,7 +292,9 @@ class Messages extends Component {
               }
             </List>     
           </ScrollView>
-        </Container>
+            }
+
+        </View>
       </Container>
 
     );
