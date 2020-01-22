@@ -12,8 +12,9 @@ exports.getCode = functions.https.onRequest((req, res) => {
     const reason = req.query.reason;
     const name_creator = req.query.name_creator;
     const photo_creator = req.query.photo_creator;
+    const gender_creator = req.query.gender_creator;
 
-
+  
     console.log('userid is: '+userid);
     let number = '';
     console.log('reason is: '+reason);
@@ -41,6 +42,7 @@ exports.getCode = functions.https.onRequest((req, res) => {
           reason: reason,
           name_creator: name_creator,
           photo_creator: photo_creator,
+          gender_creator: gender_creator,
           sharable_code: word+"@"+newNumber
 
         };
@@ -445,6 +447,7 @@ exports.getMatches = functions.https.onRequest((req, res) => {
 
           //return matches after passing requirements
           return matchObj.status == 'active' && //only active profiles
+                 matchObj.intialUser == false && //remove incomplete profiles. 
                  matchObj.userid !== userid && //remove users own profile. 
                  matchObj.gender_pref !== genderPrefRemove && //remove same-sex straight profiles, if user is bi. 
                  matchObj.latitude >= min_lat && // greater than min latidude

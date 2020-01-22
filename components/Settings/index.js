@@ -50,6 +50,7 @@ import {
 // let Analytics = RNfirebase.analytics();
 
 const primaryColor = "#8A6077";
+const secondaryColor = "#EF8275";
 
 var REVIEW_OPTIONS = [
   'Endorse Someone New',  
@@ -121,7 +122,7 @@ class Settings extends Component {
   }
 
   //configure navigation
-  static navigationOptions = ({ navigation }) => {
+  static navigationOptions = ({ navigation, }) => {
     return {
       headerLeft: () => (
         <View></View>
@@ -504,9 +505,9 @@ _closeAndEndorse = () => {
     let imagesLength = Object.keys(this.state.profile.images).length;
     console.log('images length is: '+imagesLength);
 
-    if(imagesLength < 5){
+    if(imagesLength < 10){
       ImagePicker.openPicker({
-        compressImageQuality: 0.4,
+        compressImageQuality: 0.6,
         multiple: false,
         forceJpg: true,
         cropping: true,
@@ -519,7 +520,7 @@ _closeAndEndorse = () => {
         includeExif: true,
       }).then(image => {
           
-          // Create a root reference         
+            // Create a root reference         
             var storageRef = firebase.storage().ref(); 
 
             //create reference to userid from state
@@ -529,15 +530,27 @@ _closeAndEndorse = () => {
             // HANDLE WHEN IMAGES ARE EMPTY.. if var == null, var = 0
             var exisiting_images_count = Object.keys(this.state.profile.images).length;
             
+// maybe this can be buggy, why not save image_count in firebase instead to avoid doing an ++
+// or, push reference first to db and use generated key to name file in storage bucket?
+// PASS KEY OF ITEM TO BE SAVED BTW DB AND STORAGE, to ensure data consistency. (don't rely on counting state.)
+// can use generated uniqe key from firebase as foriegn key to storage as file name. 
+// push new (incomplete) image obj to firebase (could use .filter to only render image with url's in render function)
+// return key of new object created in firebase //key
+// use returned key as filename for storage // {key}.jpg
+
             //increment image count, in order to name file appropriately
-            var image_item_count_start = exisiting_images_count++;
+            var image_item_count_start = exisiting_images_count++; 
 
             // Create a reference to 'images/userid/i.jpg'
             var imagesRef = storageRef.child('images/'+userId+'/'+image_item_count_start+'.jpg');
     
+//can this be removed since we're using updateData function to update db references?
+
             // save reference to where to save the new URI 
-            var imagesObjRef = firebase.database().ref('/users/'+userId+'/images/');
-            
+ //           var imagesObjRef = firebase.database().ref('/users/'+userId+'/images/');
+
+//just call state, no need to save into variable
+
             // Push exisiting images into imagesObj
             var imagesObj = this.state.profile.images;
 
@@ -602,6 +615,10 @@ _closeAndEndorse = () => {
                 imagesObj.splice(0,1);
               }
               
+//why use exising variable of what the file name was stored as to reduce variables for data getting out of sync. 
+
+//why not save property object for order. (0,1,2,...)
+
               // push new image object into imagesObj 
               imagesObj.push({url: url, file: image_item_count_start_upload, cache: 'force-cache'});
               //console.log('imagesObj: '+JSON.stringify(imagesObj));
@@ -655,6 +672,7 @@ _closeAndEndorse = () => {
                
                             //delete object matching key
                             //save original state of images array
+//why not use Object.entries
                             var arrayImages = [...this.state.profile.images];
                             
                             // save selected image to new variable to re-insert into images later
@@ -679,6 +697,8 @@ _closeAndEndorse = () => {
 
                             //set state to new image array
                             this.setState({profile: { ...this.state.profile, images: arrayImages}});                   
+
+ //updateData should be put in callback to make sure state is updated BEFORE setting new data. 
 
                             //multi-path update with new array of images
                             this.updateData('images', userId, this.state.profile.images );
@@ -1303,13 +1323,10 @@ _viewProfile = () => {
 
         ))}
         <ListItem noBorder style={{justifyContent: "center"}}>
-          <Button bordered style={{borderColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'endorse' })}><Text style={{color: primaryColor}}>Endorse Friend</Text></Button>
-        
           <Button bordered style={{borderColor: primaryColor}} 
             onPress = {() => this._closeAndEndorse()}>
             <Text style={{color: primaryColor}}>Endorse Friend</Text>
-          </Button>
-        
+          </Button>        
         </ListItem>
       </View>
       );
@@ -1360,6 +1377,7 @@ _viewProfile = () => {
     var date = new Date();
     date.setFullYear(date.getFullYear() - 18, date.getMonth());
 
+    
     //console.log('deviceWidth is: '+deviceWidth);
         
     return (
@@ -1478,7 +1496,14 @@ _viewProfile = () => {
             <Form>
               <ListItem itemDivider style={{flexDirection: "row"}}>
                 <Text>I am ...</Text>
-                <Button style={{flex: 1, justifyContent: "flex-end"}} small transparent onPress = {() => this.setState({ profileViewerVisible: true})}>
+                <Button style={{flex: 1, justifyContent: "flex-end"}} small transparent 
+                  // check if profile is complete, if so, show profileViewer, else show toast to complete profile.
+                  onPress = {() => (this.profileComplete()) ? this.setState({ profileViewerVisible: true}) : 
+                  Toast.show({
+                    text: "Please update your: Name, Gender, Birthday, Work, Education, About, or who you're interested in meeting.",
+                    buttonText: "OK",
+                    duration: 6000
+                  })}>
                   <Text style={{color: primaryColor}}>View Profile</Text>
                 </Button>
 
@@ -1731,7 +1756,7 @@ _viewProfile = () => {
               <ListItem itemDivider style={{flexDirection: "row", justifyContent: "space-between"}}>
                 <Text>My friends think...</Text>
                 <Button small transparent onPress = {() => this._codePrompt()}>
-                  <Text style={{color: primaryColor}}>Have Refer Code?</Text>
+                  <Text style={{color: primaryColor}}>Enter Refer Code</Text>
                 </Button>
               </ListItem>
 

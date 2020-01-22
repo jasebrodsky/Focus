@@ -67,7 +67,8 @@ class Swipes extends Component {
   static navigationOptions = ({ navigation }) => {
     return {
       headerLeft: () => (
-        <Button transparent onPress={() => navigation.navigate('Settings')}>
+        <Button transparent  onPress={() => navigation.navigate({routeName: 'Settings', transitionStyle: 'inverted'}) }>
+                           
           <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faCog } />
        </Button>
       ),
@@ -185,6 +186,7 @@ class Swipes extends Component {
     };
   } 
 
+  
 
   getMatches(userId) {
     fetch('https://us-central1-blurred-195721.cloudfunctions.net/getMatches?userid='+userId)

@@ -75,7 +75,10 @@ class Login extends Component {
       appId: "1:479759716253:web:01edde286058b5deff2974"
     };
 
-    firebase.initializeApp(config);
+    //only initalize if not already. 
+    if (!firebase.apps.length) {
+      firebase.initializeApp(config);
+    }
     
     //check if user is authenticated in, if so, redirect to the appropriate flow. 
     firebase.auth().onAuthStateChanged( user => {
@@ -263,7 +266,6 @@ handleLogin = () => {
       .catch(error => alert(error))
 }
 
-
 handleSignUp = () => {
   const { navigate } = this.props.navigation;
   const { email, password } = this.state
@@ -279,16 +281,16 @@ handleSignUp = () => {
         fb_id: '',
         last_name: '',
         email: email,
-        images: [{file: '0', url: "https://focusdating.co/images/user.jpg", cache: 'force-cache'}],
+        images: [{file: 0, url: "https://focusdating.co/images/user.jpg", cache: 'force-cache'}],
         last_login: Date.now(),
         intialUser: true,
         showInstructionsSettings: true,
         showInstructionsSwipes: true,
         swipe_count: 0,
         last_swipe_sesh_date: Date.now(),
-        latitude: '',
-        longitude: '',
-        city_state: '',
+        latitude: 40.71797067746141, //default to NYC
+        longitude: -73.98527588801655, //default to NYC
+        city_state: 'New York, NY', //default to NYC
         gender: gender,
         gender_pref: (gender == 'male') ? 'male_straight' : 'female_straight', //default gender_pref to straight to have less required field to validate.
         interested: (gender == 'male') ? 'female' : 'male', //default interested in to straight to have less required field to validate.         
@@ -359,6 +361,8 @@ onLoginOrRegister = () => {
         }else{
         
         var that = this;
+
+        console.log('user doesnt exist start making profile form fb data');
           
         //user does not exist yet
          AccessToken.getCurrentAccessToken().then(
@@ -409,7 +413,7 @@ onLoginOrRegister = () => {
                     longitude: longitude,
                     city_state: city_state,
                     gender: gender,
-                    gender_pref: (gender == 'male') ? 'female_straight' : (gender == 'female') ? 'male_straight' : 'select', //default to straight
+                    gender_pref: (gender == 'male') ? 'male_straight' : (gender == 'female') ? 'female_straight' : 'select', //default to straight
                     interested: (gender == 'male') ? 'female' : (gender == 'female') ? 'male' : 'select', //default to straight
                     birthday: birthday,
                     about: '',

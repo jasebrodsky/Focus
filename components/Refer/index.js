@@ -22,6 +22,7 @@ import {
 } from "native-base";
 
 const primaryColor = "#8A6077";
+const secondaryColor = "#EF8275";
 
 class Refer extends Component {
 
@@ -54,26 +55,26 @@ class Refer extends Component {
 
     if (flow == 'invite'){
       //invite flow
-      this.setState({ titleCopy: 'Invite Friend' }); 
+      this.setState({ titleCopy: 'Invite a Friend' }); 
       this.setState({ reasonCopy: 'Why should they be invited to to Focus?' }); 
       this.setState({ primaryCTA: 'Generate Invite Code'}); 
       this.setState({ secondaryCTA: 'Invite Later' });
-      this.setState({ errorCopy: 'Invitation reason needs to be atleast 100 characters. ' });
+      this.setState({ errorCopy: 'Invitation reason needs to be at least 100 characters. ' });
     }else if (flow == 'refer'){
       //refer flow
-      this.setState({ titleCopy: 'Refer Friend' }); 
-      this.setState({ reasonCopy: 'Why should they be refered to to Focus?' }); 
+      this.setState({ titleCopy: 'Refer a Friend' }); 
+      this.setState({ reasonCopy: 'Why should they be refered to Focus?' }); 
       this.setState({ primaryCTA: 'Generate Referal Code' }); 
       this.setState({ secondaryCTA: 'Refer Later' }); 
-      this.setState({ errorCopy: 'Referral reason needs to be atleast 100 characters. ' });
+      this.setState({ errorCopy: 'Referral reason needs to be at least 100 characters. ' });
 
     }else if (flow == 'endorse'){
       //endorse flow
-      this.setState({ titleCopy: 'Endorse Friend' }); 
+      this.setState({ titleCopy: 'Endorse a Friend' }); 
       this.setState({ reasonCopy: 'What is special about them?' }); 
       this.setState({ primaryCTA: 'Generate Endorse Code' }); 
       this.setState({ secondaryCTA: 'Endorse Later' }); 
-      this.setState({ errorCopy: 'Endorsement reason needs to be atleast 100 characters. ' });
+      this.setState({ errorCopy: 'Endorsement reason needs to be at least 100 characters. ' });
 
     }
 
@@ -104,7 +105,7 @@ class Refer extends Component {
     let onCancel = this.props.navigation.getParam('onCancel');
     const { navigate } = this.props.navigation;
 
-    if(onCancel == 'Intro'){
+    if((onCancel == 'Intro') && (this.state.gender == 'female')){
       navigate("Settings");
     }else{
       this.props.navigation.goBack();
@@ -138,7 +139,7 @@ class Refer extends Component {
       alert('please enter name or reason over 10 char');
     }else{
       //contiue and fetch from getCode cloud function
-      fetch('https://us-central1-blurred-195721.cloudfunctions.net/getCode?name_creator='+this.state.user_name+'&photo_creator='+this.state.user_photo+'&reason='+this.state.reason+'&userid='+this.state.userId)
+      fetch('https://us-central1-blurred-195721.cloudfunctions.net/getCode?name_creator='+this.state.user_name+'&gender_creator='+this.state.gender+'&photo_creator='+this.state.user_photo+'&reason='+this.state.reason+'&userid='+this.state.userId)
       .then((response) => response.json())
       .then((responseJson) => {
                 
@@ -203,17 +204,13 @@ class Refer extends Component {
         
     return (
       <Container style={{ flex: 1, alignItems: 'center',  }} onStartShouldSetResponder={Keyboard.dismiss}>
-
-        <View style={{ flex: 1, marginTop: 50 }}   >
-          <View>
+        <View style={{ flex: 1, marginTop: 50 }}>
+          <View style>
             <H1 style={{textAlign: 'center', color: primaryColor}}>{this.state.titleCopy}</H1>
             {/* <Text style={{textAlign: 'center', marginTop: 10, width: 300}}>If inviting a male, they will still need to be invited by a female to join.</Text> */}
           </View>
         </View>
         <View style={{ flex: 1, width: 300}}>
-
-
-          
           <Item regular>
             <Input 
             placeholder='Name'
@@ -223,6 +220,9 @@ class Refer extends Component {
           </Item>
         </View>
         <View style={{ flex: 3, width: 300}}>
+          <View style={{}}>
+            <Text style={{fontSize:13}} >{((this.state.reason.length < 100) && this.state.reason)? charRemainingCopy : null }</Text>
+          </View>
           <Form>
             <Textarea
             rowSpan={10} 
@@ -233,10 +233,7 @@ class Refer extends Component {
             value={this.state.reason}           
             />
           </Form>
-          <View style={{flex: 1}}>
-            <Text style={{fontSize:13}} >{((this.state.reason.length < 100) && this.state.reason)? charRemainingCopy : null }</Text>
-          </View>
-        </View>
+        </View>   
         <View style={{ flex: 1}}>
           <Button bordered style={{borderColor: primaryColor}} onPress={() => {this._onShare();}}>
             <Text style={{color: primaryColor}}>{this.state.primaryCTA}</Text>

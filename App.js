@@ -37,6 +37,9 @@ const MainStack = createStackNavigator(
     Intro: {
       screen: Intro,
     },
+    Settings: {
+      screen: Settings,
+    },
     Swipes: {
       screen: Swipes,
     },
@@ -45,16 +48,20 @@ const MainStack = createStackNavigator(
     },
     Chat: {
       screen: Chat,
-    },    
-    Settings: {
-      screen: Settings,
-    }
+    }   
   },
   {
     /* Same configuration as before */
 
-    navigationOptions: {
+    defaultNavigationOptions: {
       animationEnabled: true,
+      headerStyle: {
+        backgroundColor: '#fff',
+      },      
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      },
       },
       headerTransitionPreset: 'fade-in-place',
       transitionConfig: () => {
