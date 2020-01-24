@@ -168,7 +168,7 @@ class Messages extends Component {
     let Analytics = RNfirebase.analytics();
     userId = firebase.auth().currentUser.uid;
     firebaseRef = firebase.database().ref('/matches/'+userId+'/').orderByChild('last_message_date').limitToFirst(50);
-
+    
       var convos = [];
       //put message data into state in appropriate format
       firebaseRef.once('value')

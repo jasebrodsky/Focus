@@ -114,8 +114,8 @@ const slidesFemale = [
   },
   {
     key: '3',
-    title: 'Women empowered', //'Only gentlemen',
-    text: 'Men need to be invited by women. ',
+    title: 'Invite a friend', //'Women empowered', //'Only gentlemen',
+    text: 'Invite a friend who would enjoy this.', //'Men need to be invited by women. ',
     icon: faRestroom, //faUnlockAlt,
     image: require('./assets/banner-gentlemen.jpg'),
     imageStyle: styles.image,
@@ -229,8 +229,8 @@ class Intro extends Component {
             });
             
             Alert.alert(
-              'Whoops.',
-              'Whoops! Code: "'+userCode+'" has already been used. Please ask your friend for another.',
+              'Sorry',
+              'Code: "'+userCode+'" has already been used. Please ask your friend for another.',
               [
                 {
                   text: 'Ask friend',
@@ -285,11 +285,11 @@ class Intro extends Component {
             if (this.state.gender == 'female'){
               //alert welcome message, then navigate to settings. 
               Alert.alert(
-                'Welcome to Focus!',
-                'Click ok to enter community.',
+                'Welcome to Focus',
+                
                 [
                   {
-                    text: 'Ok',
+                    text: 'Enter',
                     onPress: () => navigate("Settings"),
                     //onPress: () => navigate("Swipes"),
                   },
@@ -305,7 +305,7 @@ class Intro extends Component {
                   'You need to be invited by a female first.',
                   [
                     {
-                      text: 'Ask female for invite',
+                      text: 'Ask female',
                       onPress: () =>          
                        //prompt native share functionality 
                       Share.share({
@@ -324,11 +324,11 @@ class Intro extends Component {
                 //2. code from female -> can enter
                 //tell {name} thanks for the invite. 
                 Alert.alert(
-                  'Welcome to Focus!',
-                  'Click ok to enter community.',
+                  'Welcome to Focus',
+                  'Remember to thank '+name_creator +' for the referral.',
                   [
                     {
-                      text: 'Ok',
+                      text: 'Enter',
                       onPress: () => navigate("Settings"),
                       //onPress: () => navigate("Swipes"),
                     },
@@ -349,8 +349,8 @@ class Intro extends Component {
           
           //alert user that code does not exist. 
           Alert.alert(
-            'Whoops.',
-            'Whoops! Code: "'+userCode+'" does not exist. Please ask your friend for another.',
+            'Sorry',
+            'Code: "'+userCode+'" does not exist. Please ask your friend for another.',
             [
               {
                 text: 'Ask friend',

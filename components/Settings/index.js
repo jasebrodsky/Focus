@@ -320,36 +320,36 @@ class Settings extends Component {
   }
 
   //if all profile fields are complete AND user is initial user, then prompt to go to Swipes flow and update user to not intial user in db. 
-  promptSwipes = () => {
-    //check that all required fields are present.
-    let intialUser = this.state.profile.intialUser == true;
-    let profileComplete = this.profileComplete();
+  // promptSwipes = () => {
+  //   //check that all required fields are present.
+  //   let intialUser = (this.state.profile.intialUser == true);
+  //   let profileComplete = this.profileComplete();
     
-    //first check if user is first time user and their profile is completed.
-    if (intialUser && profileComplete) {
+  //   //first check if user is first time user and their profile is completed.
+  //   if (intialUser && profileComplete) {
     
-      //update db to intialUser = false
-      firebaseRef.update({intialUser: false});
-      //prompt to see matches
-      Alert.alert(
-        'Profile Complete',
-        'See your matches?',
-        [
-          {
-            text: 'Keep Working',
-            //onPress: () => console.log('Cancel Pressed'),
-            style: 'cancel',
-          },
-          {
-            //if clicked ok, send to swipes flow.
-            text: 'See Matches',
-            onPress: () => this.props.navigation.navigate('Swipes'),
-          },
-        ],
-        'plain-text',
-      );
-    } 
-  }
+  //     //update db to intialUser = false
+  //     firebaseRef.update({intialUser: false});
+  //     //prompt to see matches
+  //     Alert.alert(
+  //       'Profile Complete',
+  //       'See your matches?',
+  //       [
+  //         {
+  //           text: 'Keep Working',
+  //           //onPress: () => console.log('Cancel Pressed'),
+  //           style: 'cancel',
+  //         },
+  //         {
+  //           //if clicked ok, send to swipes flow.
+  //           text: 'See Matches',
+  //           onPress: () => this.props.navigation.navigate('Swipes'),
+  //         },
+  //       ],
+  //       'plain-text',
+  //     );
+  //   } 
+  // }
 
   profileComplete = () => {
     
@@ -374,6 +374,7 @@ class Settings extends Component {
   validateSettings = () => {
 
     const { state, navigate } = this.props.navigation;
+    let firebaseRef = firebase.database().ref('/users/' + userId);
 
     //check that all required fields are present.
     let profileComplete = this.profileComplete();
@@ -387,7 +388,7 @@ class Settings extends Component {
         })
       }else{
         
-        //update db to intialUser = false, if not already. 
+        //update db to intialUser = false, if not already. This will move user to swipes on login and they will appear in matches
         firebaseRef.update({intialUser: false});
 
         //redirect to swipes
@@ -520,41 +521,19 @@ _closeAndEndorse = () => {
         includeExif: true,
       }).then(image => {
           
-            // Create a root reference         
+            // Create a root reference to our storage bucket       
             var storageRef = firebase.storage().ref(); 
 
-            //create reference to userid from state
-            //let userid = this.state.userid;
+            // Create a unique key based off current timestamp
+            var uniqueKey = new Date().getTime();
 
-            //count existing images in state and save to var
-            // HANDLE WHEN IMAGES ARE EMPTY.. if var == null, var = 0
-            var exisiting_images_count = Object.keys(this.state.profile.images).length;
-            
-// maybe this can be buggy, why not save image_count in firebase instead to avoid doing an ++
-// or, push reference first to db and use generated key to name file in storage bucket?
-// PASS KEY OF ITEM TO BE SAVED BTW DB AND STORAGE, to ensure data consistency. (don't rely on counting state.)
-// can use generated uniqe key from firebase as foriegn key to storage as file name. 
-// push new (incomplete) image obj to firebase (could use .filter to only render image with url's in render function)
-// return key of new object created in firebase //key
-// use returned key as filename for storage // {key}.jpg
-
-            //increment image count, in order to name file appropriately
-            var image_item_count_start = exisiting_images_count++; 
-
-            // Create a reference to 'images/userid/i.jpg'
-            var imagesRef = storageRef.child('images/'+userId+'/'+image_item_count_start+'.jpg');
+            // Create a reference to 'images/userid/uniqueKey.jpg' - where to save new image in storage bucket
+            var imagesRef = storageRef.child('images/'+userId+'/'+uniqueKey+'.jpg');
     
-//can this be removed since we're using updateData function to update db references?
-
-            // save reference to where to save the new URI 
- //           var imagesObjRef = firebase.database().ref('/users/'+userId+'/images/');
-
-//just call state, no need to save into variable
-
-            // Push exisiting images into imagesObj
+            // Save copy of exisiting images into imagesObj - to manipulate, then eventually push back to database and state. 
             var imagesObj = this.state.profile.images;
 
-            //set up properties for image
+            // Set up properties for image
             let imagePath = image.path;
             let Blob = RNFetchBlob.polyfill.Blob
             let fs = RNFetchBlob.fs
@@ -569,63 +548,53 @@ _closeAndEndorse = () => {
               contentType: 'image/jpeg'
             }
 
-            //read selected image and build blob          
+            // Read selected image and build blob          
             fs.readFile(imagePath, 'base64')
               .then((data) => {
                 //console.log(data);
                 return Blob.build(data, { type: `${mime};BASE64` })
             })
-            //then upload blob to firebase storage
+            // Then upload blob to firebase storage
             .then((blob) => {
                 uploadBlob = blob
                 return imagesRef.put(blob, { contentType: mime })
               })
-            //then return url of new file from storage
+            
+            // Then return url of new file from storage
             .then(() => {
               uploadBlob.close();
 
             // Update metadata properties to image reference
             imagesRef.updateMetadata(newMetadata).then(function(metadata) {
-              // Updated metadata for 'images/forest.jpg' is returned in the Promise
-              //console.log('metadata is: '+JSON.stringify(metadata));
+
+            // Catch if error occured
             }).catch(function(error) {
               // Uh-oh, an error occurred!
               console.log(error);
             })  
 
-              //record in analytics that photo was successfully uploaded 
-              RNfirebase.analytics().logEvent('photoUploaded', {
-                imageCount: image_item_count_start
-              });
+            // Record in analytics that photo was successfully uploaded and count of images user has thus far
+            RNfirebase.analytics().logEvent('photoUploaded', {
+              imageCount: Object.keys(this.state.profile.images).length
+            });
 
+            // Finally return the URL of saved image - to use in database and state. 
               return imagesRef.getDownloadURL()
             })               
             
-            //then update all image references for user in multi-path update
+            // Then update all image references for user in multi-path update
             .then((url) => {
-
-              //count existing images in state
-              var exisiting_images_count_upload = this.state.profile.images.length;
-
-              //+1 to the exisiting count of images
-              var image_item_count_start_upload = exisiting_images_count_upload++;
 
               //if first image in state is the default image, then delete that default image from the images object. then continue and add the new image to the object. 
               if (imagesObj[0].url ==  "https://focusdating.co/images/user.jpg" ){
                 imagesObj.splice(0,1);
               }
               
-//why use exising variable of what the file name was stored as to reduce variables for data getting out of sync. 
-
-//why not save property object for order. (0,1,2,...)
-
               // push new image object into imagesObj 
-              imagesObj.push({url: url, file: image_item_count_start_upload, cache: 'force-cache'});
-              //console.log('imagesObj: '+JSON.stringify(imagesObj));
+              imagesObj.push({url: url, file: uniqueKey, cache: 'force-cache'});
 
               //call updateData function with new URI's to pass in multi-path update
-              // Can we put this under after all images from phone have been processed to reduce calls to updateData fuction? 
-             this.updateData('images', userId, imagesObj );
+              this.updateData('images', userId, imagesObj );
             
             })
             .catch(console.error);                  
@@ -667,12 +636,9 @@ _closeAndEndorse = () => {
                               })
                             }
 
-                          if ((buttonIndex) === 1) {
-                            //make main image 
-               
-                            //delete object matching key
+                          if ((buttonIndex) === 1) { //make main image 
+
                             //save original state of images array
-//why not use Object.entries
                             var arrayImages = [...this.state.profile.images];
                             
                             // save selected image to new variable to re-insert into images later
@@ -682,59 +648,42 @@ _closeAndEndorse = () => {
                             //save the index of image to remove
                             var index = arrayImages.indexOf(key)
                             
-                            //console.log('main image before splice is: '+JSON.stringify(main_image));
-
                             //remove image at index
                             arrayImages.splice(key, 1);
-                            //console.log('profile images after splice: '+JSON.stringify(arrayImages));
-
-                            //console.log('main image after splice is: '+JSON.stringify(main_image));
-
 
                             //insert new main image into first position of profile images
                             arrayImages.unshift(main_image);
-                            //console.log('profile images after shift: '+JSON.stringify(arrayImages));
 
                             //set state to new image array
-                            this.setState({profile: { ...this.state.profile, images: arrayImages}});                   
-
- //updateData should be put in callback to make sure state is updated BEFORE setting new data. 
-
-                            //multi-path update with new array of images
-                            this.updateData('images', userId, this.state.profile.images );
-
+                            this.setState({profile: { ...this.state.profile, images: arrayImages}},
+                              
+                              //in callback (after state is set), use multi-path update with new array of images from state. 
+                              () => this.updateData('images', userId, this.state.profile.images )
+                              
+                            ); 
+                            
                             //record in analytics that photo was successfully swapped 
                             RNfirebase.analytics().logEvent('newMainPhoto', {
                               testParam: 'testParam'
                             });
                           }
 
-                          if ((buttonIndex) === 2) {
+                          if ((buttonIndex) === 2) { //delete image
 
                             //if only one photo exists, disable deleting, else allow user to delete image. 
                             if(this.state.profile.images.length == 1){
-                              console.log('LENGTH profile_images in state, wont delete: '+(this.state.profile.images).length);
-                              console.log('STATE of profile.imgages in state: '+JSON.stringify(this.state.profile.images));
                               Alert.alert('Sorry','Can not delete only photo');
 
-                            }else{
-                              console.log('LENGTH profile_images in state, will delete: '+(this.state.profile.images).length);
-                              console.log('STATE of profile.imgages in state: '+JSON.stringify(this.state.profile.images));
+                            }else{ //remove image
 
-                              //remove image
                               //save copy of profile images from state
-                              var profile_images = this.state.profile.images; // make a separate copy of the array                                                  
-                              //console.log('profile_images in state: '+JSON.stringify(profile_images));
+                              var profile_images = this.state.profile.images;                                                   
  
-                              //remove selected image from storage
-                              // Create a reference to the file to delete
-                              // Create a root reference
+                              // Create a root reference to our storage bucket
                               var storageRef = firebase.storage().ref(); 
 
                               //derive which image to delete via the key property on the image object
                               var image_delete = profile_images[key];
-
-                              console.log('profile_images[key]: '+profile_images[key]);
 
                               // Create a reference to 'images/userid/i.jpg'
                               var imagesRef = storageRef.child('images/'+userId+'/'+image_delete.file+'.jpg');
@@ -758,10 +707,12 @@ _closeAndEndorse = () => {
                               arrayImages.splice(key, 1);
                               
                               //set state to new image array
-                              this.setState({profile: { ...this.state.profile, images: arrayImages}});                   
-
-                              //multi-path update with new array of images
-                              this.updateData('images', userId, this.state.profile.images );
+                              this.setState({profile: { ...this.state.profile, images: arrayImages}},
+                              
+                                //in callback (after state is set), use multi-path update with new array of images from state. 
+                                () => this.updateData('images', userId, this.state.profile.images )
+                                
+                              ); 
 
                               //record in analytics that photo was deleted successfully 
                               RNfirebase.analytics().logEvent('photoDeleted', {
@@ -858,9 +809,7 @@ _closeAndEndorse = () => {
 
           
           //update code object only when code has yet to be used, in case the friend will use code. 
-          if (friend.expired == false){
-            
-            console.log('friend is: '+JSON.stringify(friend));
+          //if (friend.expired == false){
 
             //save path to update the reviews object of each friend the current user reviewed. 
             switch (true) {
@@ -873,7 +822,7 @@ _closeAndEndorse = () => {
                 updateObj[`codes/${friendKey}/name_creator`] = payload; 
                 break;
               }  
-          }
+          //}
 
 
           //query firebase for each users matches. 'friend.userid'

@@ -44,7 +44,6 @@ exports.getCode = functions.https.onRequest((req, res) => {
           photo_creator: photo_creator,
           gender_creator: gender_creator,
           sharable_code: word+"@"+newNumber
-
         };
 
         //push newCode into database

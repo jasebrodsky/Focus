@@ -32,6 +32,7 @@ const primaryColor = "#8A6077";
 
 
 class Swipes extends Component {
+
   constructor (props) {
     super(props)
     this.state = {
@@ -61,8 +62,6 @@ class Swipes extends Component {
     }
   }
 
-
-
   //configure navigation
   static navigationOptions = ({ navigation }) => {
     return {
@@ -89,13 +88,36 @@ class Swipes extends Component {
 
   componentDidMount() {
 
+    //force update match data so that updated settings and matches will be reflected fetched data, to get fetch fresh batch of matches. 
+    const didFocus = this.props.navigation.addListener(
+      'didFocus',
+      payload => {
+
+        //reset cardindex to 0
+        this.setState({ loading: true, cardIndex: 0});
+
+        //fetch new matches and put into state
+        this.getMatches(userId);
+
+        //query for swipe count and set state with it, to keep track of when user swipes all their matches.     
+        firebase.database().ref('/users/' + userId)
+          .once('value', ((snapshot) => {
+                    
+            //set state with data. 
+            this.setState({
+              swipeCountStart: snapshot.val().swipe_count
+            })
+          })
+        ) 
+      }
+    );
+
     //subscribe to blur event from navigation, to capture when screen changes. If so, update swipe count with appropriate count from the session. 
-    const didBlurSubscription = this.props.navigation.addListener(
+    const didBlur = this.props.navigation.addListener(
       'didBlur',
       payload => {
         //save flag that user has now seen their daily match.
         let userRef = firebase.database().ref('users/'+this.state.userId+'/');
-
         //update swipe count in db in order to compute remaining matches. 
         userRef.update({
           swipe_count: this.state.swipeCountStart + this.state.cardIndex,
@@ -104,15 +126,16 @@ class Swipes extends Component {
       }
     );
 
+
     //save userId of logged in user, to use for later db queries. 
     const userId = firebase.auth().currentUser.uid;
     this.setState({ userId: userId });
 
-    //get unread chat count
-    this.getUnreadChatCount(userId);
-    
     //getMatches of current user
     this.getMatches(userId);
+
+    //get unread chat count
+    this.getUnreadChatCount(userId);
 
     //run newBatch in order to reset swipe count to 0 at the right time. 
     this.newBatch(userId);
@@ -186,15 +209,21 @@ class Swipes extends Component {
     };
   } 
 
-  
 
-  getMatches(userId) {
-    fetch('https://us-central1-blurred-195721.cloudfunctions.net/getMatches?userid='+userId)
-      .then((response) => response.json())
-      .then((responseJson) => {
-      
-        console.log('responseJson is: '+JSON.stringify(responseJson));
-    
+  //async function to fetch matches from cloud function
+  async getMatches(userId) {
+
+    //turn loading flag to true, so that swiper doesn't render with null data and break.
+    this.setState({ loading: true });
+
+      //try block to fetch matches from cloud function
+      try {
+        //await response from could funciton
+        let response = await fetch('https://us-central1-blurred-195721.cloudfunctions.net/getMatches?userid='+userId); 
+
+        // turn returned response into json data
+        let responseJson = await response.json();
+
         // for each match userid inside responeJson
         let promises = responseJson.map((match) => {
           
@@ -238,11 +267,13 @@ class Swipes extends Component {
               isEmpty: false,
             });
           }
-       
         })
-    })  
-  }
 
+        //return 'good';
+      } catch (error){
+        console.log('error occured: '+error);
+      }
+  }
 
   //function to call when a new match is intiated.
   pushNewMatch = (images, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match) => {
@@ -438,7 +469,6 @@ class Swipes extends Component {
     });
 
 }
-
   //handle swipe events
   onSwiped = (cardIndex, direction) => {
     // save variable for direction of swipe
@@ -549,27 +579,11 @@ class Swipes extends Component {
     }
   }
 
-  
-
   render () {
     const { navigate } = this.props.navigation;
     const dimensions = Dimensions.get('window');
     const height = dimensions.height;
-    const width = dimensions.width;
     let userRef = firebase.database().ref('users/'+this.state.userId+'/');
-
-    // console.log('cards is: '+cards);
-    // console.log('cards (stringified) is: '+JSON.stringify(cards));
-
-    console.log('this.state.profiles is: '+this.state.profiles);
-
-    // console.log('this.state.profiles (stringified) is: '+JSON.stringify(this.state.profiles));
-
-      //JSON.stringify(this.state.profiles);
-        
-    //this.state.profiles;
-    let profiles = [this.state.profiles];
-
 
     //determine width of device in order for custom margin between iphones
     let deviceWidth = Dimensions.get('window').width
@@ -577,18 +591,8 @@ class Swipes extends Component {
     //if device width is 414 (iphone+), then margins should be 58, else 40. 
     let loadingLeftPosition = deviceWidth == 414 ? 185 : 173;     
     
-    failImage = 'https://image.nj.com/home/njo-media/width620/img/entertainment_impact/photo/lil-bub-catsbury-park-cat-convention-asbury-park-2018jpg-42ba0699ef9f22e0.jpg';
     let cardIndex = this.state.cardIndex;
  
-    // //if profile are fetched
-    // if (this.state.isEmpty) {
-    //   isEmpty = 
-    //     <Text style={{padding: 15,backgroundColor:'white', color:'black'}}>
-    //       PROFILES ARE EMPTY
-    //     </Text>;
-    // }
-
-
     return (
       <Container >
 
@@ -598,16 +602,15 @@ class Swipes extends Component {
         brightness={-200}
         onPress={() => {
             closeOverlay();
-            //alert('closed');
             userRef.update({showInstructionsSwipes: false})
         }}
         customStyles={{alignItems: 'center', justifyContent: 'center'}}
         blurStyle="dark"
         children={this.renderBlurChilds()}
       />
-
+          
           <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between'}}>
-            { ((this.state.isEmpty || this.state.allSwiped) && !this.state.loading ) && 
+            { (this.state.isEmpty  && !this.state.loading ) && 
               <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                 <Button transparent onPress = {() => navigate("Refer", {flow: 'refer' })} >
                     <FontAwesomeIcon size={ 68 } style={{marginBottom: 55, color: primaryColor}} icon={ faUserClock } />
@@ -620,7 +623,6 @@ class Swipes extends Component {
                   </Button>
                 </View>
               </View>}
-
             { (this.state.loading) &&
               <View style={{flex: 1, justifyContent: 'center'}}>
                 <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
@@ -630,6 +632,8 @@ class Swipes extends Component {
             {/* only show swiper if loading is false - loading finished  */}
             { ((!this.state.isEmpty || !this.state.allSwiped ) && !this.state.loading ) && 
             <View style={{position: 'relative', bottom: 40, flex: 1, justifyContent: 'flex-start'}}>
+              
+              {console.log('this.state.profiles is: '+JSON.stringify(this.state.profiles))}
               <Swiper
                 cards={this.state.profiles}
                 ref = {swiper => {this.swiper = swiper}}
@@ -642,14 +646,12 @@ class Swipes extends Component {
                 animateCardOpacity = {true}
                 //shake to go back. 
                 onSwiped={(index) => console.log('onSwiped at index: '+index)}
-                //onSwipedAll={(index) => this.getMatches(this.state.userId)} 
                 onSwipedAll={(index) => this.setState({ allSwiped: true, isEmpty: true })}
-                cards={this.state.profiles}
                 onSwipedRight={(index) => this.onSwiped(index,'right',true)}//this.state.profile[]cardIndex.potential_match 
                 onSwipedLeft={(index) => this.onSwiped(index,'left',false)} 
                 overlayLabels={{
                   bottom: {
-                    title: 'Date with Jason',
+                    title: 'swip up',
                     style: {
                       label: {
                         backgroundColor: 'black',
