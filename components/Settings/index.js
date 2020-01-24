@@ -369,6 +369,12 @@ class Settings extends Component {
       return false
     } 
   }
+  
+  //update forceUpdate in state, so that swipes will be forced to updated when re-rendering. Needed for data 
+  forceUpdate = () => {
+    this.setState({ forceUpdate: true});
+  }
+  
 
   //function to validate settings
   validateSettings = () => {
@@ -391,8 +397,8 @@ class Settings extends Component {
         //update db to intialUser = false, if not already. This will move user to swipes on login and they will appear in matches
         firebaseRef.update({intialUser: false});
 
-        //redirect to swipes
-        this.props.navigation.navigate('Swipes');
+        //redirect to swipes and pass params if getMatches needs to be force updated. 
+        this.props.navigation. navigate("Swipes", {forceUpdate: this.state.forceUpdate, swipeCount: this.state.profile.swipe_count});
       }
     }
 
@@ -1489,6 +1495,7 @@ _viewProfile = () => {
                       }, () => {
                           this.updateGenderOrInterested('gender');
                           this.updateData('gender', userId, GENDER_OPTIONS[buttonIndex]);
+                          this.forceUpdate(); //make swipes force update
                       })
                     } 
                   }
@@ -1523,6 +1530,8 @@ _viewProfile = () => {
                               })}                  
                   onEndEditing={(e: any) => firebaseRef.update({work: e.nativeEvent.text})}
                   onEndEditing={(e: any) => this.updateData('work', userId, e.nativeEvent.text)}
+                  onEndEditing={(e: any) => this.forceUpdate()} //make swipes force update
+
 
                 />
               </Item>
@@ -1599,6 +1608,7 @@ _viewProfile = () => {
                                 profile: { ...this.state.profile, interested: GENDER_MATCH_OPTIONS[buttonIndex]}
                                 }, () => {
                                   this.updateGenderOrInterested('interested');
+                                  this.forceUpdate(); //make swipes force update
                                 })                         
                             }
                         }
@@ -1649,7 +1659,10 @@ _viewProfile = () => {
                   minimumTrackTintColor={primaryColor}
                   maximumTrackTintColor={primaryColor}
                   value={this.state.profile.min_age}
-                  onSlidingComplete={(val) => firebaseRef.update({min_age: (val)})}
+                  onSlidingComplete={(val) => 
+                    firebaseRef.update({min_age: (val)},
+                    this.forceUpdate() //make swipes force update
+                  )}
                   onValueChange={(val) => 
                    this.setState({profile: { ...this.state.profile, min_age: (val)}})
                  }
@@ -1669,7 +1682,10 @@ _viewProfile = () => {
                   minimumTrackTintColor={primaryColor}
                   maximumTrackTintColor={primaryColor}
                   value={this.state.profile.max_age}
-                  onSlidingComplete={(val) => firebaseRef.update({max_age: (val)})}
+                  onSlidingComplete={(val) => 
+                    firebaseRef.update({max_age: (val)},
+                    this.forceUpdate() //make swipes force update
+                  )}
                   onValueChange={(val) => 
                    this.setState({profile: { ...this.state.profile, max_age: (val)}})
                  }

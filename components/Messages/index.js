@@ -38,7 +38,8 @@ class Messages extends Component {
   static navigationOptions = ({ navigation }) => {
     return {
       headerLeft: () => (
-        <Button transparent onPress={() => navigation.navigate('Swipes')}>
+        <Button transparent onPress={() => navigation.navigate('Swipes', {forceUpdate: false})}>
+
           <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faUsers } />
         </Button>
       ),

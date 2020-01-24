@@ -93,22 +93,24 @@ class Swipes extends Component {
       'didFocus',
       payload => {
 
-        //reset cardindex to 0
-        this.setState({ loading: true, cardIndex: 0});
+        //save params from nav if swipes needs to be force updated (since navigating backwards won't re-render component)
+        let forceUpdate = this.props.navigation.getParam('forceUpdate');
+        let swipeCount = this.props.navigation.getParam('swipeCount');
 
-        //fetch new matches and put into state
-        this.getMatches(userId);
+        if (forceUpdate == true){
 
-        //query for swipe count and set state with it, to keep track of when user swipes all their matches.     
-        firebase.database().ref('/users/' + userId)
-          .once('value', ((snapshot) => {
-                    
-            //set state with data. 
-            this.setState({
-              swipeCountStart: snapshot.val().swipe_count
-            })
+          //reset cardindex to 0
+          this.setState({ loading: true, cardIndex: 0});
+
+          //fetch new matches and put into state
+          this.getMatches(userId);
+
+          //set state with data. 
+          this.setState({
+            swipeCountStart: swipeCount
           })
-        ) 
+
+        }
       }
     );
 
