@@ -1,0 +1,11 @@
+┌────────────┬─────────────────────────────┬──────────────────────┐
+│ Name       │ Update Metadata             │ Install Metrics      │
+├────────────┼─────────────────────────────┼──────────────────────┤
+│ Production │ No updates released         │ No installs recorded │
+├────────────┼─────────────────────────────┼──────────────────────┤
+│ Staging    │ Label: v1                   │ No installs recorded │
+│            │ App Version: 1.26           │                      │
+│            │ Mandatory: No               │                      │
+│            │ Release Time: 4 minutes ago │                      │
+│            │ Released By:                │                      │
+└────────────┴─────────────────────────────┴──────────────────────┘

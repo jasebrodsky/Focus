@@ -12,6 +12,8 @@
 	<string></string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CodePushDeploymentKey</key>
+	<string>GXAQ1Op1A8MYEgAXNrfLsBeDWEm8RWdbYCeW9</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

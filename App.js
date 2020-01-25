@@ -11,6 +11,7 @@ import Chat from "./components/Chat";
 import Swipes from "./components/Swipes";
 import Settings from "./components/Settings";
 import Refer from "./components/Refer";
+import codePush from "react-native-code-push";
 
 
 // const RootStack = createStackNavigator(
@@ -93,7 +94,7 @@ const RootStack = createStackNavigator(
 );
 
 
-const AppContainer = createAppContainer(RootStack);
+const AppContainer = codePush(createAppContainer(RootStack));
 
 export default class App extends React.Component {
   render() {
