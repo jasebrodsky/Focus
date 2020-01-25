@@ -115,8 +115,8 @@ const slidesFemale = [
   {
     key: '3',
     title: 'Invite a friend', //'Women empowered', //'Only gentlemen',
-    text: 'Invite a friend who would enjoy this.', //'Men need to be invited by women. ',
-    icon: faRestroom, //faUnlockAlt,
+    text: 'Men need to be invited by women.', //'Invite a friend who would enjoy this.'
+    icon: faRestroom, //,faUnlockAlt
     image: require('./assets/banner-gentlemen.jpg'),
     imageStyle: styles.image,
     backgroundColor: primaryColor,
@@ -139,7 +139,7 @@ const slidesMale = [
   {
     key: '2',
     title: 'Better conversations',
-    text: 'With each message, photos will re-focus.',
+    text: 'Photos re-focus as messages are exchanged.',
     image: require('./assets/banner-chat.jpg'),
     icon: faComments,  //faCoffee faCommentDots
     imageStyle: styles.image,

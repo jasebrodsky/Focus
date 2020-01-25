@@ -41,14 +41,13 @@ target 'Focus' do
   pod 'FBSDKLoginKit'
   pod 'FBSDKShareKit'
 
+
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
   
   pod 'react-native-geolocation', :path => '../node_modules/@react-native-community/geolocation'
 
-
-  pod 'SajjadBlurOverlay', :path => '../node_modules/react-native-blur-overlay'
 
   target 'FocusTests' do
     inherit! :search_paths
