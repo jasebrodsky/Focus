@@ -469,6 +469,8 @@ onLoginOrRegister = () => {
 }
 
   render() {
+
+
     const { navigate } = this.props.navigation;
     // return (
     //   <ImageBackground source={background} style={{width: '100%', height: '100%'}}>
@@ -492,6 +494,7 @@ onLoginOrRegister = () => {
         <View style={{flex: 1, justifyContent: 'center', padding: 50,}}>
           <Image source={logo} style ={{}} />
         </View>
+        
         <View style={{flex: 1, width: '85%'}}>
           <TextInput
                 style={styles.inputBox}

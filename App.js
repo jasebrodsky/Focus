@@ -96,6 +96,7 @@ const RootStack = createStackNavigator(
 
 const AppContainer = codePush(createAppContainer(RootStack));
 
+
 export default class App extends React.Component {
   render() {
     return <Root><AppContainer /></Root>;
