@@ -1528,10 +1528,8 @@ _viewProfile = () => {
                   onChangeText={(newwork) => this.setState({
                                 profile: { ...this.state.profile, work: newwork}
                               })}                  
-                  onEndEditing={(e: any) => firebaseRef.update({work: e.nativeEvent.text})}
+                 // onEndEditing={(e: any) => firebaseRef.update({'work': e.nativeEvent.text})}
                   onEndEditing={(e: any) => this.updateData('work', userId, e.nativeEvent.text)}
-                  onEndEditing={(e: any) => this.forceUpdate()} //make swipes force update
-
 
                 />
               </Item>
