@@ -16,6 +16,8 @@
     "@ptomasroos/react-native-multi-slider": "^1.0.0",
     "@react-native-community/geolocation": "^2.0.2",
     "@react-native-community/slider": "^2.0.8",
+    "@react-native-firebase/app": "^6.2.0",
+    "@react-native-firebase/dynamic-links": "^6.2.0",
     "appcenter": "2.5.0",
     "appcenter-analytics": "2.5.0",
     "appcenter-crashes": "2.5.0",
