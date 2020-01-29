@@ -31,11 +31,9 @@ import {
 } from "native-base";
 
 import { GiftedChat } from 'react-native-gifted-chat';
-//import TimerCountdown from 'react-native-timer-countdown'
 import TimerMachine from 'react-timer-machine';
 import moment from "moment";
 import momentDurationFormatSetup from "moment-duration-format";
-
 
 const primaryColor = "#8A6077";
 var BUTTONS = ["Unmatch", "Report & Block", "Cancel"];
@@ -49,6 +47,7 @@ class Chat extends Component {
 
     this.state = {
       messages:[],
+      block: true,
       blur: null,
       chatActive: true,
       removed: false,
@@ -87,49 +86,50 @@ class Chat extends Component {
         <Title>{navigation.getParam('name')}</Title>
       ),
       
-      // headerRight: () => (
-      //   <Button transparent onPress={navigation.getParam('block')}>
-      //     <FontAwesomeIcon style={{right: 16, fontSize: 32, color: '#B2B2FF'}} icon={ faFlag } />
-      //  </Button>
-      // ),
+      headerRight: () => (
+        <Button transparent onPress={navigation.getParam('showProfile')}>
+          <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faImages } />
+       </Button>
+      ),
 
       //NEED TO FIGURE OUT HOW TO PASS NAVIGATION OBJECT DOWN TO ACTIONSHEET AND ALERT CHILD COMPONENTS. Can call the function via getParam, only when it's in the parent component, like above. 
-      headerRight: () => (
-        <Button transparent onPress={() =>
+      // headerRight: () => (
+      //   <Button transparent onPress={() =>
           
-          ActionSheet.show(
-            {
-              options: BUTTONS,
-              cancelButtonIndex: CANCEL_INDEX,
-              destructiveButtonIndex: DESTRUCTIVE_INDEX
+      //     ActionSheet.show(
+      //       {
+      //         options: BUTTONS,
+      //         cancelButtonIndex: CANCEL_INDEX,
+      //         destructiveButtonIndex: DESTRUCTIVE_INDEX
               
-            },
-            buttonIndex => {
+      //       },
+      //       buttonIndex => {
 
-              //handle blocking profile
-              if ((buttonIndex) == 0){
+      //         //handle blocking profile
+      //         if ((buttonIndex) == 0){
 
-                navigation.getParam('block')
+      //           //navigation.getParam('block')
+      //           this.setState({block: true});
               
-                //handle block and report a user
-              }else if ((buttonIndex) == 1){
+      //           //handle block and report a user
+      //         }else if ((buttonIndex) == 1){
 
-                Alert.alert(
-                  'Report & Block',
-                  'We take reports seriously and will investigate this person as well as block them from interacting with you in the future. If you just want to unmatch tap "unmatch" instead.',
-                  [
-                    {text: 'Unmatch', onPress: () => navigation.getParam('block')},
-                    {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-                    //{text: 'Report & Block', onPress: () => this.blockOrReport('report')},
-                  ],
-                  { cancelable: false }
-                )         
-              }
-            }
-          )} >
-          <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faFlag } />
-       </Button>
-      )
+      //           Alert.alert(
+      //             'Report & Block',
+      //             'We take reports seriously and will investigate this person as well as block them from interacting with you in the future. If you just want to unmatch tap "unmatch" instead.',
+      //             [
+      //               {text: 'Unmatch', onPress: () => navigation.getParam('block')},
+      //               {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+      //               //{text: 'Report & Block', onPress: () => this.blockOrReport('report')},
+      //             ],
+      //             { cancelable: false }
+      //           )         
+      //         }
+      //       }
+      //     )} >
+      //     <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faFlag } />
+      //  </Button>
+      // )
     };
   };
 
@@ -379,6 +379,16 @@ class Chat extends Component {
 
   }
 
+
+  //function to show profile image viewer modal
+  showProfile = () => {
+
+    if(this.state.imageViewerVisible == false){
+      this.setState({ imageViewerVisible: true})
+    }
+
+  }
+
   //function to block or report a profile
   blockOrReport = (type) => {
 
@@ -516,53 +526,53 @@ class Chat extends Component {
     return (
       <Container>
 
-          <Modal 
-            visible={this.state.imageViewerVisible} 
-            transparent={true}
-            animationType="slide">
-          
-              <ImageViewer 
-                index = {this.state.imageIndex}
-                imageUrls={this.state.images}
-                onChange = {(index) => this.setState({ imageIndex: index})}
-                onSwipeDown = {() => this.setState({ imageViewerVisible: false, profileMaxHeight: '15%', imageIndex: this.state.imageIndex})}
-                onClick = {() => this.setState({ imageViewerVisible: false, profileMaxHeight: '15%'})}
-              />
-
-                <View 
-                  flex={1}
-                  // alignItems="flex-start"
-                  // justifyContent="center"
-                  borderWidth={1}
-                  borderColor="grey"
-                  borderRadius={5}
-                  backgroundColor="white"
-                  maxHeight= {this.state.profileMaxHeight} //profileMaxHeight
-                 
-                >
-                  <ScrollView 
-                    ref='ScrollView_Reference'
-                    onScroll={this._handleScroll}
-                    scrollEventThrottle={16}
-                    contentContainerStyle={{
-                      padding: 15,
-                      backgroundColor:'white'
-                    }}>
-                      <TouchableOpacity>
-                        <Card transparent>   
-                          {/* <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{name}</H3> */}
-                          <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{age}, {gender}, {city_state}</H3>
-                          <Text numberOfLines={1} style={{}} >{work} </Text>
-                          <Text numberOfLines={1} style={{marginBottom: 10}} >{education} </Text>
-                          <Text note style={{marginTop: 10}}>{about}</Text>
-                        </Card>
-                        {this._renderReview(this.state.reviews)}
-                      </TouchableOpacity>
-                  </ScrollView>
-                </View>          
-          </Modal> 
+        <Modal 
+          visible={this.state.imageViewerVisible} 
+          transparent={true}
+          animationType="slide">
         
-        <View style={{padding:10,  alignItems:'center', flexDirection:'row', justifyContent: 'center'}}>
+            <ImageViewer 
+              index = {this.state.imageIndex}
+              imageUrls={this.state.images}
+              onChange = {(index) => this.setState({ imageIndex: index})}
+              onSwipeDown = {() => this.setState({ imageViewerVisible: false, profileMaxHeight: '15%', imageIndex: this.state.imageIndex})}
+              onClick = {() => this.setState({ imageViewerVisible: false, profileMaxHeight: '15%'})}
+            />
+
+              <View 
+                flex={1}
+                // alignItems="flex-start"
+                // justifyContent="center"
+                borderWidth={1}
+                borderColor="grey"
+                borderRadius={5}
+                backgroundColor="white"
+                maxHeight= {this.state.profileMaxHeight} //profileMaxHeight
+                
+              >
+                <ScrollView 
+                  ref='ScrollView_Reference'
+                  onScroll={this._handleScroll}
+                  scrollEventThrottle={16}
+                  contentContainerStyle={{
+                    padding: 15,
+                    backgroundColor:'white'
+                  }}>
+                    <TouchableOpacity>
+                      <Card transparent>   
+                        {/* <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{name}</H3> */}
+                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{age}, {gender}, {city_state}</H3>
+                        <Text numberOfLines={1} style={{}} >{work} </Text>
+                        <Text numberOfLines={1} style={{marginBottom: 10}} >{education} </Text>
+                        <Text note style={{marginTop: 10}}>{about}</Text>
+                      </Card>
+                      {this._renderReview(this.state.reviews)}
+                    </TouchableOpacity>
+                </ScrollView>
+              </View>          
+        </Modal> 
+        
+        <View style={{padding:0,  alignItems:'center', flexDirection:'row', justifyContent: 'center'}}>
           <Text style={{fontWeight:'600', color:'red', paddingLeft: 5}}>TIME REMAINING: </Text>
           <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', width:200}}> 
           <TimerMachine
@@ -595,15 +605,51 @@ class Chat extends Component {
               }
           />            
           </Text> 
-        
-              <FontAwesomeIcon onPress={() => this.setState({ imageViewerVisible: true})} size={ 28 } style={{ right: 15, color: 'grey',}} icon={ faImages } />
+                    
+          <Button transparent onPress={() =>
+          
+          ActionSheet.show(
+            {
+              options: BUTTONS,
+              cancelButtonIndex: CANCEL_INDEX,
+              destructiveButtonIndex: DESTRUCTIVE_INDEX
+              
+            },
+            buttonIndex => {
 
+              //handle blocking profile
+              if ((buttonIndex) == 0){
+
+                //block user
+                this.blockOrReport('block')
+              
+                //handle block and report a user
+              }else if ((buttonIndex) == 1){
+
+                Alert.alert(
+                  'Report & Block',
+                  'We take reports seriously and will investigate this person as well as block them from interacting with you in the future. If you just want to unmatch tap "unmatch" instead.',
+                  [
+                    {text: 'Unmatch', onPress: () => this.blockOrReport('block')},
+                    {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                    {text: 'Report & Block', onPress: () => this.blockOrReport('report')},
+                  ],
+                  { cancelable: false }
+                )         
+              }
+            }
+          )} >
+          <FontAwesomeIcon size={ 20 } style={{right: 15, color: 'grey'}} icon={ faFlag } />
+       
+       </Button>
         </View>
 
         <View>
-          <Image source={{uri: image, cache: 'force-cache'}} position="absolute" resizeMode="cover" blurRadius={Number(this.state.blur)}  
-          style={[styles.backgroundImage, {height:height, width: width}]}
-          />
+          <TouchableOpacity onPress={() => this.showProfile()}>
+            <Image source={{uri: image, cache: 'force-cache'}} position="absolute" resizeMode="cover" blurRadius={Number(this.state.blur)}  
+            style={[styles.backgroundImage, {height:height, width: width}]}
+            />
+          </TouchableOpacity>
         </View>
         
 
@@ -635,6 +681,7 @@ class Chat extends Component {
     
     //send blockOrReport function to nav as param, so that it can be referenced in the navigation. 
     this.props.navigation.setParams({ block: this.blockOrReport });
+    this.props.navigation.setParams({ showProfile: this.showProfile });
 
     this.loadMessages((message) => {
       this.setState((previousState) => {

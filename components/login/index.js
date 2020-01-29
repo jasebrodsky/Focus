@@ -494,7 +494,6 @@ onLoginOrRegister = () => {
         <View style={{flex: 1, justifyContent: 'center', padding: 50,}}>
           <Image source={logo} style ={{}} />
         </View>
-        <Text>Josh smells funy</Text>
         <View style={{flex: 1, width: '85%'}}>
           <TextInput
                 style={styles.inputBox}
