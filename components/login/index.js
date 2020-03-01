@@ -501,6 +501,8 @@ onLoginOrRegister = () => {
                 onChangeText={email => this.setState({ email })}
                 placeholder='Email'
                 autoCapitalize='none'
+                placeholderTextColor='grey'
+                color='black'
             />
             <TextInput
                 style={styles.inputBox}
@@ -508,6 +510,8 @@ onLoginOrRegister = () => {
                 onChangeText={password => this.setState({ password })}
                 placeholder='Password'
                 secureTextEntry={true}
+                placeholderTextColor='grey'
+                color='black'
             />
             {/* if create account is clicked, show gender dropdown in form */}
             {(this.state.createAccount) &&
@@ -536,7 +540,7 @@ onLoginOrRegister = () => {
             
             <View style={{flex: 1, flexDirection: 'row', justifyContent: 'flex-start'}}>
               <Button  disabled transparent >
-                <Text style={{color: (this.state.gender == 'Gender indentity') ? 'lightgrey' : 'black', textTransform: 'capitalize'}}>{this.state.gender}</Text>
+                <Text style={{color: (this.state.gender == 'Gender indentity') ? 'grey' : 'black', textTransform: 'capitalize'}}>{this.state.gender}</Text>
               </Button>
             </View>
 
