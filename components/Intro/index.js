@@ -26,6 +26,7 @@ const primaryColor = "#8A6077";
 const logo = require("../../images/Focus_dating2.png");
 
 //LINE 234 TO TURN ON REDIRECT FOR TESTING - BUILD INTO CONFIG
+// 412, 495
 
 
 const styles = StyleSheet.create({
@@ -113,9 +114,18 @@ const slidesFemale = [
     colors: ['#29ABE2', '#4F00BC'],
   },
   {
+    // key: '3',
+    // title: 'Invite a friend', //'Women empowered', //'Only gentlemen',
+    // text: 'Men need to be invited by women.',  
+    // icon: faRestroom, //,faUnlockAlt
+    // image: require('./assets/banner-gentlemen.jpg'),
+    // imageStyle: styles.image,
+    // backgroundColor: primaryColor,
+    // colors: ['#29ABE2', '#4F00BC'],
+
     key: '3',
     title: 'Invite a friend', //'Women empowered', //'Only gentlemen',
-    text: 'Men need to be invited by women.', //'Invite a friend who would enjoy this.'
+    text: 'Spread the word.', //'Men need to be invited by women.', 
     icon: faRestroom, //,faUnlockAlt
     image: require('./assets/banner-gentlemen.jpg'),
     imageStyle: styles.image,
@@ -147,11 +157,20 @@ const slidesMale = [
     colors: ['#29ABE2', '#4F00BC'],
   },
   {
+    // key: '3',
+    // title: 'Enter your code',
+    // text: 'Men need to be invited by women.',
+    // image: require('./assets/banner-gentlemen.jpg'),
+    // icon: faUnlockAlt,
+    // imageStyle: styles.image,
+    // backgroundColor: primaryColor,
+    // colors: ['#29ABE2', '#4F00BC'],
+
     key: '3',
-    title: 'Enter your code',
-    text: 'Men need to be invited by women.',
+    title: 'Invite a friend', //'Women empowered', //'Only gentlemen',
+    text: 'Spread the word.', //'Men need to be invited by women.', 
+    icon: faRestroom, //,faUnlockAlt
     image: require('./assets/banner-gentlemen.jpg'),
-    icon: faUnlockAlt,
     imageStyle: styles.image,
     backgroundColor: primaryColor,
     colors: ['#29ABE2', '#4F00BC'],
@@ -389,27 +408,18 @@ class Intro extends Component {
     const { navigate } = this.props.navigation;
     //navigate("Settings");
 
-    //if gender is male then render redeem code flow. 
-    if (this.state.gender == 'male'){
+    //if gender is female then render invite code flow. 
+    if (this.state.gender){
+    //if (this.state.gender == 'female'){
 
+      //user must be female, render invite friend flow
+      //redirect to settings component, with onCancel param as "Intro", so that user is redirected to Settings afterwards. 
+      const { navigate } = this.props.navigation;
+      navigate("Refer", {onCancel: 'Intro', flow: 'invite'});
 
-      // // Works on both Android and iOS
-      // Alert.alert(
-      //   'Alert Title',
-      //   'My Alert Msg',
-      //   [
-      //     {text: 'Ask me later', onPress: () => console.log('Ask me later pressed')},
-      //     {
-      //       text: 'Cancel',
-      //       onPress: () => console.log('Cancel Pressed'),
-      //       style: 'cancel',
-      //     },
-      //     {text: 'OK', onPress: () => console.log('OK Pressed')},
-      //   ],
-      //   {cancelable: false},
-      // );
+    }else{
 
-
+      //else render the refer code prompt flow
       Alert.prompt(
         'Enter code',
         'Enter your referral code you received from a friend',
@@ -427,11 +437,8 @@ class Intro extends Component {
         'plain-text',
       );
 
-    }else{
-      //user must be female, render invite friend flow
-      //redirect to settings component, with onCancel param as "Intro", so that user is redirected to Settings afterwards. 
-      const { navigate } = this.props.navigation;
-      navigate("Refer", {onCancel: 'Intro', flow: 'invite'});
+
+
     }
   }
 
@@ -488,8 +495,9 @@ class Intro extends Component {
   render() {
     const { navigate } = this.props.navigation;
     const slides = (this.state.gender == 'male') ? slidesMale : slidesFemale;      
-    const doneLabel = (this.state.gender == 'male') ? 'Enter code' : 'Invite and continue';      
-    
+    const doneLabel = 'Invite and continue';      
+   // const doneLabel = (this.state.gender == 'male') ? 'Enter code' : 'Invite and continue';      
+  
     
     return <AppIntroSlider 
       slides={slides} 

@@ -26,6 +26,9 @@ const secondaryColor = "#EF8275";
 
 class Refer extends Component {
 
+
+//CONFIG 109
+
   constructor(props){
     super(props)
 
@@ -105,7 +108,8 @@ class Refer extends Component {
     let onCancel = this.props.navigation.getParam('onCancel');
     const { navigate } = this.props.navigation;
 
-    if((onCancel == 'Intro') && (this.state.gender == 'female')){
+    if((onCancel == 'Intro') && (this.state.gender)){
+    //if((onCancel == 'Intro') && (this.state.gender == 'female')){
       navigate("Settings");
     }else{
       this.props.navigation.goBack();

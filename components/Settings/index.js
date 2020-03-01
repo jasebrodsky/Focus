@@ -95,6 +95,7 @@ class Settings extends Component {
       imageIndex: 0,
       profileMaxHeight: "15%",
       profileViewerVisible: false,
+      forceUpdate: false,
       profile: {
         showToast: false,
         images: [],

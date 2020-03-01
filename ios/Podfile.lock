@@ -366,10 +366,10 @@ PODS:
     - ReactCommon/jscallinvoker (= 0.61.5)
   - rn-fetch-blob (0.11.2):
     - React-Core
-  - RNFBApp (6.2.0):
+  - RNFBApp (6.3.1):
     - Firebase/Core (~> 6.13.0)
     - React
-  - RNFBDynamicLinks (6.2.0):
+  - RNFBDynamicLinks (6.3.1):
     - Firebase/Core (~> 6.13.0)
     - Firebase/DynamicLinks (~> 6.13.0)
     - React
@@ -385,7 +385,7 @@ PODS:
     - React
   - RNGestureHandler (1.5.0):
     - React
-  - RNImageCropPicker (0.26.1):
+  - RNImageCropPicker (0.25.3):
     - QBImagePickerController
     - React-Core
     - React-RCTImage
@@ -417,6 +417,7 @@ DEPENDENCIES:
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - GoogleAppMeasurement (~> 6.1.6)
+  - QBImagePickerController (from `../node_modules/react-native-image-crop-picker/ios/QBImagePicker/QBImagePickerController.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
   - React (from `../node_modules/react-native/`)
@@ -480,7 +481,6 @@ SPEC REPOS:
     - JWT
     - nanopb
     - Protobuf
-    - QBImagePickerController
     - RSKImageCropper
     - SSZipArchive
 
@@ -505,6 +505,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/Folly.podspec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  QBImagePickerController:
+    :path: "../node_modules/react-native-image-crop-picker/ios/QBImagePicker/QBImagePickerController.podspec"
   RCTRequired:
     :path: "../node_modules/react-native/Libraries/RCTRequired"
   RCTTypeSafety:
@@ -579,7 +581,7 @@ SPEC CHECKSUMS:
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
-  CodePush: d2e54ad42df82a8db65b2d23d8191b950ba945e1
+  CodePush: fe25db2e24ff1a2fab8b280a9633d9ba520867be
   Crashlytics: 540b7e5f5da5a042647227a5e3ac51d85eed06df
   DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
   Fabric: 706c8b8098fff96c33c0db69cbf81f9c551d0d74
@@ -617,8 +619,8 @@ SPEC CHECKSUMS:
   React-jsiexecutor: d5525f9ed5f782fdbacb64b9b01a43a9323d2386
   React-jsinspector: fa0ecc501688c3c4c34f28834a76302233e29dc0
   react-native-fbsdk: b94a83971c496a35803f38b921aec6d637ba07b5
-  react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
-  react-native-slider: 3a1cfd00c9c31068251b536822f7192e8d1d6b6f
+  react-native-geolocation: cbd9d6bd06bac411eed2671810f454d4908484a8
+  react-native-slider: b2f361499888302147205f17f6fffa921a7bda70
   React-RCTActionSheet: 600b4d10e3aea0913b5a92256d2719c0cdd26d76
   React-RCTAnimation: 791a87558389c80908ed06cc5dfc5e7920dfa360
   React-RCTBlob: d89293cc0236d9cb0933d85e430b0bbe81ad1d72
@@ -630,11 +632,11 @@ SPEC CHECKSUMS:
   React-RCTVibration: a49a1f42bf8f5acf1c3e297097517c6b3af377ad
   ReactCommon: 198c7c8d3591f975e5431bec1b0b3b581aa1c5dd
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
-  RNFBApp: 5b215aacc09105a1761de31b9a0eb2abcce06253
-  RNFBDynamicLinks: fc6a123aaa86dc8745dcb3050ecc9c8e199f64df
+  RNFBApp: 279ec5c4bb43b8fc7b8031eed90ad7d2bea7a048
+  RNFBDynamicLinks: 39ce015aece46c0d5bcb88690ebc41c395f5b193
   RNFirebase: ac0de8b24c6f91ae9459575491ed6a77327619c6
   RNGestureHandler: a4ddde1ffc6e590c8127b8b7eabfdade45475c74
-  RNImageCropPicker: e1d8c3381e5b05a1bdcd13ea57a4f1c020a09cef
+  RNImageCropPicker: bfb3ea9c8622f290532e2fe63f369e0d5a52f597
   RNSVG: 8ba35cbeb385a52fd960fd28db9d7d18b4c2974f
   RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
   RSKImageCropper: a446db0e8444a036b34f3c43db01b2373baa4b2a
@@ -642,6 +644,6 @@ SPEC CHECKSUMS:
   SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23
   Yoga: f2a7cd4280bfe2cca5a7aed98ba0eb3d1310f18b
 
-PODFILE CHECKSUM: f43e5e249db459780c8da4feb9a5bc23bfa57bda
+PODFILE CHECKSUM: a5c5ecb4305a091e03b085bb812126e24ad72c1d
 
 COCOAPODS: 1.8.4
