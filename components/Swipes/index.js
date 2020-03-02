@@ -733,7 +733,7 @@ class Swipes extends Component {
                       }}>
                         <ImageBackground
                           resizeMode="cover"
-                          style={{ width: '100%', height: height-220 }}
+                          style={{ width: '100%', height: height-245 }}
                           source={{uri: Object.values(card.images)[0].url}}
                         /> 
                       </View>
