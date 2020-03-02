@@ -53,6 +53,8 @@ target 'Focus' do
 
   pod 'CodePush', :path => '../node_modules/react-native-code-push'
 
+  pod 'react-native-appearance', :path => '../node_modules/react-native-appearance'
+
   target 'FocusTests' do
     inherit! :search_paths
     # Pods for testing
