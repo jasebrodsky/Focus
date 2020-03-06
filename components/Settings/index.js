@@ -544,38 +544,43 @@ _closeAndEndorse = () => {
             let imagePath = image.path;
             let Blob = RNFetchBlob.polyfill.Blob
             let fs = RNFetchBlob.fs
+            const originalXMLHttpRequest = window.XMLHttpRequest;
+            const originalBlob = window.Blob;
             window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest
             window.Blob = Blob
             let mime = 'image/jpg'
             let uploadUri = Platform.OS === 'ios' ? imagePath.replace('file://', '') : imagePath
-            
+                        
             // Create file metadata specific to caching.
             let newMetadata = {
               cacheControl: 'public,max-age=31536000',
               contentType: 'image/jpeg'
             }
 
-            // Read selected image and build blob          
+            // Read selected image          
             fs.readFile(imagePath, 'base64')
-              .then((data) => {
+              
+            // then build blob
+            .then((data) => {
                 //console.log(data);
                 return Blob.build(data, { type: `${mime};BASE64` })
             })
             // Then upload blob to firebase storage
             .then((blob) => {
-                uploadBlob = blob
+                uploadBlob = blob;
                 return imagesRef.put(blob, { contentType: mime })
               })
             
-            // Then return url of new file from storage
+            // Then close blob and set blob back to original values (for bug with fetching later)
             .then(() => {
               uploadBlob.close();
+              window.XMLHttpRequest = originalXMLHttpRequest
+              window.Blob = originalBlob;
 
-            // Update metadata properties to image reference
-            imagesRef.updateMetadata(newMetadata).then(function(metadata) {
-
-            // Catch if error occured
-            }).catch(function(error) {
+              // Update metadata properties to image reference
+              imagesRef.updateMetadata(newMetadata)
+            
+            .catch(function(error) {
               // Uh-oh, an error occurred!
               console.log(error);
             })  

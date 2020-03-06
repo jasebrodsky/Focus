@@ -226,6 +226,7 @@ class Swipes extends Component {
         // turn returned response into json data
         let responseJson = await response.json();
 
+        console.log('responseJson is: '+responseJson);
         // for each match userid inside responeJson
         let promises = responseJson.map((match) => {
           
