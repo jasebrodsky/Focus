@@ -1,4 +1,5 @@
 import * as React from 'react';
+import 'react-native-gesture-handler';
 import firebase from 'react-native-firebase';
 import { Button, View, Text } from 'react-native';
 import { createAppContainer } from 'react-navigation';

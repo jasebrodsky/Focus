@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, StyleSheet, Alert, Share } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faRestroom, faCog, faCommentDots, faCoffee, faDoorOpen, faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
-
-
 import RNfirebase from 'react-native-firebase';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import * as firebase from "firebase";
@@ -157,23 +154,23 @@ const slidesMale = [
     colors: ['#29ABE2', '#4F00BC'],
   },
   {
-    // key: '3',
-    // title: 'Enter your code',
-    // text: 'Men need to be invited by women.',
-    // image: require('./assets/banner-gentlemen.jpg'),
-    // icon: faUnlockAlt,
-    // imageStyle: styles.image,
-    // backgroundColor: primaryColor,
-    // colors: ['#29ABE2', '#4F00BC'],
-
     key: '3',
-    title: 'Invite a friend', //'Women empowered', //'Only gentlemen',
-    text: 'Spread the word.', //'Men need to be invited by women.', 
-    icon: faRestroom, //,faUnlockAlt
+    title: 'Enter your code',
+    text: 'Men need to be invited by women.',
     image: require('./assets/banner-gentlemen.jpg'),
+    icon: faUnlockAlt,
     imageStyle: styles.image,
     backgroundColor: primaryColor,
     colors: ['#29ABE2', '#4F00BC'],
+
+    // key: '3',
+    // title: 'Invite a friend', //'Women empowered', //'Only gentlemen',
+    // text: 'Spread the word.', //'Men need to be invited by women.', 
+    // icon: faRestroom, //,faUnlockAlt
+    // image: require('./assets/banner-gentlemen.jpg'),
+    // imageStyle: styles.image,
+    // backgroundColor: primaryColor,
+    // colors: ['#29ABE2', '#4F00BC'],
   }
 ];
 
@@ -409,8 +406,8 @@ class Intro extends Component {
     //navigate("Settings");
 
     //if gender is female then render invite code flow. 
-    if (this.state.gender){
-    //if (this.state.gender == 'female'){
+    //if (this.state.gender){
+    if (this.state.gender == 'female'){
 
       //user must be female, render invite friend flow
       //redirect to settings component, with onCancel param as "Intro", so that user is redirected to Settings afterwards. 
@@ -495,8 +492,8 @@ class Intro extends Component {
   render() {
     const { navigate } = this.props.navigation;
     const slides = (this.state.gender == 'male') ? slidesMale : slidesFemale;      
-    const doneLabel = 'Invite and continue';      
-   // const doneLabel = (this.state.gender == 'male') ? 'Enter code' : 'Invite and continue';      
+    //const doneLabel = 'Invite and continue';      
+    const doneLabel = (this.state.gender == 'male') ? 'Enter code' : 'Invite and continue';      
   
     
     return <AppIntroSlider 
