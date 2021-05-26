@@ -66,7 +66,7 @@ class Swipes extends Component {
   static navigationOptions = ({ navigation }) => {
     return {
       headerLeft: () => (
-        <Button transparent  onPress={() => navigation.navigate({routeName: 'Settings', transitionStyle: 'inverted'}) }>
+        <Button transparent  onPress={() => navigation.navigate({routeName: 'Dashboard', transitionStyle: 'inverted'}) }>
                            
           <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faCog } />
        </Button>
@@ -87,6 +87,7 @@ class Swipes extends Component {
   };
 
   componentDidMount() {
+
 
     //force update match data so that updated settings and matches will be reflected fetched data, to get fetch fresh batch of matches. 
     const didFocus = this.props.navigation.addListener(
@@ -173,7 +174,7 @@ class Swipes extends Component {
 
         firebase.database().ref('/matches/' + userId).orderByChild('unread_message').equalTo(true).on('value', ((chatSnapshot) => {
 
-         console.log('unread chats are: '+JSON.stringify(chatSnapshot.val())) ; 
+         //console.log('unread chats are: '+JSON.stringify(chatSnapshot.val())) ; 
           // if chat count is not empty, update state with count and set flag to true. Else, make sure to set flag to false. 
           if(chatSnapshot.val() !== null){
                    
@@ -268,7 +269,7 @@ class Swipes extends Component {
               profiles: profileObj,
               loading: false,
               isEmpty: false,
-            });
+            }), this.updateWithPotentialMatches();
           }
         })
 
@@ -277,6 +278,47 @@ class Swipes extends Component {
         console.log('error occured: '+error);
       }
   }
+
+
+
+  //function to update eligible match to potential match in real time, since getMatches cloudfunction returns static matches on fetch, not reflecteive of real-time swipes. 
+  updateWithPotentialMatches = () => {
+
+    //filter out all potential matches, since those don't need to be updated.
+    let eligibleMatches = this.state.profiles.filter(match => match.match_type == 'eligible_match');
+   
+    //save only the id's the matches that are eligible. Will be used later to check if these matches swiped right in real time. 
+    let eligibleMatchesIds = eligibleMatches.map(match => match.userid);
+
+    //define ref to users' swipe object
+    let swipesReceivedRef = firebase.database().ref('swipesReceived/'+this.state.userId+'/');
+       
+    swipesReceivedRef.limitToFirst(1).on('child_added', function(swipesRecievedSnapshot) {
+
+      let LatestSwipesRecievedId = Object.keys(swipesRecievedSnapshot.val());
+      //let LatestSwipesRecievedId = swipesRecievedSnapshot.key();
+   
+      console.log('eligibleMatchesIds: '+JSON.stringify(eligibleMatchesIds));
+      console.log('LatestSwipesRecievedId: '+LatestSwipesRecievedId);
+
+      //is LatestSwipesRecievedId one of the eligibleMatchesIds? if so, update that match to potential within state. 
+      if (eligibleMatchesIds.includes(String(LatestSwipesRecievedId))){
+        //alert('dolphins'); 
+        //console.log('exists true');  
+        // save exisiting match from state into var
+        // matchToUpdate = this.state.profiles[LatestSwipesRecievedId];
+
+        // update proptery to potential
+        // matchToUpdate.match_status = 'potential_match';
+
+        // update that match to potential within user's state.
+        // this.setState({...this.state.profiles, matchToUpdate})
+      }else{
+       // console.log('doesnt exists false');  
+      }
+    })  
+  } 
+
 
   //function to call when a new match is intiated.
   pushNewMatch = (images, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match) => {
@@ -310,7 +352,8 @@ class Swipes extends Component {
           }
         },
         active: 'true',
-        match_date: new Date().getTime()
+        match_date: new Date().getTime(),
+        expiration_date: (86000000 - new Date().getTime()),
       }, function (error) {
         if (error) {
           //if push fails
@@ -334,8 +377,8 @@ class Swipes extends Component {
           //create ref to set new conversations key/value pair witin users object.
           let conversationsMatchesRef2 = firebase.database().ref('/users/'+userid_match+'/').child("conversations");
 
-          console.log("reviews_match is: "+JSON.stringify(reviews_match));
-          console.log("user_reviews is: "+JSON.stringify(user_reviews));
+          //console.log("reviews_match is: "+JSON.stringify(reviews_match));
+          //console.log("user_reviews is: "+JSON.stringify(user_reviews));
 
           //set new match object
           matchesRef1.set({
@@ -352,6 +395,7 @@ class Swipes extends Component {
             reviews: reviews_match ? reviews_match : {},
             active: 'true',
             match_date: new Date().getTime(),
+            expiration_date: (86000000 - new Date().getTime()),
             match_id: match_id,
             match_userid: userid_match,
             about: about_match,
@@ -373,6 +417,7 @@ class Swipes extends Component {
             reviews: user_reviews ? user_reviews : {},
             active: 'true',
             match_date: new Date().getTime(),
+            expiration_date: (86000000 - new Date().getTime()),
             match_id: match_id,
             match_userid: userid,
             about: user_about,
@@ -599,18 +644,18 @@ class Swipes extends Component {
     return (
       <Container >
 
-      <BlurOverlay
-        radius={14}
-        downsampling={2}
-        brightness={-200}
-        onPress={() => {
-            closeOverlay();
-            userRef.update({showInstructionsSwipes: false})
-        }}
-        customStyles={{alignItems: 'center', justifyContent: 'center'}}
-        blurStyle="dark"
-        children={this.renderBlurChilds()}
-      />
+        <BlurOverlay
+          radius={14}
+          downsampling={2}
+          brightness={-200}
+          onPress={() => {
+              closeOverlay();
+              userRef.update({showInstructionsSwipes: false})
+          }}
+          customStyles={{alignItems: 'center', justifyContent: 'center'}}
+          blurStyle="dark"
+          children={this.renderBlurChilds()}
+        />
           
           <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between'}}>
             { (this.state.isEmpty  && !this.state.loading ) && 
@@ -619,10 +664,9 @@ class Swipes extends Component {
                     <FontAwesomeIcon size={ 68 } style={{marginBottom: 55, color: primaryColor}} icon={ faUserClock } />
                 </Button>
                 <Text style={{color: primaryColor}}> Come back tomorrow for more matches.</Text>
-                <Text style={{color: primaryColor}}>Refer a friend.</Text>
                 <View style ={{marginTop: 20}}>
-                  <Button bordered style={{padding: 10, borderColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'refer' })}>
-                    <Text style={{color: primaryColor}}>Generate Refer Code</Text>
+                  <Button bordered style={{padding: 10, borderColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'invite' })}>
+                    <Text style={{color: primaryColor}}>Invite Friend</Text>
                   </Button>
                 </View>
               </View>}
@@ -635,8 +679,6 @@ class Swipes extends Component {
             {/* only show swiper if loading is false - loading finished  */}
             { ((!this.state.isEmpty || !this.state.allSwiped ) && !this.state.loading ) && 
             <View style={{position: 'relative', bottom: 40, flex: 1, justifyContent: 'flex-start'}}>
-              
-              {console.log('this.state.profiles is: '+JSON.stringify(this.state.profiles))}
               <Swiper
                 cards={this.state.profiles}
                 ref = {swiper => {this.swiper = swiper}}

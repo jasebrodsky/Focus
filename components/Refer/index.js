@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { StyleSheet, Alert, Share, Keyboard } from 'react-native';
+import { StyleSheet, Alert, Share, Keyboard, KeyboardAvoidingView } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import RNfirebase from 'react-native-firebase';
+import LinearGradient from 'react-native-linear-gradient';
 import * as firebase from "firebase";
 
 import {
@@ -21,8 +22,16 @@ import {
   View
 } from "native-base";
 
-const primaryColor = "#8A6077";
-const secondaryColor = "#EF8275";
+//const primaryColor = "#8A6077";
+
+// const primaryColor = "#914cd5";
+// const secondaryColor = "#ee9e45";
+
+const primaryColor = "#a83a59";
+const secondaryColor = "#c60dd9";
+const btnColor = 'white';
+const btnTextColor = primaryColor;
+
 
 class Refer extends Component {
 
@@ -38,6 +47,7 @@ class Refer extends Component {
       gender: '',
       userId: '',
       reason: '',
+      reasonRows: 8
     }
 
   }
@@ -59,7 +69,7 @@ class Refer extends Component {
     if (flow == 'invite'){
       //invite flow
       this.setState({ titleCopy: 'Invite a Friend' }); 
-      this.setState({ reasonCopy: 'Why should they be invited to to Focus?' }); 
+      this.setState({ reasonCopy: 'Why should they be invited to Focus?' }); 
       this.setState({ primaryCTA: 'Generate Invite Code'}); 
       this.setState({ secondaryCTA: 'Invite Later' });
       this.setState({ errorCopy: 'Invitation reason needs to be at least 100 characters. ' });
@@ -110,7 +120,7 @@ class Refer extends Component {
 
     if((onCancel == 'Intro') && (this.state.gender)){
     //if((onCancel == 'Intro') && (this.state.gender == 'female')){
-      navigate("Settings");
+      navigate("Registration");
     }else{
       this.props.navigation.goBack();
 
@@ -132,12 +142,12 @@ class Refer extends Component {
     let reason = this.state.reason;
     let reasonLength = reason.length;
 
-    if(!name || reasonLength < 100){
+    if(!name || reasonLength < 30){
 
       if(!name){
-        alert('Please enter a valid name');
+        Alert.alert("Sorry", "Please enter a name first.")
       }else {
-        alert(this.state.errorCopy+(100-reasonLength)+' characters remaining.');
+        Alert.alert("Sorry", this.state.errorCopy+(30-reasonLength)+' characters remaining.')
       }
 
       alert('please enter name or reason over 10 char');
@@ -204,49 +214,113 @@ class Refer extends Component {
     const { navigate } = this.props.navigation;
 
     //count character remaining
-    let charRemainingCopy = (100 - this.state.reason.length)+' charaters remaining';
+    let charRemainingCopy = (30 - this.state.reason.length)+' charaters remaining';
         
     return (
-      <Container style={{ flex: 1, alignItems: 'center',  }} onStartShouldSetResponder={Keyboard.dismiss}>
+
+
+      <LinearGradient style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        //backgroundColor: primaryColor, dimensions
+        }}
+        colors={[primaryColor, secondaryColor]}
+        start={{ x: 0, y: 0.1 }}
+        end={{ x: 0.1, y: 1 }}
+        >
+
+        <KeyboardAvoidingView 
+          style={{ flex: 1, alignItems: 'center', }} 
+          onStartShouldSetResponder={Keyboard.dismiss}
+          behavior="padding"
+          enabled>
+
         <View style={{ flex: 1, marginTop: 50 }}>
           <View style>
-            <H1 style={{textAlign: 'center', color: primaryColor}}>{this.state.titleCopy}</H1>
+            <H1 style={{
+              textAlign: 'center', 
+              color: 'white',
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 3,
+              },
+              shadowOpacity: 0.29,
+              shadowRadius: 4.65, }}>{this.state.titleCopy}</H1>
             {/* <Text style={{textAlign: 'center', marginTop: 10, width: 300}}>If inviting a male, they will still need to be invited by a female to join.</Text> */}
           </View>
         </View>
         <View style={{ flex: 1, width: 300}}>
-          <Item regular>
+          <Item regular 
+            style={{
+              backgroundColor: 'white',            
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 3,
+              },
+              shadowOpacity: 0.29,
+              shadowRadius: 4.65,  }}>
             <Input 
             placeholder='Name'
             value={this.props.navigation.getParam('name')}
             onChangeText={(name) => this.setState({name})}
+            style={{fontSize: 25}}
             />
           </Item>
         </View>
-        <View style={{ flex: 3, width: 300}}>
+        <View style={{ 
+            flex: 3, 
+            width: 300,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 3,
+            },
+            shadowOpacity: 0.29,
+            shadowRadius: 4.65, }}>
           <View style={{}}>
-            <Text style={{fontSize:13}} >{((this.state.reason.length < 100) && this.state.reason)? charRemainingCopy : null }</Text>
+            <Text style={{fontSize:13, color: 'white'}} >{((this.state.reason.length < 30) && this.state.reason)? charRemainingCopy : null }</Text>
           </View>
           <Form>
             <Textarea
-            rowSpan={10} 
+            rowSpan={this.state.reasonRows} 
+            style={{backgroundColor: 'white', fontSize: 25}}
             bordered 
             rounded
             placeholder={this.state.reasonCopy}
+            onFocus={ () => this.setState({reasonRows:6})}
+            onBlur={ () => this.setState({reasonRows:9})}
+
             onChangeText={(reason) => this.setState({reason})}
             value={this.state.reason}           
             />
           </Form>
         </View>   
         <View style={{ flex: 1}}>
-          <Button bordered style={{borderColor: primaryColor}} onPress={() => {this._onShare();}}>
-            <Text style={{color: primaryColor}}>{this.state.primaryCTA}</Text>
+          <Button rounded 
+            style={{ 
+              backgroundColor: btnColor, 
+              borderRadius: 20,
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 3,
+              },
+              shadowOpacity: 0.29,
+              shadowRadius: 4.65, }} 
+            onPress={() => {this._onShare();}}>
+            <Text style={{color: btnTextColor}}>{this.state.primaryCTA}</Text>
           </Button>
           <Button transparent full onPress={() => {this._onCancel();}} >
-            <Text style={{color: primaryColor}}>{this.state.secondaryCTA}</Text>
+            <Text style={{color: 'white'}}>{this.state.secondaryCTA}</Text>
           </Button>
         </View>
-      </Container>
+
+       
+        </KeyboardAvoidingView>
+      </LinearGradient>
     );
   }
 }

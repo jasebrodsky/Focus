@@ -9,6 +9,9 @@ target 'Focus' do
   pod 'RNFirebase', :path => '../node_modules/react-native-firebase/ios'
   pod 'RNFBApp', :path => '../node_modules/@react-native-firebase/app'
 
+ # Point to the installed version
+  pod 'RNDateTimePicker', :path => '../node_modules/@react-native-community/datetimepicker/RNDateTimePicker.podspec'
+
   pod 'GoogleAppMeasurement', '~> 6.1.6'
   pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
   pod 'FBReactNativeSpec', :path => "../node_modules/react-native/Libraries/FBReactNativeSpec"
@@ -54,6 +57,8 @@ target 'Focus' do
   pod 'CodePush', :path => '../node_modules/react-native-code-push'
 
   pod 'react-native-appearance', :path => '../node_modules/react-native-appearance'
+  pod 'BVLinearGradient', :path => '../node_modules/react-native-linear-gradient'
+
 
   target 'FocusTests' do
     inherit! :search_paths
@@ -71,4 +76,47 @@ target 'Focus-tvOS' do
     # Pods for testing
   end
 
+end
+
+
+def find_and_replace(dir, findstr, replacestr)
+  Dir[dir].each do |name|
+      text = File.read(name)
+      replace = text.gsub(findstr,replacestr)
+      if text != replace
+          puts "Fix: " + name
+          File.open(name, "w") { |file| file.puts replace }
+          STDOUT.flush
+      end
+  end
+  Dir[dir + '*/'].each(&method(:find_and_replace))
+end
+
+find_and_replace("../node_modules/react-native/React/CxxBridge/RCTCxxBridge.mm", "_initializeModules:(NSArray<id<RCTBridgeModule>> *)modules", "_initializeModules:(NSArray<Class> *)modules")
+find_and_replace("../node_modules/react-native/ReactCommon/turbomodule/core/platform/ios/RCTTurboModuleManager.mm", "RCTBridgeModuleNameForClass(module))", "RCTBridgeModuleNameForClass(Class(module)))")
+find_and_replace("../node_modules/react-native/ReactCommon/turbomodule/core/platform/ios/RCTTurboModuleManager.mm", "RCTBridgeModuleNameForClass(strongModule))", "RCTBridgeModuleNameForClass(Class(strongModule)))")
+
+
+
+
+post_install do |installer|
+      ## Fix for XCode 12.5
+      find_and_replace("../node_modules/react-native/React/CxxBridge/RCTCxxBridge.mm",
+        "_initializeModules:(NSArray<id<RCTBridgeModule>> *)modules", "_initializeModules:(NSArray<Class> *)modules")
+      find_and_replace("../node_modules/react-native/ReactCommon/turbomodule/core/platform/ios/RCTTurboModuleManager.mm",
+         "RCTBridgeModuleNameForClass(module))", "RCTBridgeModuleNameForClass(Class(module)))")
+  end
+
+
+def find_and_replace(dir, findstr, replacestr)
+  Dir[dir].each do |name|
+      text = File.read(name)
+      replace = text.gsub(findstr,replacestr)
+      if text != replace
+          puts "Fix: " + name
+          File.open(name, "w") { |file| file.puts replace }
+          STDOUT.flush
+      end
+  end
+  Dir[dir + '*/'].each(&method(:find_and_replace))
 end

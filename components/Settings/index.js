@@ -470,7 +470,7 @@ _closeAndEndorse = () => {
 
       Alert.alert(
         'Are you sure you want to delete your account?',
-        'If you delete your account, you will loose touch with everyone within Helm. If you would like to take a break, tap the pause button below',
+        'If you delete your account, you will loose touch with everyone within Focus. If you would like to take a break, tap the pause button below',
         [
           {text: 'Delete Account', onPress: () => userDelete(), style: 'destructive'},
           {text: 'Pause', onPress: () => this.pauseUser()},
@@ -1456,7 +1456,7 @@ _viewProfile = () => {
           <View style={{  flex: 1, padding: 0 }}>
             <Form>
               <ListItem itemDivider style={{flexDirection: "row"}}>
-                <Text>I am ...</Text>
+                <Text>I am test...</Text>
                 <Button style={{flex: 1, justifyContent: "flex-end"}} small transparent 
                   // check if profile is complete, if so, show profileViewer, else show toast to complete profile.
                   onPress = {() => (this.profileComplete()) ? this.setState({ profileViewerVisible: true}) : 

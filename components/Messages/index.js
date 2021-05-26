@@ -138,7 +138,7 @@ class Messages extends Component {
     }else if (type == 'expired' && match_state == 'expired'){
       
       return(
-        <ListItem key={i} onPress={() => navigate("Chat", {match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, images:images, blurRadius: blur, reviews: reviews })}>        
+        <ListItem key={i} onPress={() => navigate("Chat", {match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur, reviews: reviews })}>            
           <ProgressCircle
               blur={blur}
               matchStatus = {match_state}
@@ -264,10 +264,9 @@ class Messages extends Component {
                 <FontAwesomeIcon size={ 68 } style={{marginBottom: 55, color: primaryColor}} icon={ faInbox } />
             </Button>
             <Text style={{color: primaryColor}}> No messages yet. </Text>
-            <Text style={{color: primaryColor}}>Refer a friend.</Text>
             <View style ={{marginTop: 20}}>
-              <Button bordered style={{padding: 10, borderColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'refer' })}>
-                <Text style={{color: primaryColor}}>Generate Refer Code</Text>
+              <Button bordered style={{padding: 10, borderColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'invite' })}>
+                <Text style={{color: primaryColor}}>Invite Friend</Text>
               </Button>
             </View>
           </View>

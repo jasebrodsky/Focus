@@ -10,7 +10,9 @@ import Intro from "./components/Intro";
 import Messages from "./components/Messages";
 import Chat from "./components/Chat";
 import Swipes from "./components/Swipes";
-import Settings from "./components/Settings";
+import Dashboard from "./components/Dashboard";
+import Registration from "./components/Registration";
+import Payments from "./components/Payments";
 import Refer from "./components/Refer";
 import codePush from "react-native-code-push";
 
@@ -39,8 +41,8 @@ const MainStack = createStackNavigator(
     Intro: {
       screen: Intro,
     },
-    Settings: {
-      screen: Settings,
+    Dashboard: {
+      screen: Dashboard,
     },
     Swipes: {
       screen: Swipes,
@@ -87,6 +89,12 @@ const RootStack = createStackNavigator(
     Refer: {
       screen: Refer,
     },
+    Payments: {
+      screen: Payments,
+    },
+    Registration: {
+      screen: Registration,
+    }    
   },
   {
     mode: 'modal',

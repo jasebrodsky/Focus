@@ -6,7 +6,7 @@ import { Modal } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faFlag, faArrowLeft, faImages } from '@fortawesome/free-solid-svg-icons';
+import { faFlag, faEye, faArrowLeft, faImages } from '@fortawesome/free-solid-svg-icons';
 import { withNavigation } from "react-navigation";
 import {
   ActionSheet,
@@ -53,6 +53,7 @@ class Chat extends Component {
       removed: false,
       timeLeft: null,
       matchDate: null,
+      expirationDate: null,
       matchActive: true,
       name: null,
       birthday: '',
@@ -67,7 +68,8 @@ class Chat extends Component {
       profileMaxHeight: "15%",
       images: [],
       imageIndex: 0,
-      about: ''
+      about: '', 
+      subscribed: ''
       //image: null
     }
 
@@ -174,16 +176,34 @@ class Chat extends Component {
     let match_userid = state.params.match_userid; 
     let match_state = state.params.match_state;
 
+    //update state with subscribed, if user is susbscribed. listen on changes if subscribes changes in db.
+    firebase.database().ref('/users/'+userId+'/').on("value", profile =>{
+
+      let subscribed = profile.val().subscribed;
+      this.setState({'subscribed': subscribed})
+
+    })
+    
+    
+
     //save fb ref for quering conversation data
-    firebaseRef = firebase.database().ref('/conversations/'+conversationId+'/');
+    let firebaseRef = firebase.database().ref('/conversations/'+conversationId+'/');
 
     //firebase ref for user in context match obj, used to flag all messages have been read
-    firebaseMatchesRef2 = firebase.database().ref('/matches/'+userId+'/'+match_userid+'/');
+    let firebaseMatchesRef2 = firebase.database().ref('/matches/'+userId+'/'+match_userid+'/');
 
     //update the unread of my's match obj
     firebaseMatchesRef2.update({
       unread_message: false
     });
+
+
+       //listen for new conversation data in db
+       firebaseRef.once('value', (dataSnapshot) => {
+   
+        this.setState({blur: dataSnapshot.val().blur});
+
+      })
 
 
    //listen for new conversation data in db
@@ -246,6 +266,8 @@ class Chat extends Component {
           imageObj = {'url':item.url, cache: 'force-cache', 'props':{'blurRadius': +blurRadius, source: {uri: item.url, cache: 'force-cache'}}};
           imagesArray.push(imageObj);
         })
+
+        
           //setState with above elements
           this.setState({
             about: about,
@@ -261,6 +283,7 @@ class Chat extends Component {
             chatActive: chatActive,
             //timeLeft: dataSnapshot.val().time_left, //should be conversation start date. js would subtract today's date from that = time_left
             matchDate: dataSnapshot.val().match_date,
+            expirationDate: dataSnapshot.val().expirationDate,
             matchActive: match_state == 'active' ? true : false,
             image: imagesArray[0].url,
             userId: userId,
@@ -283,12 +306,12 @@ class Chat extends Component {
     conversationId = state.params.match_id;
     let Analytics = RNfirebase.analytics();
 
-    firebaseMessagesRef = firebase.database().ref('/conversations/'+conversationId+'/messages/');
-    firebaseConversationsRef = firebase.database().ref('/conversations/'+conversationId+'/');
+    let firebaseMessagesRef = firebase.database().ref('/conversations/'+conversationId+'/messages/');
+    let firebaseConversationsRef = firebase.database().ref('/conversations/'+conversationId+'/');
     
     //save firebase refs to update matches with last messages
-    firebaseMatchesRef1 = firebase.database().ref('/matches/'+this.state.userIdMatch+'/'+userId+'/');
-    firebaseMatchesRef2 = firebase.database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/');
+    let firebaseMatchesRef1 = firebase.database().ref('/matches/'+this.state.userIdMatch+'/'+userId+'/');
+    let firebaseMatchesRef2 = firebase.database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/');
 
     //loop through new messages and push back to firebase, which will call loadmessages again. 
     for (let i = 0; i < message.length; i++) {
@@ -494,14 +517,172 @@ class Chat extends Component {
            
       }
     }
+    
+    //deblur to a specific amount at a certain time. 
+    deBlur = (blur, time) =>{
+      setTimeout(function(){
+        this.setState({blur:blur});
+        }.bind(this),time);  
+    }
+
+    //handle when sneakpeek is pushed. Unblur photos for n time or show payments modal if user is subscribed. 
+    _handleSneekPeek = () => {
+
+        const { state, navigate } = this.props.navigation;
+
+        if (this.state.subscribed == true){
+          //set blur to 0 if subscribed
+            this.deBlur(75,100)
+            this.deBlur(60,200)
+            this.deBlur(45,300)
+            this.deBlur(30,400)
+            this.deBlur(15,500)
+            this.deBlur(0,600)
+
+          //update images in imageViewer to blurRadious of 0 as well. 
+            let newImages = this.state.images.map(image => (
+                { ...image, props: {...this.props, blurRadius: 0} }
+              )
+            );
+          
+          this.setState({images: newImages});
+
+        }else{
+          //navigate to payments component, since user is not subscribed.
+           navigate("Payments", { flow: 'peek'});
+
+        }
+
+    }
+
+    //handle when sneakpeek is pushed. Unblur photos for n time or show payments modal if user is subscribed. 
+    _handleExtendConversation = () => {
+
+      const { state, navigate } = this.props.navigation;
+
+      if (this.state.subscribed == true){
+       
+          //save refs to db for conversation and matches, to reflect new status
+          let firebaseRef = firebase.database().ref('/conversations/'+conversationId+'/');
+          let firebaseMatchesRef1 = firebase.database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
+          let firebaseMatchesRef2 = firebase.database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
+
+          //86000000 - 1 day
+          let newExpirationDate = (new Date().getTime() + 10000);//8 days
+          //update the conversation with extended expiration
+          firebaseRef.update({
+            expirationDate: newExpirationDate,
+            active: true
+          });
+
+          //update match to true status
+          firebaseMatchesRef1.update({
+            active: true
+          });
+
+          //update match to true status
+          firebaseMatchesRef2.update({
+            active: true
+          });
+
+      
+          //update local state so chat is active. listen to db if timeremaining is updated. This way the match can extend the conversation and the other person can send first chat. 
+          this.setState({  matchActive: true, expirationDate: newExpirationDate })
+
+      }else{
+        //navigate to payments component, since user is not subscribed.
+         navigate("Payments", { flow: 'peek'});
+
+      }
+
+  }
+
+
+  //render time left based off difference btw expiration date and current date. then update state to reflect for the UI. 
+  //Call this function every second until componetn is unmounted
+  _renderCountdownTimer = () => {
+
+    let timeLeft = (this.state.expirationDate - new Date().getTime());
+    const { state, navigate } = this.props.navigation;
+    
+    //if theres time left update the time, if not turn chat off 
+    if (timeLeft > 0){
+
+      //format text for days, hours, minutes, and seconds
+      let daysLeft = Math.floor( timeLeft/(1000*60*60*24)) //days
+      let hoursLeft = Math.floor( (timeLeft/(1000*60*60)) % 24 ) //hours
+      let minutesLeft = Math.floor( (timeLeft/1000/60) % 60 ) //minutes
+      let secondsLeft = Math.floor( (timeLeft/1000) % 60 ) //seconds
+
+      console.log('days left are: '+ daysLeft);
+      console.log('hours left are: '+ hoursLeft);
+      console.log('minutes left are: '+minutesLeft);
+      console.log('seconds left are: '+secondsLeft);
+
+      let timeRemainingText = '';
+
+      //if theres more than 1 day, just so the days left
+      if (daysLeft > 0) {
+        timeRemainingText = daysLeft + ' days';
+      }
+      //if theres less than one day but more than 0 hours, just show hours left
+      else if(daysLeft == 0 && hoursLeft > 0){
+        timeRemainingText = hoursLeft + ' hours';
+      }
+      //if theres less than one hour, just show minutes left
+      else if(daysLeft == 0 && hoursLeft == 0 && minutesLeft > 0){
+        timeRemainingText = minutesLeft + ' minutes';
+      } 
+      //if theres less than one min, just show seconds left
+      else if(daysLeft == 0 && hoursLeft == 0 && minutesLeft == 0 && secondsLeft > 0){
+        timeRemainingText = secondsLeft + ' seconds';
+      }          
+      
+      //set state with text for UI to reference
+      this.setState({ timeRemaining: timeRemainingText  })//set state with new timeLeft
+
+      
+
+
+    }else{
+      
+
+
+      //set state to expired and disable the chat with matchActive = false
+      this.setState({ matchActive: false, timeRemaining: 'Expired'})
+
+      //save refs to db for conversation and matches, to reflect new status
+      let firebaseRef = firebase.database().ref('/conversations/'+conversationId+'/');
+      let firebaseMatchesRef1 = firebase.database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
+      let firebaseMatchesRef2 = firebase.database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
+
+      //update the unread of my's match obj
+      firebaseMatchesRef1.update({
+        active: true
+      });
+
+      //update the unread of my's match obj
+      firebaseMatchesRef2.update({
+        active: false
+      });
+
+      //update the conversation with active = false 
+      firebaseRef.update({
+        active: false
+      });
+
+    }
+
+  }
 
   render() {
 
 
     const { state, navigate } = this.props.navigation;
-    let currentDate = new Date();
-    let timeRemaining =  86000000 - (currentDate.getTime() - this.state.matchDate);
-    timeRemaining = timeRemaining > 0 ? timeRemaining : 0;
+    //let currentDate = new Date();
+    //let timeRemaining =  86000000 - (currentDate.getTime() - this.state.matchDate);
+    //let timeRemaining = this.state.expirationDate > 0 ? this.state.expirationDate : 0;
+    //timeRemaining = timeRemaining > 0 ? timeRemaining : 0;
 
     console.log('match date is: '+ this.state.matchDate);
     console.log('chatActive is: '+ this.state.chatActive);
@@ -575,8 +756,11 @@ class Chat extends Component {
         <View style={{padding:0,  alignItems:'center', flexDirection:'row', justifyContent: 'center'}}>
           <Text style={{fontWeight:'600', color:'red', paddingLeft: 5}}>TIME REMAINING: </Text>
           <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', width:200}}> 
-          <TimerMachine
-              timeStart={timeRemaining} // start at 10 seconds
+          
+          {this.state.timeRemaining}
+          
+          {/* <TimerMachine
+              timeStart={this.state.expirationDate} // start at 10 seconds
               timeEnd={0 * 1000} // end at 20 seconds
               started={true}
               paused={false}
@@ -603,8 +787,17 @@ class Chat extends Component {
               onComplete={time =>
                 this.setState({ chatActive: false, timeRemaining:0})
               }
-          />            
+          />             */}
+          
+          
           </Text> 
+
+
+
+          <Button transparent onPress={ () => {this._handleSneekPeek()} }  >
+              <FontAwesomeIcon size={ 20 } style={{marginRight: 10, right: 15, color: 'grey'}} icon={ faEye } />
+          </Button>
+
                     
           <Button transparent onPress={() =>
           
@@ -667,9 +860,20 @@ class Chat extends Component {
 
         {!matchActive &&
 
-        <View style={{ height: 100, backgroundColor: 'white', alignItems:'center', flexDirection:'column', justifyContent: 'center'}}>
-          <Text style = {{ fontWeight: '700'}}>This conversation has expired</Text>
-          <Text>Better luck next time.</Text>
+        <View style={{ height: 120, backgroundColor: 'white', alignItems: 'center',}}>
+          
+          <View style = {{flex: 1, justifyContent: 'center',}}>
+            <Text>This conversation has expired</Text>
+          </View>
+      
+          <View style={{flex: 1}}>
+            <Button rounded 
+              style={{ backgroundColor: primaryColor, }}
+              onPress={ () => {this._handleExtendConversation()} } >
+                <Text style={{color: 'white'}}>Extend Conversation</Text>
+            </Button>
+          </View>
+
         </View>
          }
 
@@ -678,6 +882,8 @@ class Chat extends Component {
   }
 
   componentDidMount() {
+
+    this.interval = setInterval(() => this._renderCountdownTimer(), 1000);
     
     //send blockOrReport function to nav as param, so that it can be referenced in the navigation. 
     this.props.navigation.setParams({ block: this.blockOrReport });
@@ -694,9 +900,9 @@ class Chat extends Component {
 
 
   componentWillUnmount() {
-    () => this.setState({
-      timeLeft: undefined
-    })
+
+    clearInterval(this.interval);
+
     this.closeChat;
   }
 

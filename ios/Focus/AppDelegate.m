@@ -39,8 +39,18 @@ fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHand
   [[RNFirebaseMessaging instance] didRegisterUserNotificationSettings:notificationSettings];
 }
 
+
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+
+
 {
+  
+  if (@available(iOS 14, *)) {
+    UIDatePicker *picker = [UIDatePicker appearance];
+    picker.preferredDatePickerStyle = UIDatePickerStyleWheels;
+  }
+
   
   [AppCenterReactNative register];
   [AppCenterReactNativeAnalytics registerWithInitiallyEnabled:true];
@@ -67,6 +77,7 @@ fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHand
   didFinishLaunchingWithOptions:launchOptions];
   
   return YES;
+  
 }
 
 - (BOOL)application:(UIApplication *)application

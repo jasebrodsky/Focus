@@ -44,7 +44,7 @@ class Login extends Component {
       name: '',
       email: '',
       password: '',
-      gender: 'Gender indentity',
+      gender: 'Gender Identity',
       createAccount: false,
       errorMessage: false,
     };
@@ -144,8 +144,8 @@ validateAccount = () => {
     errorMessage = "@ not included with email.";
   }
     
-  if (gender === 'Gender indentity') {
-    errorMessage = "Gender indentity is required.";
+  if (gender === 'Gender identity') {
+    errorMessage = "Gender identity is required.";
   }
 
   //return true if there's no more errors. Else, alert the error message.
@@ -210,7 +210,7 @@ redirectUser = (userId) => {
       let first_nameValidated = snapshot.val().first_name !== '';
       let genderValidated = genderValidated = snapshot.val().gender !== 'select';
       let interestedValidated = snapshot.val().gender_pref !== 'select';
-      let birthdayValidated = snapshot.val().birthday !== 'select';
+      let birthdayValidated = snapshot.val().birthday !== '';
       let code_accepted = snapshot.val().code_accepted;
       let workValidated = snapshot.val().work !== '';
       let educationValidated = snapshot.val().education !== '';
@@ -232,7 +232,8 @@ redirectUser = (userId) => {
       else if ((gender == 'male') && (code_accepted == true)){
                 
         // if settings are valid - send to swipes. if not send to settings. 
-        (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Settings');
+        //CHANGE THIS BACK 
+        (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Registration');
       }
       
     //case 2 -females who are first time users - show intro slides. 
@@ -246,7 +247,7 @@ redirectUser = (userId) => {
     else if ((gender == 'female') && (intialUser == false)){
       
       // if settings are valid - send to swipes. if not send to settings. 
-      (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Settings')
+      (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Registration')
     }
   })
 }
@@ -294,7 +295,7 @@ handleSignUp = () => {
         gender: gender,
         gender_pref: (gender == 'male') ? 'male_straight' : 'female_straight', //default gender_pref to straight to have less required field to validate.
         interested: (gender == 'male') ? 'female' : 'male', //default interested in to straight to have less required field to validate.         
-        birthday: 'select',
+        birthday: '',
         about: '',
         work: '',
         education: '',
@@ -379,7 +380,7 @@ onLoginOrRegister = () => {
                 } else {
                   fb_result = result;
                   let gender = (fb_result.gender == null) ? 'select' : fb_result.gender;
-                  let birthday = (fb_result.birthday == null) ? 'select' : fb_result.birthday; 
+                  let birthday = (fb_result.birthday == null) ? '' : fb_result.birthday; 
                   largePhotoURL = "https://graph.facebook.com/"+fb_result.id+"/picture?width=600&height=800";
                   let location = (fb_result.location == null) ? 'select' : fb_result.location; ////gets the location object you get from your response now
                   let latitude = 40.759211;
@@ -540,7 +541,7 @@ onLoginOrRegister = () => {
             
             <View style={{flex: 1, flexDirection: 'row', justifyContent: 'flex-start'}}>
               <Button  disabled transparent >
-                <Text style={{color: (this.state.gender == 'Gender indentity') ? 'grey' : 'black', textTransform: 'capitalize'}}>{this.state.gender}</Text>
+                <Text style={{color: (this.state.gender == 'Gender Identity') ? 'grey' : 'black', textTransform: 'capitalize'}}>{this.state.gender}</Text>
               </Button>
             </View>
 
@@ -576,7 +577,7 @@ onLoginOrRegister = () => {
           <Button onPress = {() => this.validateAccount()} bordered style={{justifyContent: 'center', margin: 10, borderColor: primaryColor}}>
               <Text style={{color: primaryColor}}>Create Account</Text>
           </Button>     
-          <Button onPress = {() => this.setState({createAccount: false, email: '', password: '', gender: 'Gender indentity'})} transparent style={{justifyContent: 'center', margin: 10}}>
+          <Button onPress = {() => this.setState({createAccount: false, email: '', password: '', gender: 'Gender identity'})} transparent style={{justifyContent: 'center', margin: 10}}>
               <Text style={{color: primaryColor}}>Go back</Text>
           </Button>      
         </View>

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, StyleSheet, Alert, Share } from 'react-native';
+import { ActivityIndicator, StyleSheet, Alert, Share, TouchableOpacity } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faRestroom, faCog, faCommentDots, faCoffee, faDoorOpen, faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
+import { faRestroom, faCog, faCommentDots, faCoffee, faDoorOpen, faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faEye, faUserLock } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
 import RNfirebase from 'react-native-firebase';
 import AppIntroSlider from 'react-native-app-intro-slider';
@@ -19,7 +19,19 @@ import {
   View
 } from "native-base";
 
-const primaryColor = "#8A6077";
+//const primaryColor = "#8A6077";
+//const primaryColor = "#914cd5";
+const primaryColor = "#a83a59";
+//const primaryColor = "#c8c8c8"A16AE8
+//const secondaryColor = "#EF8275";
+
+//const secondaryColor = "#b8cdc2";
+const secondaryColor = "#c60dd9";
+//const secondaryColor = "#6400c7";
+
+const btnColor = 'white';
+const btnTextColor = primaryColor;
+
 const logo = require("../../images/Focus_dating2.png");
 
 //LINE 234 TO TURN ON REDIRECT FOR TESTING - BUILD INTO CONFIG
@@ -53,62 +65,36 @@ const styles = StyleSheet.create({
   },
 });
 
-const styles2 = StyleSheet.create({
-  buttonCircle: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(0, 0, 0, .2)',
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  image: {
-    width: 320,
-    height: 320,
-  },
-  text: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    backgroundColor: 'transparent',
-    textAlign: 'center',
-    paddingHorizontal: 16,
-  },
-  title: {
-    fontSize: 22,
-    color: 'white',
-    backgroundColor: 'transparent',
-    textAlign: 'center',
-    marginBottom: 30,
-  }
-});
 
 //create slides female and male
 const slidesFemale = [
+  // {
+  //   key: '1',
+  //   title: 'Welcome to Focus',
+  //   text: 'Focus on less.',//'Dating with less distractions.',
+  //   icon: faDoorOpen,
+  //   colors: ['#29ABE2'],
+  // },
   {
     key: '1',
     title: 'Welcome to Focus',
-    text: 'Focus on less.',//'Dating with less distractions.',
+    //text: "Focus on what's important." ,
+    text: "Blind dating re-imagined." ,
     icon: faDoorOpen,
-    colors: ['#29ABE2'],
+    // image: require('./assets/banner-welcome.jpg'),
+    // imageStyle: styles.image,
+    // backgroundColor: primaryColor,
+    colors: [primaryColor, secondaryColor],
   },
-  //{
-  //   key: '2',
-  //   title: 'Welcome to Focus',
-  //   text: "Focus on what's important." ,
-  //   // text: "Only women decide who can join." ,
-  //   image: require('./assets/banner-welcome.jpg'),
-  //   imageStyle: styles.image,
-  //   backgroundColor: primaryColor,
-  //   colors: ['#29ABE2', '#4F00BC'],
-  // },
   {
     key: '2',
     title: 'Better conversations',
-    text: 'Photos re-focus as messages are exchanged.', //'With each message, photos will re-focus.',
+    text: 'Photos re-focus as messages are exchanged. Connections made with you and not your photos.', //'With each message, photos will re-focus.',
     icon: faComments,
     image: require('./assets/banner-chat.jpg'),
     imageStyle: styles.image,
     backgroundColor: primaryColor,
-    colors: ['#29ABE2', '#4F00BC'],
+    colors: [primaryColor, secondaryColor],
   },
   {
     // key: '3',
@@ -121,13 +107,13 @@ const slidesFemale = [
     // colors: ['#29ABE2', '#4F00BC'],
 
     key: '3',
-    title: 'Invite a friend', //'Women empowered', //'Only gentlemen',
-    text: 'Spread the word.', //'Men need to be invited by women.', 
-    icon: faRestroom, //,faUnlockAlt
-    image: require('./assets/banner-gentlemen.jpg'),
-    imageStyle: styles.image,
-    backgroundColor: primaryColor,
-    colors: ['#29ABE2', '#4F00BC'],
+    title:  'Women empowered', //'Only gentlemen', 'Invite a friend',
+    text:  'Men need to be invited by women to enter.', //'Spread the word.',
+    icon:   faUserLock, //faUnlockAlt, //faRestroom //faShield
+    //image: require('./assets/banner-gentlemen.jpg'),
+    //imageStyle: styles.image,
+    //backgroundColor: primaryColor,
+    colors: [primaryColor, secondaryColor],
   }
 ];
 
@@ -300,13 +286,14 @@ class Intro extends Component {
             //user is female, can always enter regardless of code. 
             if (this.state.gender == 'female'){
               //alert welcome message, then navigate to settings. 
+              // remove this alert and just redirect to new user flow
               Alert.alert(
                 'Welcome to Focus',
                 
                 [
                   {
                     text: 'Enter',
-                    onPress: () => navigate("Settings"),
+                    onPress: () => navigate("Registration"),
                     //onPress: () => navigate("Swipes"),
                   },
                 ],
@@ -345,7 +332,7 @@ class Intro extends Component {
                   [
                     {
                       text: 'Enter',
-                      onPress: () => navigate("Settings"),
+                      onPress: () => navigate("Registration"),
                       //onPress: () => navigate("Swipes"),
                     },
                   ],
@@ -441,53 +428,188 @@ class Intro extends Component {
 
   _renderItem = ({ item, dimensions }) => (
     
-    <View style={{
+    // <View style={{
+    //   flex: 1,
+    //   alignItems: 'center',
+    //   justifyContent: 'center',
+    //   backgroundColor: primaryColor, dimensions
+    //   }}>
+      
+    //   <FontAwesomeIcon size={ 125 } style={{marginBottom: 20, color: 'white', backgroundColor: 'transparent', flex: 1, justifyContent: 'center'}} icon={item.icon}/>
+
+    //   <View >
+        
+    //     <Text style={{  
+    //       fontSize: 22,
+    //       color: 'white',
+    //       backgroundColor: 'transparent',
+    //       textAlign: 'center',
+    //       marginBottom: 20}}>
+    //       {item.title}
+    //     </Text>
+        
+    //     <Text style={{  
+    //       color: 'rgba(255, 255, 255, 0.8)',
+    //       backgroundColor: 'transparent',
+    //       textAlign: 'center',
+    //       paddingHorizontal: 16,
+    //       marginBottom: 50}}>
+    //       {item.text}
+    //     </Text>
+    //   </View>
+
+    // </View>
+
+    <LinearGradient style={{
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: primaryColor, dimensions
-      }}>
-      
-      <FontAwesomeIcon size={ 45 } style={{marginBottom: 20, color: 'white', backgroundColor: 'transparent', flex: 1, justifyContent: 'center'}} icon={item.icon}/>
+      //backgroundColor: primaryColor, dimensions
+      }}
+      colors={item.colors}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.1, y: 1 }}
+      >
+        
+        <FontAwesomeIcon size={ 230 } style={{
+          color: 'white', 
+          backgroundColor: 'transparent', 
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 3,
+          },
+          shadowOpacity: 0.29,
+          shadowRadius: 4.65,}} icon={item.icon}/>
+        <View>
+          <Text style={{ 
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 3,
+            },
+            shadowOpacity: 0.29,
+            shadowRadius: 4.65, 
+            fontSize: 32,
+            color: 'white',
+            backgroundColor: 'transparent',
+            textAlign: 'center',
+            marginBottom: 20}}>
+            {item.title}
+          </Text>
+          
+          <Text style={{  
+            color: 'white',
+            backgroundColor: 'transparent',
+            textAlign: 'center',
+            fontSize: 16,
+            paddingHorizontal: 16,
+            marginBottom: 50}}>
+            {item.text}
+          </Text>
+        </View>
+      </LinearGradient>
+  );
 
-      <View >
+
+  _renderDoneButton = () => {
         
-        <Text style={{  
-          fontSize: 22,
-          color: 'white',
-          backgroundColor: 'transparent',
-          textAlign: 'center',
-          marginBottom: 20}}>
-          {item.title}
-        </Text>
-        
-        <Text style={{  
-          color: 'rgba(255, 255, 255, 0.8)',
-          backgroundColor: 'transparent',
-          textAlign: 'center',
-          paddingHorizontal: 16,
-          marginBottom: 50}}>
-          {item.text}
-        </Text>
+    //const doneLabel = 'Invite and continue';      
+    let doneLabel = (this.state.gender == 'male') ? 'Enter code' : 'Invite and continue';      
+  
+
+    return (
+
+
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 25}}>
+        <View 
+          bordered 
+          rounded
+          //onPress={() => this.slider.goToSlide(this.slider.i , true)}
+          style={{
+            width: 200, 
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: btnColor,  
+            justifyContent: 'center', 
+            alignItems: 'center',
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 3,
+            },
+            shadowOpacity: 0.29,
+            shadowRadius: 4.65,
+            elevation: 7,
+          }}>
+          <Text style={{color: btnTextColor}}>{doneLabel}</Text>
+        </View>
       </View>
 
-    </View>
 
-      // <LinearGradient
-      //   style={[styles.mainContent,dimensions,]}
-      //   colors={item.colors}
-      //   start={{ x: 0, y: 0.1 }}
-      //   end={{ x: 0.1, y: 1 }}
-      // >
-      // <FontAwesomeIcon size={ 200 } style={{color: 'white', backgroundColor: 'transparent'}} icon={item.icon}/>
+    );
+  };
 
-      // <View>
-      //   <Text style={styles.title}>{item.title}</Text>
-      //   <Text style={styles.text}>{item.text}</Text>
+
+_renderNextButton  =  ()  => {
+    
+    return (
+
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 25}}>
+        <View 
+          bordered 
+          rounded
+          //onPress={() => this.slider.goToSlide(this.slider.i , true)}
+          style={{
+            width: 200, 
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: btnColor,  
+            justifyContent: 'center', 
+            alignItems: 'center',
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 3,
+            },
+            shadowOpacity: 0.29,
+            shadowRadius: 4.65,
+            elevation: 7,
+          }}>
+          <Text style={{color: btnTextColor}}>Next</Text>
+        </View>
+      </View>
+      
+      
+      
+      
+      
+      // <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      //   <LinearGradient 
+      //     colors={[btnColor, btnColor]}
+      //     start={{ y: 0.0, x: 0.0 }} 
+      //     end={{ y: 0.0, x: 1.0 }}
+      //     style={{
+      //       borderRadius: 20, 
+      //       width: 200, 
+      //       height: 40, 
+      //       flex: 1, 
+      //       justifyContent: 'center', 
+      //       alignItems: 'center', 
+      //       marginBottom: 25,
+      //      }} 
+      //   >
+      //     <View bordered rounded> 
+      //       <Text style={{color: btnTextColor}}>Next</Text>
+      //     </View>
+      //   </LinearGradient>
       // </View>
-      // </LinearGradient>
 
-  );
+
+    );
+ };
+
+
 
   render() {
     const { navigate } = this.props.navigation;
@@ -497,12 +619,21 @@ class Intro extends Component {
   
     
     return <AppIntroSlider 
+      
       slides={slides} 
-      doneLabel={doneLabel}
+      //doneLabel={doneLabel}
+      ref={component => {this.refSlider = component}}
       bottomButton={true}
       renderItem={this._renderItem}
+      renderNextButton={this._renderNextButton}
+      renderDoneButton={this._renderDoneButton}
+      ref={(ref) => (this.slider = ref)}
+      activeDotStyle={{backgroundColor: primaryColor}}
+      dotStyle ={{backgroundColor: 'white'}}
+      
       onDone={this._onDone}/>;
-  }
+  
+    }
 }
 
 export default Intro;
