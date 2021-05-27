@@ -265,8 +265,8 @@ class Messages extends Component {
             </Button>
             <Text style={{color: primaryColor}}> No messages yet. </Text>
             <View style ={{marginTop: 20}}>
-              <Button bordered style={{padding: 10, borderColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'invite' })}>
-                <Text style={{color: primaryColor}}>Invite Friend</Text>
+              <Button rounded  style={{padding: 10, backgroundColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'invite' })}>
+                <Text style={{color: 'white'}}>Invite Friend</Text>
               </Button>
             </View>
           </View>

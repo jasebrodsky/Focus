@@ -1802,11 +1802,11 @@ class Registration extends Component {
 
 
           <View style={{
-            flex: 1,
+            flex: 2,
             paddingTop: 0,
             flexDirection: "column"
           }}>
-            <View style={{backgroundColor: 'white', height: 20}}>
+            <View style={{backgroundColor: 'white', height: 50}}>
             </View>
             <View style={{}}>
               <Progress.Bar borderWidth={0} borderRadius={0} unfilledColor={primaryColor} color={secondaryColor} progress={this.state.steps[this.state.stepIndex].progress} height={15} width={deviceWidth} />
@@ -1890,7 +1890,7 @@ class Registration extends Component {
           />
 
     
-        <View style={{ flex: 6, justifyContent: 'flex-start', width: deviceWidth-100   }} >
+        <View style={{ flex: 6, justifyContent: 'flex-start', width: deviceWidth-100,   }} >
 
           <View style={{   }}>
               <Text style={{ 
@@ -2277,7 +2277,7 @@ class Registration extends Component {
 
                 { (this.state.steps[this.state.stepIndex].input == 'photos' ) && //show photos step
                                                            
-                      <ScrollView contentContainerStyle={{  flexGrow: 1, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', alignContent: 'space-around' }}>
+                      <ScrollView contentContainerStyle={{   flexGrow: 1, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignContent: 'space-around' }}>
 
                         {this.state.profile.images['0'].url !== 'https://focusdating.co/images/user.jpg' ? Object.entries(this.state.profile.images).map((i, n) => <View key={i[0]}>{this.renderAsset(i[1], i[0])}</View>) : null}                
                        
