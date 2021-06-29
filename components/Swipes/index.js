@@ -6,7 +6,8 @@ import * as firebase from "firebase";
 import ImageViewer from 'react-native-image-zoom-viewer';
 import Swiper from 'react-native-deck-swiper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faCog, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock } from '@fortawesome/free-solid-svg-icons';
+import LinearGradient from 'react-native-linear-gradient';
+import { faCog, faArrowAltCircleLeft, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock } from '@fortawesome/free-solid-svg-icons';
 import {
   Badge,
   Card,
@@ -27,7 +28,10 @@ import {
   Icon,
 } from "native-base";
 
-const primaryColor = "#8A6077";
+const primaryColor = "#a83a59";
+const secondaryColor = "#c60dd9";
+const btnColor = 'white';
+const btnTextColor = primaryColor;
 //let potential_match = true; //update this line for testing - 371
 
 
@@ -54,6 +58,7 @@ class Swipes extends Component {
       isEmpty: true,
       allSwiped: false,
       imageViewerVisible: false,
+      profileViewerVisible: false,
       profileMaxHeight: "15%",
       swipeCountStart: 0,
       query_start: null,
@@ -635,14 +640,11 @@ class Swipes extends Component {
 
     //determine width of device in order for custom margin between iphones
     let deviceWidth = Dimensions.get('window').width
-
-    //if device width is 414 (iphone+), then margins should be 58, else 40. 
-    let loadingLeftPosition = deviceWidth == 414 ? 185 : 173;     
-    
+    let deviceHeight = Dimensions.get('window').height
     let cardIndex = this.state.cardIndex;
  
     return (
-      <Container >
+      <Container style={{}} >
 
         <BlurOverlay
           radius={14}
@@ -659,31 +661,80 @@ class Swipes extends Component {
           
           <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between'}}>
             { (this.state.isEmpty  && !this.state.loading ) && 
-              <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                <Button transparent onPress = {() => navigate("Refer", {flow: 'refer' })} >
-                    <FontAwesomeIcon size={ 68 } style={{marginBottom: 55, color: primaryColor}} icon={ faUserClock } />
-                </Button>
-                <Text style={{color: primaryColor}}> Come back tomorrow for more matches.</Text>
-                <View style ={{marginTop: 20}}>
-                  <Button bordered style={{padding: 10, borderColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'invite' })}>
-                    <Text style={{color: primaryColor}}>Invite Friend</Text>
-                  </Button>
-                </View>
-              </View>}
+              
+              <LinearGradient style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                //backgroundColor: primaryColor, dimensions
+                }}
+                colors={['white', 'white']}
+                start={{ x: 0, y: 0.1 }}
+                end={{ x: 0.1, y: 1 }}
+                >
+                  <FontAwesomeIcon size={ 70 } style={{
+                  color: 'white', 
+                  backgroundColor: 'transparent', 
+                  shadowColor: "#000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 3,
+                  },
+                  shadowOpacity: 0.29,
+                  shadowRadius: 4.65,}} icon={ faUserClock }/>
+                  <Text style={{color: 'white', marginTop: 10}}> Come back tomorrow for more matches. </Text>
+                  <View style ={{marginTop: 20}}>
+                    <Button rounded 
+                      style={{ 
+                        backgroundColor: btnColor, 
+                        borderRadius: 20,
+                        shadowColor: "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: 3,
+                        },
+                        shadowOpacity: 0.29,
+                        shadowRadius: 4.65, }} 
+                        onPress = {() => navigate("Refer", {flow: 'invite' })}>
+                      <Text style={{color: primaryColor}}>Invite Friend</Text>
+                    </Button>
+                  </View>
+                </LinearGradient>}
             { (this.state.loading) &&
-              <View style={{flex: 1, justifyContent: 'center'}}>
-                <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
-              </View>           
+              <LinearGradient style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                //backgroundColor: primaryColor, dimensions
+                }}
+                colors={['white', 'white']}
+                start={{ x: 0, y: 0.1 }}
+                end={{ x: 0.1, y: 1 }}
+                >
+                  <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
+              </LinearGradient>       
             }
             
             {/* only show swiper if loading is false - loading finished  */}
             { ((!this.state.isEmpty || !this.state.allSwiped ) && !this.state.loading ) && 
-            <View style={{position: 'relative', bottom: 40, flex: 1, justifyContent: 'flex-start'}}>
+            
+            <LinearGradient style={{
+              flex: 1,
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              //backgroundColor: primaryColor, dimensions
+              }}
+              colors={['white', 'white']}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 1 }}
+              >
+            
+            <View style={{ position: 'relative', bottom: 40, flex: 1, justifyContent: 'flex-start'}}>
               <Swiper
                 cards={this.state.profiles}
                 ref = {swiper => {this.swiper = swiper}}
                 verticalSwipe = {false}
-                onTapCard={() => this.setState({ imageViewerVisible: true, matchAbout: this.state.profiles[cardIndex].about, matchReviews: this.state.profiles[cardIndex].reviews, matchEducation: this.state.profiles[cardIndex].education, matchBirthday: this.state.profiles[cardIndex].birthday, matchWork: this.state.profiles[cardIndex].work, matchGender: this.state.profiles[cardIndex].gender, matchCityState: this.state.profiles[cardIndex].city_state, matchEducation: this.state.profiles[cardIndex].education,  matchImages: Object.values(this.state.profiles[cardIndex].images) })} 
+                onTapCard={() => this.setState({ profileViewerVisible: true, matchAbout: this.state.profiles[cardIndex].about, matchReviews: this.state.profiles[cardIndex].reviews, matchEducation: this.state.profiles[cardIndex].education, matchBirthday: this.state.profiles[cardIndex].birthday, matchWork: this.state.profiles[cardIndex].work, matchGender: this.state.profiles[cardIndex].gender, matchCityState: this.state.profiles[cardIndex].city_state, matchEducation: this.state.profiles[cardIndex].education,  matchImages: Object.values(this.state.profiles[cardIndex].images) })} 
                 cardIndex={this.state.cardIndex}
                 backgroundColor={'white'}
                 stackSeparation={11}
@@ -715,8 +766,8 @@ class Swipes extends Component {
                     title: 'NOPE',
                     style: {
                       label: {
-                        backgroundColor: 'black',
-                        borderColor: 'black',
+                        backgroundColor: primaryColor,
+                        borderColor: primaryColor,
                         color: 'white',
                         borderWidth: 1
                       },
@@ -733,8 +784,8 @@ class Swipes extends Component {
                     title: 'LIKE',
                     style: {
                       label: {
-                        backgroundColor: 'black',
-                        borderColor: 'black',
+                        backgroundColor: primaryColor,
+                        borderColor: primaryColor,
                         color: 'white',
                         borderWidth: 1
                       },
@@ -783,20 +834,7 @@ class Swipes extends Component {
                     </CardItem>                  
                     <CardItem>
                         <Body>
-                          {/* <H3 style={{ textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday)}, {card.gender}, {card.city_state}</H3> */}
                           <H3 style={{ textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday)}, {card.gender}, {card.city_state}</H3>
-
-                          {/* <View style={{flex: 1, flexDirection: 'row'}}>
-                              <FontAwesomeIcon size={ 15 } style={{color: 'black'}} icon={ faBook } />
-                          </View>
-                          <Text style={{paddingLeft: 25}} numberOfLines={1}>{card.education} </Text>
-                          
-                          <View style={{flex: 1, flexDirection: 'row'}}>
-                              <FontAwesomeIcon size={ 15 } style={{color: 'black'}} icon={ faBriefcase } />
-                          </View>
-                          <Text style={{paddingLeft: 25}} numberOfLines={1}>{card.work} </Text>
- */}
-
                           <Text style={{}} numberOfLines={1}>{card.education} </Text>
                           <Text style={{}} numberOfLines={1}>{card.work} </Text>
                           <Text style={{marginTop: 10}} numberOfLines={1} note>{card.about} </Text>                           
@@ -806,45 +844,92 @@ class Swipes extends Component {
                 }}
 >
             </Swiper>
-            </View>         
+            </View> 
+            </LinearGradient>        
             }
 
-            <Modal visible={this.state.imageViewerVisible} transparent={true} animationType="slide">
-              <ImageViewer 
-                index = {this.state.imageIndex}
-                imageUrls={this.state.matchImages}
-                onChange = {(index) => this.setState({ imageIndex: index})}
-                onSwipeDown = {() => this.setState({ imageViewerVisible: false, imageIndex: 0, profileMaxHeight: '15%'})}
-                onClick = {() => this.setState({ imageViewerVisible: false, imageIndex: 0,  profileMaxHeight: '15%'})}
-              />
-                <View 
-                  flex={1}
-                  borderWidth={1}
-                  borderColor="grey"
-                  borderRadius={5}
-                  backgroundColor="white"
-                  maxHeight= {this.state.profileMaxHeight} //profileMaxHeight
-                >
-                  <ScrollView 
-                   ref='ScrollView_Reference'
-                   onScroll={this._handleScroll}
-                   scrollEventThrottle={16}
-                    contentContainerStyle={{
-                      padding: 15,
-                      backgroundColor:'white'
-                    }}>
-                      <TouchableOpacity >
-                        <Card transparent>   
-                          <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.calculateAge(this.state.matchBirthday)}, {this.state.matchGender}, {this.state.matchCityState}</H3>
-                          <Text numberOfLines={1} style={{}}>{this.state.matchWork} </Text>
-                          <Text numberOfLines={1} style={{marginBottom: 10}}>{this.state.matchEducation} </Text>
-                          <Text note>{this.state.matchAbout}</Text>
-                        </Card>
+          <Modal 
+            visible={this.state.profileViewerVisible} 
+            animationType="slide">
+            
+            {(this.state.profileViewerVisible && !this.state.imageViewerVisible) && 
+              <ScrollView 
+                style={{
+                  flex: 1,
+                  backgroundColor: 'lightgrey'
+                }} 
+                
+                contentContainerStyle={{
+                  backgroundColor: 'white',
+                  flexGrow: 1,
+                  paddingTop: 40,
+                  alignItems: 'center',
+                  
+                }}>
+                  <View style={{ 
+                    position: 'absolute',
+                    zIndex: 2,
+                    left: 5,
+                    top: 40,}}>                  
+                    <Button  
+                      transparent 
+                      style={{  
+                        width: 90, 
+                        height: 90, 
+                        justifyContent: 'center',
+                        shadowColor: "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: 3,
+                        },
+                        shadowOpacity: 0.29,
+                        shadowRadius: 4.65, }}
+                      onPress = {() => this.setState({ profileViewerVisible: false})}>
+                        <FontAwesomeIcon size={ 50 }     
+                          style={{color: primaryColor}} 
+                          icon={ faArrowAltCircleLeft } />
+                    </Button>                  
+                  </View>
+
+                  <TouchableOpacity activeOpacity={1.0} onPress = {() => this.setState({ imageViewerVisible: true})}>
+                    <Image style={{}} 
+                      source={{
+                        uri: this.state.matchImages[0].url,
+                        width: deviceWidth,
+                        height: deviceHeight-200
+                      }} 
+                    />
+
+                  </TouchableOpacity>
+                  <View style={{flex: 1, alignSelf: 'flex-start'}}>
+                    <TouchableOpacity>
+                      <Card transparent style={{padding: 10}}>   
+                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.calculateAge(this.state.matchBirthday)}, {this.state.matchGender}, {this.state.matchCityState}</H3>
+                        <Text numberOfLines={1} style={{}} >{this.state.matchWork} </Text>
+                        <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.matchEducation} </Text>
+                        <Text note style={{marginTop: 10}}>{this.state.matchAbout}</Text>
+                      </Card>
+                      <View style={{width: deviceWidth}}>
                         {this._renderReview(this.state.matchReviews)}
-                      </TouchableOpacity>  
-                  </ScrollView>
-                </View>          
-          </Modal> 
+
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+              }
+
+              {this.state.imageViewerVisible && 
+                <ImageViewer 
+                  index = {this.state.imageIndex}
+                  imageUrls={this.state.matchImages}
+                  onChange = {(index) => this.setState({ imageIndex: index})}
+                  onSwipeDown = {() => this.setState({ imageViewerVisible: false, imageIndex: this.state.imageIndex})}
+                  onClick = {() => this.setState({ imageViewerVisible: false})}
+                />  
+
+
+               }   
+            </Modal> 
         </View>
 
       </Container>

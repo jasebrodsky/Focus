@@ -6,12 +6,13 @@ import DatePicker from 'react-native-datepicker';
 import ImagePicker from 'react-native-image-crop-picker';
 import Slider from '@react-native-community/slider';
 import ImageViewer from 'react-native-image-zoom-viewer';
+import LinearGradient from 'react-native-linear-gradient';
 import Geocoder from 'react-native-geocoding';
 import Geolocation from '@react-native-community/geolocation';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as firebase from "firebase";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faCog, faUsers, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faCog, faUsers, faPlus, faArrowAltCircleLeft } from '@fortawesome/free-solid-svg-icons';
 
 import {
   ActionSheet,
@@ -41,8 +42,10 @@ import {
 //shortcut to Analytics
 // let Analytics = RNfirebase.analytics();
 
-const primaryColor = "#8A6077";
-const secondaryColor = "#EF8275";
+const primaryColor = "#a83a59";
+const secondaryColor = "#c60dd9";
+const btnColor = 'white';
+const btnTextColor = primaryColor;
 
 var REVIEW_OPTIONS = [
   'Endorse Someone New',  
@@ -1158,10 +1161,31 @@ class Dashboard extends Component {
       
       //return empty state
       return (
-        <ListItem noBorder style={{flexDirection: "column", justifyContent: "center", backgroundColor: primaryColor, marginLeft: 0, height: 120}}>
-          <Text style={{color: 'white', textAlign: 'center'}}>If a friend invited you, you'll see why here.</Text>
-          <Button bordered style={{ marginTop: 10, marginBottom: 10, backgroundColor: 'white', borderColor: 'white'}} onPress = {() => this._closeAndEndorse()}><Text style={{color: primaryColor}}>Invite Friend</Text></Button>      
-        </ListItem>
+
+        <ListItem noBorder style={{flexDirection: "column", justifyContent: "center", backgroundColor: secondaryColor, marginLeft: 0, height: 150}}>
+          <Text style={{color: 'white', textAlign: 'center'}}>If a friend invited you, you'll see why here.</Text>          
+          <Button 
+            disabled = {!this.state.currentStepValidated}
+            rounded 
+            style={{
+              justifyContent: 'center',
+              marginTop: 10, 
+              width: 200,
+              backgroundColor: btnColor, 
+              borderRadius: 20,
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 3,
+              },
+              shadowOpacity: 0.29,
+              shadowRadius: 4.65, }} 
+              onPress = {() => this._closeAndEndorse()}
+              >
+            <Text style={{color: btnTextColor}}>Invite Friend</Text>
+          </Button>
+          </ListItem>
+
         );
 
     // else user must have reviews
@@ -1284,6 +1308,8 @@ class Dashboard extends Component {
 
     //determine width of device in order for custom margin between iphones
     let deviceWidth = Dimensions.get('window').width
+    let deviceHeight = Dimensions.get('window').height
+
 
     //if device width is 414 (iphone+), then margins should be 58, else 40. 
     let genderMargin = deviceWidth == 414 ? 37 : 25;
@@ -1541,50 +1567,89 @@ class Dashboard extends Component {
             </KeyboardAvoidingView>
           </Modal> 
 
-        <Modal 
+          <Modal 
             visible={this.state.profileViewerVisible} 
-            transparent={true}
             animationType="slide">
-          
-              <ImageViewer 
-                index = {this.state.imageIndex}
-                imageUrls={this.state.profile.images}
-                onChange = {(index) => this.setState({ imageIndex: index})}
-                onSwipeDown = {() => this.setState({ profileViewerVisible: false, profileMaxHeight: '15%', imageIndex: this.state.imageIndex})}
-                onClick = {() => this.setState({ profileViewerVisible: false, profileMaxHeight: '15%'})}
-              />
+            
+            {(this.state.profileViewerVisible && !this.state.imageViewerVisible) && 
+              <ScrollView 
+                style={{
+                  flex: 1,
+                  backgroundColor: 'lightgrey'
+                }} 
+                
+                contentContainerStyle={{
+                  backgroundColor: 'white',
+                  flexGrow: 1,
+                  paddingTop: 40,
+                  alignItems: 'center',
+                  
+                }}>
+                  <View style={{ 
+                    position: 'absolute',
+                    zIndex: 2,
+                    left: 5,
+                    top: 40,}}>                  
+                    <Button  
+                      transparent 
+                      style={{  
+                        width: 90, 
+                        height: 90, 
+                        justifyContent: 'center',
+                        shadowColor: "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: 3,
+                        },
+                        shadowOpacity: 0.29,
+                        shadowRadius: 4.65, }}
+                      onPress = {() => this.setState({ profileViewerVisible: false})}>
+                        <FontAwesomeIcon size={ 50 }     
+                          style={{color: primaryColor}} 
+                          icon={ faArrowAltCircleLeft } />
+                    </Button>                  
+                  </View>
 
-                <View 
-                  flex={1}
-                  // alignItems="flex-start"
-                  // justifyContent="center"
-                  borderWidth={1}
-                  borderColor="grey"
-                  borderRadius={5}
-                  backgroundColor="white"
-                  maxHeight= {this.state.profileMaxHeight} //profileMaxHeight
-                 
-                >
-                  <ScrollView 
-                    ref='ScrollView_Reference'
-                    onScroll={this._handleScroll}
-                    scrollEventThrottle={16}
-                    contentContainerStyle={{                    
-                      backgroundColor:'white'
-                    }}>
-                      <TouchableOpacity>
-                        <Card transparent style={{padding: 10}}>   
-                          {/* <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{name}</H3> */}
-                          <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.getAge(this.state.profile.birthday)}, {this.state.profile.gender}, {this.state.profile.city_state}</H3>
-                          <Text numberOfLines={1} style={{}} >{this.state.profile.work} </Text>
-                          <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.education} </Text>
-                          <Text note style={{marginTop: 10}}>{this.state.profile.about}</Text>
-                        </Card>
+                  <TouchableOpacity activeOpacity={1.0} onPress = {() => this.setState({ imageViewerVisible: true})}>
+                    <Image style={{}} 
+                      source={{
+                        uri: this.state.profile.images[0].url,
+                        width: deviceWidth,
+                        height: deviceHeight-200
+                      }} 
+                    />
+
+                  </TouchableOpacity>
+                  <View style={{flex: 1, alignSelf: 'flex-start'}}>
+                    <TouchableOpacity>
+                      <Card transparent style={{padding: 10}}>   
+                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.state.profile.first_name}</H3>
+                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.state.profile.age}, {this.state.profile.gender}, {this.state.profile.city_state}</H3>
+                        <Text numberOfLines={1} style={{}} >{this.state.profile.work} </Text>
+                        <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.education} </Text>
+                        <Text note style={{marginTop: 10}}>{this.state.profile.about}</Text>
+                      </Card>
+                      <View style={{width: deviceWidth}}>
                         {this._renderReview(this.state.profile.reviews)}
-                      </TouchableOpacity>
-                  </ScrollView>
-                </View>          
-          </Modal> 
+
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+              }
+
+              {this.state.imageViewerVisible && 
+                <ImageViewer 
+                  index = {this.state.imageIndex}
+                  imageUrls={this.state.profile.images}
+                  onChange = {(index) => this.setState({ imageIndex: index})}
+                  onSwipeDown = {() => this.setState({ imageViewerVisible: false, imageIndex: this.state.imageIndex})}
+                  onClick = {() => this.setState({ imageViewerVisible: false})}
+                />  
+
+
+               }   
+            </Modal> 
 
 
 
@@ -1592,10 +1657,21 @@ class Dashboard extends Component {
         <Content>      
           
           <View style={{  flex: 1, padding: 0 }}>
-           
-           <View style ={{ flex: 1, alignItems: 'center', marginTop: 20}}>
-          
-            <TouchableOpacity                         
+                     
+           <LinearGradient style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            //backgroundColor: primaryColor, dimensions
+            }}
+            colors={[primaryColor, secondaryColor]}
+            start={{ x: 0, y: 0.1 }}
+            end={{ x: 0.1, y: 1 }}
+            >
+
+
+            <TouchableOpacity 
+              style={{marginTop: 20}}                        
               onPress={() => {
                 //close overylay and set showInstructions to false, so they want show again. 
                   ActionSheet.show(
@@ -1620,18 +1696,44 @@ class Dashboard extends Component {
                 }}
               >
                 <Thumbnail 
-                  style={{width: 200, height: 200, marginBottom: 10, overflow: "hidden", borderRadius: 150, borderWidth: 2, borderColor: 'black' }} 
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: {
+                      width: 0,
+                      height: 3,
+                    },
+                    shadowOpacity: 0.8,
+                    shadowRadius: 4.65,
+                    width: 200, 
+                    height: 200, 
+                    marginBottom: 10, 
+                    overflow: "hidden", 
+                    borderRadius: 150, 
+                    borderWidth: 0.5, 
+                    borderColor: 'black' }} 
                   source={{uri: this.state.profile.images["0"].url, cache: 'force-cache'}} 
                 />
             </TouchableOpacity>
 
 
-              <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.state.profile.first_name}, {this.getAge(this.state.profile.birthday)}, {this.state.profile.gender}</H3>
-              <Text numberOfLines={1} style={{textTransform: 'capitalize'}} >{this.state.profile.city_state}</Text>
-              <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.work} </Text>
+              <H1 numberOfLines={1} 
+                  style={{
+                    textTransform: 'capitalize', 
+                    color: 'white',
+                    shadowColor: "#000",
+                    shadowOffset: {
+                      width: 0,
+                      height: 3,
+                    },
+                    shadowOpacity: 0.8,
+                    shadowRadius: 4.65,}} >
+                  {this.state.profile.first_name}, {this.getAge(this.state.profile.birthday)}, {this.state.profile.gender}
+              </H1>
+              <Text numberOfLines={1} style={{textTransform: 'capitalize', marginBottom: 10}} >{this.state.profile.city_state}</Text>
+              {/* <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.work} </Text> */}
               {/* <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.education} </Text> */}
 
-           </View>
+           </LinearGradient>
 
 
             <Form>

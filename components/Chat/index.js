@@ -5,8 +5,9 @@ import * as firebase from "firebase";
 import { Modal } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faFlag, faEye, faArrowLeft, faImages } from '@fortawesome/free-solid-svg-icons';
+import { faFlag, faEye, faArrowLeft, faImages, faArrowAltCircleLeft } from '@fortawesome/free-solid-svg-icons';
 import { withNavigation } from "react-navigation";
 import {
   ActionSheet,
@@ -35,7 +36,11 @@ import TimerMachine from 'react-timer-machine';
 import moment from "moment";
 import momentDurationFormatSetup from "moment-duration-format";
 
-const primaryColor = "#8A6077";
+const primaryColor = "#a83a59";
+const secondaryColor = "#c60dd9";
+const btnColor = 'white';
+const btnTextColor = primaryColor;
+
 var BUTTONS = ["Unmatch", "Report & Block", "Cancel"];
 var DESTRUCTIVE_INDEX = 2;
 var CANCEL_INDEX = 2;
@@ -65,6 +70,7 @@ class Chat extends Component {
       userId: null,
       userIdMatch: null,
       imageViewerVisible: false,
+      profileViewerVisible: false,
       profileMaxHeight: "15%",
       images: [],
       imageIndex: 0,
@@ -85,53 +91,34 @@ class Chat extends Component {
        </Button>
       ),
       headerTitle: () => (
-        <Title>{navigation.getParam('name')}</Title>
+        <Button transparent onPress={navigation.getParam('showProfile')} style={{flexDirection: 'row', alignItems: 'center'}}>
+                <Thumbnail 
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: {
+                      width: 0,
+                      height: 3,
+                    },
+                    shadowOpacity: 0.8,
+                    shadowRadius: 4.65,
+                    width: 30, 
+                    height: 30,  
+                    overflow: "hidden", 
+                    borderRadius: 150, 
+                    borderWidth: 0.5, 
+                    borderColor: 'black' }} 
+                  source={{uri: navigation.getParam('images')["0"].url, cache: 'force-cache'}} 
+                />
+          <Title>{navigation.getParam('name')}</Title>
+        </Button>
+
       ),
       
       headerRight: () => (
-        <Button transparent onPress={navigation.getParam('showProfile')}>
-          <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faImages } />
+        <Button transparent onPress={navigation.getParam('handleSneekPeek')}>
+          <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faEye } />
        </Button>
       ),
-
-      //NEED TO FIGURE OUT HOW TO PASS NAVIGATION OBJECT DOWN TO ACTIONSHEET AND ALERT CHILD COMPONENTS. Can call the function via getParam, only when it's in the parent component, like above. 
-      // headerRight: () => (
-      //   <Button transparent onPress={() =>
-          
-      //     ActionSheet.show(
-      //       {
-      //         options: BUTTONS,
-      //         cancelButtonIndex: CANCEL_INDEX,
-      //         destructiveButtonIndex: DESTRUCTIVE_INDEX
-              
-      //       },
-      //       buttonIndex => {
-
-      //         //handle blocking profile
-      //         if ((buttonIndex) == 0){
-
-      //           //navigation.getParam('block')
-      //           this.setState({block: true});
-              
-      //           //handle block and report a user
-      //         }else if ((buttonIndex) == 1){
-
-      //           Alert.alert(
-      //             'Report & Block',
-      //             'We take reports seriously and will investigate this person as well as block them from interacting with you in the future. If you just want to unmatch tap "unmatch" instead.',
-      //             [
-      //               {text: 'Unmatch', onPress: () => navigation.getParam('block')},
-      //               {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-      //               //{text: 'Report & Block', onPress: () => this.blockOrReport('report')},
-      //             ],
-      //             { cancelable: false }
-      //           )         
-      //         }
-      //       }
-      //     )} >
-      //     <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faFlag } />
-      //  </Button>
-      // )
     };
   };
 
@@ -403,11 +390,11 @@ class Chat extends Component {
   }
 
 
-  //function to show profile image viewer modal
+  //function to show profile viewer modal
   showProfile = () => {
 
-    if(this.state.imageViewerVisible == false){
-      this.setState({ imageViewerVisible: true})
+    if(this.state.profileViewerVisible == false){
+      this.setState({ profileViewerVisible: true})
     }
 
   }
@@ -528,6 +515,7 @@ class Chat extends Component {
     //handle when sneakpeek is pushed. Unblur photos for n time or show payments modal if user is subscribed. 
     _handleSneekPeek = () => {
 
+        alert("Send a message to focus their photos. When this conversation expires, you'll be able focus their photos.");
         const { state, navigate } = this.props.navigation;
 
         if (this.state.subscribed == true){
@@ -552,10 +540,9 @@ class Chat extends Component {
            navigate("Payments", { flow: 'peek'});
 
         }
-
     }
 
-    //handle when sneakpeek is pushed. Unblur photos for n time or show payments modal if user is subscribed. 
+    //handle when extend conversation is pushed. Reset. 
     _handleExtendConversation = () => {
 
       const { state, navigate } = this.props.navigation;
@@ -567,25 +554,27 @@ class Chat extends Component {
           let firebaseMatchesRef1 = firebase.database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
           let firebaseMatchesRef2 = firebase.database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
 
-          //86000000 - 1 day
-          let newExpirationDate = (new Date().getTime() + 10000);//8 days
+          //86000000 - 1 day in ms
+          let extendTimeBy = 10000; //in ms
+          let newExpirationDate = (new Date().getTime() + extendTimeBy);
           //update the conversation with extended expiration
           firebaseRef.update({
             expirationDate: newExpirationDate,
             active: true
           });
 
-          //update match to true status
+          //update match to true status and set new expiration date
           firebaseMatchesRef1.update({
-            active: true
+            active: true,
+            expiration_date: newExpirationDate,
           });
 
-          //update match to true status
+          //update match to true status and set new expiration date
           firebaseMatchesRef2.update({
-            active: true
+            active: true,
+            expiration_date: newExpirationDate,
           });
 
-      
           //update local state so chat is active. listen to db if timeremaining is updated. This way the match can extend the conversation and the other person can send first chat. 
           this.setState({  matchActive: true, expirationDate: newExpirationDate })
 
@@ -619,35 +608,32 @@ class Chat extends Component {
       console.log('minutes left are: '+minutesLeft);
       console.log('seconds left are: '+secondsLeft);
 
+
       let timeRemainingText = '';
 
       //if theres more than 1 day, just so the days left
       if (daysLeft > 0) {
-        timeRemainingText = daysLeft + ' days';
+        timeRemainingText = daysLeft == 1 ? daysLeft+' day' : daysLeft+' days';
       }
       //if theres less than one day but more than 0 hours, just show hours left
       else if(daysLeft == 0 && hoursLeft > 0){
-        timeRemainingText = hoursLeft + ' hours';
+        timeRemainingText = hoursLeft == 1 ? hoursLeft+' hour' : hoursLeft+' hours';
       }
       //if theres less than one hour, just show minutes left
       else if(daysLeft == 0 && hoursLeft == 0 && minutesLeft > 0){
-        timeRemainingText = minutesLeft + ' minutes';
+        timeRemainingText = minutesLeft == 1 ? minutesLeft+' minute' : minutesLeft+' minutes';
+
       } 
       //if theres less than one min, just show seconds left
       else if(daysLeft == 0 && hoursLeft == 0 && minutesLeft == 0 && secondsLeft > 0){
-        timeRemainingText = secondsLeft + ' seconds';
+        timeRemainingText = secondsLeft == 1 ? secondsLeft+' second' : secondsLeft+' seconds';
       }          
       
       //set state with text for UI to reference
       this.setState({ timeRemaining: timeRemainingText  })//set state with new timeLeft
 
-      
-
-
     }else{
       
-
-
       //set state to expired and disable the chat with matchActive = false
       this.setState({ matchActive: false, timeRemaining: 'Expired'})
 
@@ -676,14 +662,7 @@ class Chat extends Component {
   }
 
   render() {
-
-
     const { state, navigate } = this.props.navigation;
-    //let currentDate = new Date();
-    //let timeRemaining =  86000000 - (currentDate.getTime() - this.state.matchDate);
-    //let timeRemaining = this.state.expirationDate > 0 ? this.state.expirationDate : 0;
-    //timeRemaining = timeRemaining > 0 ? timeRemaining : 0;
-
     console.log('match date is: '+ this.state.matchDate);
     console.log('chatActive is: '+ this.state.chatActive);
     console.log('matchActive is: '+ this.state.matchActive);
@@ -703,102 +682,104 @@ class Chat extends Component {
     let work = this.state.work;
     let reviews = this.state.reviews;
 
-
+    let deviceWidth = Dimensions.get('window').width
+    let deviceHeight = Dimensions.get('window').height
+    
     return (
       <Container>
 
         <Modal 
-          visible={this.state.imageViewerVisible} 
-          transparent={true}
+          visible={this.state.profileViewerVisible} 
+          //transparent={false}
           animationType="slide">
-        
-            <ImageViewer 
-              index = {this.state.imageIndex}
-              imageUrls={this.state.images}
-              onChange = {(index) => this.setState({ imageIndex: index})}
-              onSwipeDown = {() => this.setState({ imageViewerVisible: false, profileMaxHeight: '15%', imageIndex: this.state.imageIndex})}
-              onClick = {() => this.setState({ imageViewerVisible: false, profileMaxHeight: '15%'})}
-            />
-
-              <View 
-                flex={1}
-                // alignItems="flex-start"
-                // justifyContent="center"
-                borderWidth={1}
-                borderColor="grey"
-                borderRadius={5}
-                backgroundColor="white"
-                maxHeight= {this.state.profileMaxHeight} //profileMaxHeight
+            
+            {(this.state.profileViewerVisible && !this.state.imageViewerVisible) && 
+              <ScrollView 
+                style={{
+                  flex: 1,
+                  backgroundColor: 'lightgrey'
+                }} 
                 
-              >
-                <ScrollView 
-                  ref='ScrollView_Reference'
-                  onScroll={this._handleScroll}
-                  scrollEventThrottle={16}
-                  contentContainerStyle={{
-                    padding: 15,
-                    backgroundColor:'white'
-                  }}>
+                contentContainerStyle={{
+                  backgroundColor: 'white',
+                  flexGrow: 1,
+                  paddingTop: 40,
+                  alignItems: 'center',
+                  paddingBottom: 50
+                }}>
+                  <View style={{ 
+                    position: 'absolute',
+                    zIndex: 2,
+                    left: 5,
+                    top: 40,}}>                  
+                    <Button  
+                      transparent 
+                      style={{  
+                        width: 90, 
+                        height: 90, 
+                        justifyContent: 'center',
+                        shadowColor: "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: 3,
+                        },
+                        shadowOpacity: 0.29,
+                        shadowRadius: 4.65, }}
+                      onPress = {() => this.setState({ profileViewerVisible: false})}>
+                        <FontAwesomeIcon size={ 50 }     
+                          style={{color: primaryColor}} 
+                          icon={ faArrowAltCircleLeft } />
+                    </Button>                  
+                  </View>
+
+                  <TouchableOpacity activeOpacity={1.0} onPress = {() => this.setState({ imageViewerVisible: true})}>
+                    <Image style={{}} 
+                      blurRadius={Number(this.state.blur)}
+                      source={{
+                        uri: this.state.image,
+                        width: deviceWidth,
+                        height: deviceHeight-200
+                      }} 
+                    />
+
+                  </TouchableOpacity>
+                  <View style={{flex: 1, alignSelf: 'flex-start'}}>
                     <TouchableOpacity>
-                      <Card transparent>   
-                        {/* <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{name}</H3> */}
+                      <Card transparent style={{padding: 10}}>   
+                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{name}</H3>
                         <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{age}, {gender}, {city_state}</H3>
                         <Text numberOfLines={1} style={{}} >{work} </Text>
                         <Text numberOfLines={1} style={{marginBottom: 10}} >{education} </Text>
                         <Text note style={{marginTop: 10}}>{about}</Text>
                       </Card>
-                      {this._renderReview(this.state.reviews)}
+                      <View style={{padding:10}}>
+                        {this._renderReview(this.state.reviews)}
+
+                      </View>
                     </TouchableOpacity>
+                  </View>
                 </ScrollView>
-              </View>          
-        </Modal> 
+              }
+
+          
+              {this.state.imageViewerVisible && 
+                <ImageViewer 
+                  index = {this.state.imageIndex}
+                  imageUrls={this.state.images}
+                  onChange = {(index) => this.setState({ imageIndex: index})}
+                  onSwipeDown = {() => this.setState({ imageViewerVisible: false})}
+                  onClick = {() => this.setState({ imageViewerVisible: false})}
+                />  
+               }   
+          </Modal> 
         
-        <View style={{padding:0,  alignItems:'center', flexDirection:'row', justifyContent: 'center'}}>
-          <Text style={{fontWeight:'600', color:'red', paddingLeft: 5}}>TIME REMAINING: </Text>
-          <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', width:200}}> 
-          
-          {this.state.timeRemaining}
-          
-          {/* <TimerMachine
-              timeStart={this.state.expirationDate} // start at 10 seconds
-              timeEnd={0 * 1000} // end at 20 seconds
-              started={true}
-              paused={false}
-              countdown={true} // use as stopwatch
-              interval={1000} // tick every 1 second
-              formatTimer={(time, ms) =>
-                moment.duration(ms, "milliseconds").format("h:mm:ss")
-              }
-              onStart={time =>
-                console.info(`Timer started: ${JSON.stringify(time)}`)
-              }
-              onStop={time =>
-                console.info(`Timer stopped: ${JSON.stringify(time)}`)
-              }
-              // onTick={time =>
-              //   console.info(`Timer ticked: ${JSON.stringify(time)}`)
-              // }
-              onPause={time =>
-                console.info(`Timer paused: ${JSON.stringify(time)}`)
-              }
-              onResume={time =>
-                console.info(`Timer resumed: ${JSON.stringify(time)}`)
-              }
-              onComplete={time =>
-                this.setState({ chatActive: false, timeRemaining:0})
-              }
-          />             */}
-          
-          
+                
+        <View style={{padding:0,  alignItems:'center', flexDirection:'row', justifyContent: 'space-around', paddingLeft: 15, paddingRight: 20}}>
+          <Text style={{fontWeight:'600', color: primaryColor}}>TIME REMAINING: </Text>
+          <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', width:200}}>        
+            {this.state.timeRemaining} 
           </Text> 
-
-
-
-          <Button transparent onPress={ () => {this._handleSneekPeek()} }  >
-              <FontAwesomeIcon size={ 20 } style={{marginRight: 10, right: 15, color: 'grey'}} icon={ faEye } />
-          </Button>
-
-                    
+   
           <Button transparent onPress={() =>
           
           ActionSheet.show(
@@ -832,7 +813,7 @@ class Chat extends Component {
               }
             }
           )} >
-          <FontAwesomeIcon size={ 20 } style={{right: 15, color: 'grey'}} icon={ faFlag } />
+          <FontAwesomeIcon size={ 20 } style={{ color: 'lightgrey'}} icon={ faFlag } />
        
        </Button>
         </View>
@@ -845,10 +826,10 @@ class Chat extends Component {
           </TouchableOpacity>
         </View>
         
-
+          
         <GiftedChat
           messages={this.state.messages}
-          renderInputToolbar={matchActive == false ? () => null : undefined}
+          renderInputToolbar={!matchActive ? () => null : undefined}
           minInputToolbarHeight = {matchActive == false ? 0 : undefined}
           onSend={
             (message) => {
@@ -857,24 +838,55 @@ class Chat extends Component {
           }
           user={{_id: this.state.userId, _name: this.state.userName }}
         />
+        <View 
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            width: deviceWidth,
+            height: 35,
+            backgroundColor: 'white'
+          }}>
+
+        </View>
 
         {!matchActive &&
 
-        <View style={{ height: 120, backgroundColor: 'white', alignItems: 'center',}}>
+        <LinearGradient style={{
+                
+                height: 180,             
+                alignItems: 'center',
+                justifyContent: 'center',
+                //backgroundColor: primaryColor, dimensions
+                }}
+                colors={[primaryColor, secondaryColor]}
+                start={{ x: 0, y: 0.1 }}
+                end={{ x: 0.1, y: 1 }}
+                >
           
           <View style = {{flex: 1, justifyContent: 'center',}}>
-            <Text>This conversation has expired</Text>
+            <Text style={{color: 'white'}}>This conversation has expired</Text>
           </View>
       
           <View style={{flex: 1}}>
-            <Button rounded 
-              style={{ backgroundColor: primaryColor, }}
-              onPress={ () => {this._handleExtendConversation()} } >
-                <Text style={{color: 'white'}}>Extend Conversation</Text>
-            </Button>
+            <Button 
+              style={{ 
+                justifyContent: 'center',
+                backgroundColor: btnColor,
+                borderRadius: 20,
+                shadowColor: "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 3,
+                },
+                shadowOpacity: 0.29,
+                shadowRadius: 4.65,
+                marginBottom: 20 }}                       
+                rounded  
+                onPress={ () => {this._handleExtendConversation()} } >                         
+                  <Text style={{color: btnTextColor}}>Extend Conversation</Text>
+              </Button>  
           </View>
-
-        </View>
+        </LinearGradient>
          }
 
       </Container>
@@ -888,6 +900,7 @@ class Chat extends Component {
     //send blockOrReport function to nav as param, so that it can be referenced in the navigation. 
     this.props.navigation.setParams({ block: this.blockOrReport });
     this.props.navigation.setParams({ showProfile: this.showProfile });
+    this.props.navigation.setParams({ handleSneekPeek: this._handleSneekPeek });
 
     this.loadMessages((message) => {
       this.setState((previousState) => {

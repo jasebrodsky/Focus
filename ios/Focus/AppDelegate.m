@@ -22,6 +22,7 @@
 
 @implementation AppDelegate
 
+
 - (void)applicationDidBecomeActive:(UIApplication *)application {
   [FBSDKAppEvents activateApp];
 }
@@ -41,10 +42,13 @@ fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHand
 
 
 
+
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 
 
 {
+  
   
   if (@available(iOS 14, *)) {
     UIDatePicker *picker = [UIDatePicker appearance];
@@ -76,6 +80,7 @@ fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHand
   [[FBSDKApplicationDelegate sharedInstance] application:application
   didFinishLaunchingWithOptions:launchOptions];
   
+
   return YES;
   
 }
@@ -91,7 +96,8 @@ fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHand
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
-      
+  
+    
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
 #else

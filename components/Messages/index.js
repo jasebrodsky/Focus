@@ -5,6 +5,9 @@ import * as firebase from "firebase";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faUsers, faComments,faInbox } from '@fortawesome/free-solid-svg-icons';
 import ProgressCircle from 'react-native-progress-circle';
+import LinearGradient from 'react-native-linear-gradient';
+
+
 import {
   Container,
   Text,
@@ -17,7 +20,11 @@ import {
   View
 } from "native-base";
 
-const primaryColor = "#8A6077";
+const primaryColor = "#a83a59";
+const secondaryColor = "#c60dd9";
+//const btnColor = 'white';
+const btnColor = primaryColor;
+const btnTextColor = 'white';
 
 class Messages extends Component {
 
@@ -39,7 +46,6 @@ class Messages extends Component {
     return {
       headerLeft: () => (
         <Button transparent onPress={() => navigation.navigate('Swipes', {forceUpdate: false})}>
-
           <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faUsers } />
         </Button>
       ),
@@ -102,8 +108,10 @@ class Messages extends Component {
     let match_date = object.match_date;
     let last_message = object.last_message;
     let last_message_date = object.last_message_date;
-    let timeRemaining =  86000000 - (this.state.currentDate.getTime() - match_date);
-    let percent_left = (timeRemaining/86000000)*100;
+    let timeRemaining = object.expiration_date - this.state.currentDate.getTime();
+    //let timeRemaining =  86000000 - (this.state.currentDate.getTime() - match_date);
+    let totalTime = 688000000 ; //time of matches - 1 week in ms. 
+    let percent_left = (timeRemaining/totalTime)*100;
     let match_state = (timeRemaining > 0) ? 'active' : 'expired';
     let match_id = object.match_id;
     let unread_message = object.unread_message;
@@ -172,15 +180,16 @@ class Messages extends Component {
     
       var convos = [];
       //put message data into state in appropriate format
-      firebaseRef.once('value')
-       .then((matchSnap) => {
+      firebaseRef.once('value', matchSnap => {
 
           //push match objects into convos array. If match is removed, don't add to arrary. 
           matchSnap.forEach((item) => {
             
             //save variables to use in forEach loop
             let matchDate = item.toJSON().match_date;
-            let timeRemaining =  86000000 - (this.state.currentDate.getTime() - matchDate);
+            let expirationDdate = item.toJSON().expiration_date;
+            //let timeRemaining =  86000000 - (this.state.currentDate.getTime() - matchDate);
+            let timeRemaining =  expirationDdate - this.state.currentDate.getTime();
             let matchState = (timeRemaining > 0) ? 'active' : 'expired';
             let matchRemoved = item.toJSON().removed;
             let matchStatus = item.toJSON().status;
@@ -250,26 +259,67 @@ class Messages extends Component {
 
     return (
       <Container>
-        <View style={{  flex: 1, padding: 0 }}>
+
+
+        <View style={{  flex: 1, padding: 0 }}> 
+
 
           {(this.state.loading ) && 
-          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
-          </View>
+            
+            <LinearGradient style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              //backgroundColor: primaryColor, dimensions
+              }}
+              colors={['white', 'white']}
+              start={{ x: 0, y: 0.1 }}
+              end={{ x: 0.1, y: 1 }}
+              >
+                <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
+            </LinearGradient>
           }
 
           {(this.state.isEmpty  && !this.state.loading ) &&          
-          <View style={{flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-            <Button transparent onPress = {() => navigate("Refer", {flow: 'refer' })} >
-                <FontAwesomeIcon size={ 68 } style={{marginBottom: 55, color: primaryColor}} icon={ faInbox } />
-            </Button>
-            <Text style={{color: primaryColor}}> No messages yet. </Text>
-            <View style ={{marginTop: 20}}>
-              <Button rounded  style={{padding: 10, backgroundColor: primaryColor}} onPress = {() => navigate("Refer", {flow: 'invite' })}>
-                <Text style={{color: 'white'}}>Invite Friend</Text>
-              </Button>
-            </View>
-          </View>
+            
+            <LinearGradient style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              //backgroundColor: primaryColor, dimensions
+              }}
+              colors={['white', 'white']}
+              start={{ x: 0, y: 0.1 }}
+              end={{ x: 0.1, y: 1 }}
+              >
+                <FontAwesomeIcon size={ 70 } style={{
+                color: primaryColor, 
+                backgroundColor: 'transparent', 
+                shadowColor: "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 3,
+                },
+                shadowOpacity: 0.29,
+                shadowRadius: 4.65,}} icon={ faInbox }/>
+                <Text style={{color: 'black', marginTop: 10}}> No messages yet. </Text>
+                <View style ={{marginTop: 20}}>
+                  <Button rounded 
+                    style={{ 
+                      backgroundColor: btnColor, 
+                      borderRadius: 20,
+                      shadowColor: "#000",
+                      shadowOffset: {
+                        width: 0,
+                        height: 3,
+                      },
+                      shadowOpacity: 0.29,
+                      shadowRadius: 4.65, }} 
+                      onPress = {() => navigate("Refer", {flow: 'invite' })}>
+                    <Text style={{color: btnTextColor}}>Invite Friend</Text>
+                  </Button>
+                </View>
+              </LinearGradient>
           }
 
           {(!this.state.isEmpty  && !this.state.loading ) &&          

@@ -4,7 +4,7 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faHistory } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
 
 
@@ -16,8 +16,10 @@ import {
   View
 } from "native-base";
 
-const primaryColor = "#8A6077";
-const secondaryColor = "#EF8275";
+const primaryColor = "#a83a59";
+const secondaryColor = "#c60dd9";
+const btnColor = 'white';
+const btnTextColor = primaryColor;
 
 class Payments extends Component {
 
@@ -102,8 +104,8 @@ class Payments extends Component {
                 {/* top section */}
                 <LinearGradient 
                     colors={[primaryColor, 'black']}
-                    start={{ x: 0, y: 0.25 }}
-                    end={{ x: 0, y: 1 }}
+                    start={{ x: 0, y: 0.6 }}
+                    end={{ x: 0, y: 1}}
                     style={{flex: 6, alignItems: 'center', justifyContent: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
                     {/* static header */}
                     <View style={{flex: 1, marginTop:50}}>
@@ -111,10 +113,29 @@ class Payments extends Component {
                     </View>
                     
                     {/* slider of features */}
-                    <View style={{flex: 5, alignItems: 'center', justifyContent: 'center'}}>
-                        <FontAwesomeIcon size={ 200 } style={{ color: 'white'}} icon={ faEye } />
-                        <H1 style={{textAlign: 'center', color: 'white'}}>Sneak Peek</H1>
-                        <Text style={{paddingTop: 5, textAlign: 'center', color: 'white'}}>View who you're chatting with</Text>
+                    <View style={{flex: 2, alignItems: 'center', justifyContent: 'center'}}>
+                        <FontAwesomeIcon size={ 130 } style={{
+                          color: 'white', 
+                          backgroundColor: 'transparent', 
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 3,
+                          },
+                          shadowOpacity: 0.29,
+                          shadowRadius: 4.65,}} icon={faHistory}/>
+                        <H1 style={{
+                          paddingTop: 15, 
+                          textAlign: 'center', 
+                          color: 'white', 
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 3,
+                          },
+                          shadowOpacity: 0.29,
+                          shadowRadius: 4.65,}}>Extend Chat</H1>
+                        <Text style={{paddingTop: 15, textAlign: 'center', color: 'white'}}>Get unlimited time to chat</Text>
                     </View>
     
                 </LinearGradient>
@@ -128,7 +149,21 @@ class Payments extends Component {
 
                 {/* footer with buttons */}
                 <View style={{ flex: 3, justifyContent: 'center', alignContent: 'center' }}>
-                    <Button bordered style={{marginTop: 20, borderColor: primaryColor, backgroundColor: primaryColor, borderRadius: 20}} onPress={() => {this._onSubscribe();}}>
+                    <Button 
+                      bordered 
+                      style={{
+                        marginTop: 20, 
+                        borderColor: primaryColor, 
+                        backgroundColor: primaryColor, 
+                        borderRadius: 20,
+                        shadowColor: "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: 3,
+                         },
+                        shadowOpacity: 0.29,
+                        shadowRadius: 4.65, }} 
+                      onPress={() => {this._onSubscribe();}}>
                         <Text style={{color: 'white', width: 200, textAlign:'center'}}>Continue</Text>
                     </Button>  
                     <Button transparent full onPress={() => {this.props.navigation.goBack()}} >

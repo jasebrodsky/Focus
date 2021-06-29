@@ -14,7 +14,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import * as firebase from "firebase";
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faCog, faUsers, faPlus, faChevronLeft, faImage, faCamera } from '@fortawesome/free-solid-svg-icons';
+import { faCog, faUsers, faPlus,faArrowAltCircleLeft,  faChevronLeft, faImage, faCamera } from '@fortawesome/free-solid-svg-icons';
 
 import {
   ActionSheet,
@@ -110,6 +110,7 @@ class Registration extends Component {
       aboutMeRows: 16,
       profileMaxHeight: "15%",
       profileViewerVisible: false,
+      imageViewerVisible2: false, //for the view profile image view
       editProfileVisible: false,
       forceUpdate: false,
       progress: 0.1,
@@ -1381,7 +1382,7 @@ class Registration extends Component {
         
         
         
-        <ListItem noBorder style={{flexDirection: "column", justifyContent: "center", backgroundColor: secondaryColor, marginLeft: 0, height: 120}}>
+        <ListItem noBorder style={{flexDirection: "column", justifyContent: "center", backgroundColor: secondaryColor, marginLeft: 0, height: 150}}>
           <Text style={{color: 'white', textAlign: 'center'}}>If a friend invited you, you'll see why here.</Text>          
           <Button 
             disabled = {!this.state.currentStepValidated}
@@ -1403,9 +1404,6 @@ class Registration extends Component {
               >
             <Text style={{color: btnTextColor}}>Invite Friend</Text>
           </Button>
-        
-        
-        
         </ListItem>
         );
 
@@ -1698,6 +1696,7 @@ class Registration extends Component {
 
     //determine width of device in order for custom margin between iphones
     let deviceWidth = Dimensions.get('window').width
+    let deviceHeight = Dimensions.get('window').height
 
     //if device width is 414 (iphone+), then margins should be 58, else 40. 
     let genderMargin = deviceWidth == 414 ? 37 : 25;
@@ -1738,52 +1737,85 @@ class Registration extends Component {
 
           <Modal 
             visible={this.state.profileViewerVisible} 
-            transparent={false}
             animationType="slide">
-          
             
-            <ImageViewer 
-              index = {this.state.imageIndex}
-              imageUrls={profileImages}
-              //imageUrls={this.state.profile.images}
-              onChange = {(index) => this.setState({ imageIndex: index})}
-              onSwipeDown = {() => this.setState({ profileViewerVisible: false, profileMaxHeight: '15%', imageIndex: this.state.imageIndex})}
-              onClick = {() => this.setState({ profileViewerVisible: false, profileMaxHeight: '15%'})}
-            />
-            
+            {(this.state.profileViewerVisible && !this.state.imageViewerVisible2) && 
+              <ScrollView 
+                style={{
+                  flex: 1,
+                  backgroundColor: 'lightgrey'
+                }} 
+                
+                contentContainerStyle={{
+                  backgroundColor: 'white',
+                  flexGrow: 1,
+                  paddingTop: 40,
+                  alignItems: 'center',
+                  
+                }}>
+                  <View style={{ 
+                    position: 'absolute',
+                    zIndex: 2,
+                    left: 5,
+                    top: 40,}}>                  
+                    <Button  
+                      transparent 
+                      style={{  
+                        width: 90, 
+                        height: 90, 
+                        justifyContent: 'center',
+                        shadowColor: "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: 3,
+                        },
+                        shadowOpacity: 0.29,
+                        shadowRadius: 4.65, }}
+                      onPress = {() => this.setState({ profileViewerVisible: false})}>
+                        <FontAwesomeIcon size={ 50 }     
+                          style={{color: primaryColor}} 
+                          icon={ faArrowAltCircleLeft } />
+                    </Button>                  
+                  </View>
 
+                  <TouchableOpacity activeOpacity={1.0} onPress = {() => this.setState({ imageViewerVisible2: true})}>
+                    <Image style={{}} 
+                      source={{
+                        uri: this.state.profile.images[0].url,
+                        width: deviceWidth,
+                        height: deviceHeight-200
+                      }} 
+                    />
 
-                <View 
-                  flex={1}
-                  // alignItems="flex-start"
-                  // justifyContent="center"
-                  borderWidth={1}
-                  borderColor="grey"
-                  borderRadius={5}
-                  backgroundColor="white"
-                  maxHeight= {this.state.profileMaxHeight} //profileMaxHeight
-                 
-                >
-                  <ScrollView 
-                    ref='ScrollView_Reference'
-                    onScroll={this._handleScroll}
-                    scrollEventThrottle={16}
-                    contentContainerStyle={{
-                      backgroundColor:'white'
-                    }}>
-                      <TouchableOpacity>
-                        <Card transparent style={{padding : 10}}>   
-                          {/* <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{name}</H3> */}
-                          <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.getAge(this.state.profile.birthday)}, {this.state.profile.gender}, {this.state.profile.city_state}</H3>
-                          <Text numberOfLines={1} style={{}} >{this.state.profile.work} </Text>
-                          <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.education} </Text>
-                          <Text note style={{marginTop: 10}}>{this.state.profile.about}</Text>
-                        </Card>
+                  </TouchableOpacity>
+                  <View style={{}}>
+                    <TouchableOpacity>
+                      <Card transparent style={{padding: 10}}>   
+                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.state.profile.first_name}</H3>
+                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.state.profile.age}, {this.state.profile.gender}, {this.state.profile.city_state}</H3>
+                        <Text numberOfLines={1} style={{}} >{this.state.profile.work} </Text>
+                        <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.education} </Text>
+                        <Text note style={{marginTop: 10}}>{this.state.profile.about}</Text>
+                      </Card>
+                      <View style={{width: deviceWidth, flex:1, alignSelf: 'flex-end'}}>
                         {this._renderReview(this.state.profile.reviews)}
-                      </TouchableOpacity>
-                  </ScrollView>
-                </View>          
-          </Modal> 
+
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+              }
+
+              {this.state.imageViewerVisible2 && 
+                <ImageViewer 
+                  index = {this.state.imageIndex}
+                  imageUrls={profileImages}
+                  onChange = {(index) => this.setState({ imageIndex: index})}
+                  onSwipeDown = {() => this.setState({ imageViewerVisible2: false})}
+                  onClick = {() => this.setState({ imageViewerVisible2: false})}
+                />  
+               }   
+            </Modal> 
 
 
 
