@@ -673,7 +673,7 @@ class Swipes extends Component {
                 end={{ x: 0.1, y: 1 }}
                 >
                   <FontAwesomeIcon size={ 70 } style={{
-                  color: 'white', 
+                  color: primaryColor, 
                   backgroundColor: 'transparent', 
                   shadowColor: "#000",
                   shadowOffset: {
@@ -682,11 +682,11 @@ class Swipes extends Component {
                   },
                   shadowOpacity: 0.29,
                   shadowRadius: 4.65,}} icon={ faUserClock }/>
-                  <Text style={{color: 'white', marginTop: 10}}> Come back tomorrow for more matches. </Text>
+                  <Text style={{color: 'black', marginTop: 10}}> Come back tomorrow for more matches. </Text>
                   <View style ={{marginTop: 20}}>
                     <Button rounded 
                       style={{ 
-                        backgroundColor: btnColor, 
+                        backgroundColor: primaryColor, 
                         borderRadius: 20,
                         shadowColor: "#000",
                         shadowOffset: {
@@ -696,7 +696,7 @@ class Swipes extends Component {
                         shadowOpacity: 0.29,
                         shadowRadius: 4.65, }} 
                         onPress = {() => navigate("Refer", {flow: 'invite' })}>
-                      <Text style={{color: primaryColor}}>Invite Friend</Text>
+                      <Text style={{color: 'white'}}>Invite Friend</Text>
                     </Button>
                   </View>
                 </LinearGradient>}
