@@ -108,6 +108,7 @@ class Messages extends Component {
     let match_date = object.match_date;
     let last_message = object.last_message;
     let last_message_date = object.last_message_date;
+    let expiration_date = object.expiration_date;
     let timeRemaining = object.expiration_date - this.state.currentDate.getTime();
     //let timeRemaining =  86000000 - (this.state.currentDate.getTime() - match_date);
     let totalTime = 688000000 ; //time of matches - 1 week in ms. 
@@ -122,7 +123,7 @@ class Messages extends Component {
     if (type == 'active' && match_state == 'active'){
       
       return(
-        <ListItem key={i} onPress={() => navigate("Chat", {match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur, reviews: reviews })}>        
+        <ListItem key={i} onPress={() => navigate("Chat", {time_remaining: timeRemaining, expiration_date: expiration_date ,  match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur, reviews: reviews })}>        
           <ProgressCircle
               matchStatus = {match_state}
               blur={blur}

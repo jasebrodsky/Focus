@@ -162,6 +162,7 @@ class Chat extends Component {
     let work = state.params.work;
     let match_userid = state.params.match_userid; 
     let match_state = state.params.match_state;
+    let time_remaining = state.params.time_remaining;
 
     //update state with subscribed, if user is susbscribed. listen on changes if subscribes changes in db.
     firebase.database().ref('/users/'+userId+'/').on("value", profile =>{
@@ -590,10 +591,14 @@ class Chat extends Component {
   //render time left based off difference btw expiration date and current date. then update state to reflect for the UI. 
   //Call this function every second until componetn is unmounted
   _renderCountdownTimer = () => {
-
-    let timeLeft = (this.state.expirationDate - new Date().getTime());
     const { state, navigate } = this.props.navigation;
-    
+        
+    //save expiration date sent via messages, into let, for calculating timeLeft
+    let expiration_date = state.params.expiration_date;
+
+    //calculate time left based off difference btw expiration date and current date. 
+    let timeLeft = expiration_date - new Date().getTime();
+           
     //if theres time left update the time, if not turn chat off 
     if (timeLeft > 0){
 
@@ -775,7 +780,7 @@ class Chat extends Component {
         
                 
         <View style={{padding:0,  alignItems:'center', flexDirection:'row', justifyContent: 'space-around', paddingLeft: 15, paddingRight: 20}}>
-          <Text style={{fontWeight:'600', color: primaryColor}}>TIME REMAINING: </Text>
+          <Text style={{marginRight: 10, fontWeight:'600', color: primaryColor}}>TIME REMAINING: </Text>
           <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', width:200}}>        
             {this.state.timeRemaining} 
           </Text> 

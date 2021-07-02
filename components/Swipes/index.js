@@ -358,7 +358,7 @@ class Swipes extends Component {
         },
         active: 'true',
         match_date: new Date().getTime(),
-        expiration_date: (86000000 - new Date().getTime()),
+        expiration_date: ( new Date().getTime() + 100000)  //  604800000 is 1 week in ms                                          
       }, function (error) {
         if (error) {
           //if push fails
@@ -400,7 +400,7 @@ class Swipes extends Component {
             reviews: reviews_match ? reviews_match : {},
             active: 'true',
             match_date: new Date().getTime(),
-            expiration_date: (86000000 - new Date().getTime()),
+            expiration_date: ( new Date().getTime() + 604800000),  //  604800000 is 1 week in ms                                          
             match_id: match_id,
             match_userid: userid_match,
             about: about_match,
@@ -422,7 +422,7 @@ class Swipes extends Component {
             reviews: user_reviews ? user_reviews : {},
             active: 'true',
             match_date: new Date().getTime(),
-            expiration_date: (86000000 - new Date().getTime()),
+            expiration_date: ( new Date().getTime() + 604800000),  //  604800000 is 1 week in ms                                          
             match_id: match_id,
             match_userid: userid,
             about: user_about,
