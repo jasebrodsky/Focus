@@ -399,7 +399,10 @@ class Intro extends Component {
       //user must be female, render invite friend flow
       //redirect to settings component, with onCancel param as "Intro", so that user is redirected to Settings afterwards. 
       const { navigate } = this.props.navigation;
-      navigate("Refer", {onCancel: 'Intro', flow: 'invite'});
+      //navigate("Refer", {onCancel: 'Intro', flow: 'invite'});
+      
+      //comment on to turn on going to refer step here. 
+      navigate("Registration");
 
     }else{
 
@@ -515,7 +518,7 @@ class Intro extends Component {
   _renderDoneButton = () => {
         
     //const doneLabel = 'Invite and continue';      
-    let doneLabel = (this.state.gender == 'male') ? 'Enter code' : 'Invite and continue';      
+    let doneLabel = (this.state.gender == 'male') ? 'Enter code' : 'Continue'; //'Invite and continue' was language when showing invtie flow here.  
   
 
     return (
