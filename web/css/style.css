@@ -226,7 +226,7 @@ ul.submenu li a {
 }
 
 ul.submenu li a:hover {
-    background: #FC427B;
+    background: #A83A59;
 }
 
 /*--/apps--*/
@@ -257,8 +257,8 @@ ul.apps-lists li a {
 }
 
 ul.apps-lists li a:hover {
-    background: #FC427B;
-    border: 1px solid #FC427B;
+    background: #A83A59;
+    border: 1px solid #A83A59;
 }
 
 ul.apps-lists li a span {
@@ -287,11 +287,11 @@ ul.apps-lists li a span {
     -o-background-size: cover;
     -ms-background-size: cover;
     background-size: cover;
-    background-image: -webkit-linear-gradient(rgba(0,0,0, 0) 0%,rgba(0,0,0, 1) 100%), url(../images/banner_8.jpg);
-    background-image:  -moz-linear-gradient(rgba(0,0,0, 0) 0%,rgba(0,0,0, 1) 100%), url(../images/banner_8.jpg);
-    background-image:  -o-linear-gradient(rgba(0,0,0, 0) 0%,rgba(0,0,0, 1) 100%), url(../images/banner_8.jpg);
-    background-image:  -ms-linear-gradient(rgba(0,0,0, 0) 0%,rgba(0,0,0, 1) 100%), url(../images/banner_8.jpg);
-    background-image:  linear-gradient(rgba(0,0,0, 0) 0%,rgba(0,0,0, 1) 100%), url(../images/banner_8.jpg);
+    background-image: -webkit-linear-gradient(rgba(0,0,0, 0) 0%,rgba(0,0,0, 1) 100%), url(../images/banner_1.jpg);
+    background-image:  -moz-linear-gradient(rgba(0,0,0, 0) 0%,rgba(0,0,0, 1) 100%), url(../images/banner_1.jpg);
+    background-image:  -o-linear-gradient(rgba(0,0,0, 0) 0%,rgba(0,0,0, 1) 100%), url(../images/banner_1.jpg);
+    background-image:  -ms-linear-gradient(rgba(0,0,0, 0) 0%,rgba(0,0,0, 1) 100%), url(../images/banner_1.jpg);
+    background-image:  linear-gradient(rgba(0,0,0, 0) 0%,rgba(0,0,0, 1) 100%), url(../images/banner_1.jpg);
     position: relative;
     min-height: 50em;
 }
@@ -487,7 +487,7 @@ ul.apps-lists li a span {
     top: 50%;
     margin-left: -7px;
     margin-top: -7px;
-    background: #FC427B;
+    background: #A83A59;
     border-radius: 50%;
     padding: 7px;
     opacity: 0;
@@ -818,13 +818,16 @@ ul.tic-info li {
 }
 
 ul.tic-info li span {
-    color: #FC427B;
+    color: #A83A59;
 }
 
 /*--/services--*/
 
 .services {
-    background: #03BD84;
+     /* background: #03BD84; */
+     /* background: #a83a59; */
+     background: linear-gradient(90deg, rgba(168,58,89,1) 0%, rgba(198,13,217,1) 100%);
+
 }
 
 .services p {
@@ -847,7 +850,7 @@ ul.tic-info li span {
 .feature-grids span {
     font-size: 1.8em;
     vertical-align: middle;
-    color: #FC427B;
+    color: #A83A59;
 }
 
 /*----*
@@ -1009,9 +1012,9 @@ ul.tic-info li span {
 }
 
 .tab-main input:checked + label {
-    color: #FC427B;
+    color: #A83A59;
     border: 1px solid #abc;
-    border-top: 2px solid #FC427B;
+    border-top: 2px solid #A83A59;
     border-bottom: 1px solid #fff;
 }
 
@@ -1095,8 +1098,8 @@ form.newsletter {
 }
 
 .newsletter button.but-submit:hover {
-    background: #FC427B;
-    border: 1px solid #FC427B;
+    background: #A83A59;
+    border: 1px solid #A83A59;
 }
 
 /*--/price--*/
@@ -1104,7 +1107,7 @@ form.newsletter {
 h5.card-title.pricing-card-title {
     font-size: 2em;
     font-weight: 600;
-    color: #fc427b;
+    color: #A83A59;
 }
 
 .pricing-grid span {
@@ -1154,8 +1157,8 @@ ul.price-in li {
 
 .price-button a:hover,
 .price-button a.active {
-    background: #FC427B;
-    border: 2px solid #FC427B;
+    background: #A83A59;
+    border: 2px solid #A83A59;
 }
 
 /*--//price--*/
@@ -1163,7 +1166,7 @@ ul.price-in li {
 /*--contact form--*/
 
 #contact {
-    background: #FC427B;
+    background: #A83A59;
 }
 
 .contact-info p {
@@ -1327,7 +1330,8 @@ footer {
 .logo-2 a {
     font-size: 1em;
     text-shadow: 2px 5px 3px rgba(0, 0, 0, 0.06);
-    color: #FC427B;
+    /* color: #A83A59; */
+    color: #a83a59;
     font-weight: 300;
     text-transform: uppercase;
 }
@@ -1564,7 +1568,7 @@ a.move-top span {
         letter-spacing: 1px;
     }
     ul.apps-lists {
-        padding-right: 3em;
+        /* padding-right: 3em; */
     }
     .price-main:nth-child(2) {
         margin-top: 2em;

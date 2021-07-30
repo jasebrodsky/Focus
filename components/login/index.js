@@ -1,19 +1,16 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
-import { Alert, ImageBackground, Image, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { LayoutAnimation, Alert, Animated, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
 import Geocoder from 'react-native-geocoding';
+import LinearGradient from 'react-native-linear-gradient';
+import  SvgCssUri from 'react-native-svg-uri';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import {
   ActionSheet,
-  Container,
-  Content,
   Item,
-  Label,
-  Input,
   Button,
-  Icon,
   View,
   Text
 } from "native-base";
@@ -21,11 +18,9 @@ import {
 //import styles from "./styles";
 import { AccessToken, LoginButton, LoginManager, GraphRequest, GraphRequestManager } from 'react-native-fbsdk';
 
-const background = require("../../images/background_helm.jpg");
-const logo = require("../../images/Focus_dating2.png");
-const maleImage = "https://focusdating.co/images/man.jpeg";
-const femaleImage = "https://focusdating.co/images/woman2.png";
-const primaryColor = "#8A6077";
+const logo = require("../../images/focus-logo-old.svg");
+const primaryColor = "#a83a59";
+const secondaryColor = "#c60dd9";
 
 var GENDER_OPTIONS = [
   'Male',
@@ -45,8 +40,13 @@ class Login extends Component {
       email: '',
       password: '',
       gender: 'Gender Identity',
-      createAccount: false,
+      createAccount: true,
       errorMessage: false,
+      rotated: false, 
+      splashScreenVisible: false,
+      slideUp: false,
+      fadeInAnimation: new Animated.Value(0),
+      rotation: new Animated.Value(0),
     };
   }
 
@@ -56,6 +56,11 @@ class Login extends Component {
   };
 
   componentDidMount() {
+
+    //Hide Splash screen on app load.
+    setTimeout(() => {
+      this.spinLogo();
+    }, 3000)
 
     LoginManager.logOut();
 
@@ -323,6 +328,44 @@ handleSignUp = () => {
       .catch(error => that.alertError(error.message))
 }
 
+//handle when to spin logo
+spinLogo = () => {
+  
+  const CustomLayoutAnimation = {
+    duration: 2000,
+    create: {
+      type: LayoutAnimation.Types.easeInEaseOut,
+    },
+    update: {
+      type: LayoutAnimation.Types.curveEaseInEaseOut,
+    },
+  };
+  //set up layout animation for next state transition
+  LayoutAnimation.configureNext(CustomLayoutAnimation);
+  this.setState({ slideUp: true})
+  
+  //check state if logo has been rotated. If true, rotate back and set state flag to false. 
+  let rotateTo = (this.state.rotated == false) ? 1 : 0;
+
+  //rotate either left or right
+  Animated.timing(this.state.rotation, {
+    useNativeDriver: true,
+    duration: 2000,
+    toValue: rotateTo,
+  }).start();
+
+  //update state with new rotated value 
+  this.state.rotated == true ? this.setState({ rotated: false}) : this.setState({ rotated: true});
+
+  //fade in form
+    Animated.timing(this.state.fadeInAnimation, {
+      useNativeDriver: true,
+      duration: 2000,
+      toValue: 1,
+  }).start();
+
+}
+
 onLoginOrRegister = () => {
   
   LoginManager.logInWithPermissions(['public_profile', 'email', 'user_birthday', 'user_gender'])
@@ -473,119 +516,218 @@ onLoginOrRegister = () => {
 
 
     const { navigate } = this.props.navigation;
-    // return (
-    //   <ImageBackground source={background} style={{width: '100%', height: '100%'}}>
-    //     <View style={{
-    //       flex: 1,
-    //       flexDirection: 'column',
-    //       justifyContent: 'space-between',
-    //       alignItems: 'center',
-    //     }}>
-    //       <View />
-    //       <Image source={logo} style ={{height: 100}} />
-    //       <Button  style={{alignSelf: 'center', marginBottom: 100}} onPress = {() => this.onLoginOrRegister() }>
-    //         <Text>Login with Facebook</Text>
-    //       </Button>
-    //     </View>
-    //   </ImageBackground>
-    // );
- 
+    
+    const rotation = this.state.rotation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '360deg']
+    });
+
+    const fadeInAnimation = this.state.fadeInAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1]
+    });
+
+
+
     return (
-      <View style={styles.container}>
-        <View style={{flex: 1, justifyContent: 'center', padding: 50,}}>
-          <Image source={logo} style ={{}} />
-        </View>
-        <View style={{flex: 1, width: '85%'}}>
-          <TextInput
-                style={styles.inputBox}
-                value={this.state.email}
-                onChangeText={email => this.setState({ email })}
-                placeholder='Email'
-                autoCapitalize='none'
-                placeholderTextColor='grey'
-                color='black'
-            />
-            <TextInput
-                style={styles.inputBox}
-                value={this.state.password}
-                onChangeText={password => this.setState({ password })}
-                placeholder='Password'
-                secureTextEntry={true}
-                placeholderTextColor='grey'
-                color='black'
-            />
-            {/* if create account is clicked, show gender dropdown in form */}
-            {(this.state.createAccount) &&
-            
-            <Item style={{width: '95%', marginLeft: 10, marginTop: 10}}              
-              onPress={
-                ()=> ActionSheet.show
-                (
-                  {
-                    options: GENDER_OPTIONS,
-                    cancelButtonIndex: CANCEL_INDEX,
-                    destructiveButtonIndex: DESTRUCTIVE_INDEX,
-                    title: 'Gender identity'
-                  },
-                  (buttonIndex) => {
-                    if ((buttonIndex) === 2) {
-                        console.log(GENDER_OPTIONS[buttonIndex])
-                    } else {
-                      this.setState({ gender: GENDER_OPTIONS[buttonIndex]})    
-                    } 
-                  }
-                )
-              }           
-            >
 
-            
-            <View style={{flex: 1, flexDirection: 'row', justifyContent: 'flex-start'}}>
-              <Button  disabled transparent >
-                <Text style={{color: (this.state.gender == 'Gender Identity') ? 'grey' : 'black', textTransform: 'capitalize'}}>{this.state.gender}</Text>
-              </Button>
-            </View>
+        <LinearGradient style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        //backgroundColor: primaryColor, dimensions
+        }}
+        colors={[primaryColor, secondaryColor]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.1, y: 1 }}
+        >
 
-          </Item>
-                      
-          }
 
-        </View>
+        <Animated.View  style={{
+          flex: 1, 
+          justifyContent: 'center',
+          padding:45, 
+          transform: [{rotate: rotation}]
+        }}>
         
-        {/* Show login with facebook, with email, create account, forgot password elements */}
-        {(!this.state.createAccount) &&
-        <View style={{flex: 1, width: '85%'}}>
-          <Button onPress = {() => this.handleLogin()} block bordered style={{justifyContent: 'center', margin: 10, borderColor: primaryColor}}>
-              <Text style={{color: primaryColor}}>Login with Email</Text>
+          <Button transparent onPress = {() => this.spinLogo()} >
+            <SvgCssUri 
+              width="200" 
+              height="200"   
+              fill="white"
+              fillOpacity="0"
+              strokeWidth="0"
+              stroke="red"
+              color="green" 
+              source={logo}
+              style={{          
+                shadowColor: "#000",
+                shadowOffset: {
+                width: 0,
+                  height: 3,
+                },
+              shadowOpacity: 0.29,
+              shadowRadius: 4.65,}}
+            />
           </Button>
-          <Button block onPress = {() => this.onLoginOrRegister()} style={{justifyContent: 'center', margin: 10, backgroundColor: '#4267B2'}}>
+
+        </Animated.View>
+
+          
+      {(this.state.slideUp) && 
+      
+      <Animated.View style={{ flex: 2, display: 'flex', opacity: fadeInAnimation, width: 300}}>
+          
+        <TextInput
+            style={styles.inputBox}
+            value={this.state.email}
+            onChangeText={email => this.setState({ email })}
+            placeholder='Email'
+            autoCapitalize='none'
+            placeholderTextColor='white'
+            color='white'
+        />
+        <TextInput
+            style={styles.inputBox}
+            value={this.state.password}
+            onChangeText={password => this.setState({ password })}
+            placeholder='Password'
+            secureTextEntry={true}
+            placeholderTextColor='white'
+            color='white'
+        />
+        
+        {/* if create account is clicked, show gender dropdown in form */}
+        {(this.state.createAccount) &&
+        
+        <Item style={{width: '95%', marginLeft: 10, marginTop: 10}}              
+          onPress={
+            ()=> ActionSheet.show
+            (
+              {
+                options: GENDER_OPTIONS,
+                cancelButtonIndex: CANCEL_INDEX,
+                destructiveButtonIndex: DESTRUCTIVE_INDEX,
+                title: 'Gender identity'
+              },
+              (buttonIndex) => {
+                if ((buttonIndex) === 2) {
+                    console.log(GENDER_OPTIONS[buttonIndex])
+                } else {
+                  this.setState({ gender: GENDER_OPTIONS[buttonIndex]})    
+                } 
+              }
+            )
+          }           
+        >
+
+        
+        <View style={{flex: 1, flexDirection: 'row', opacity: 1, justifyContent: 'flex-start'}}>
+          <Button  disabled transparent >
+            <Text style={{color: (this.state.gender == 'Gender Identity') ? 'white' : 'white', textTransform: 'capitalize'}}>{this.state.gender}</Text>
+          </Button>
+        </View>
+
+      </Item>
+                  
+        }
+
+    
+    {/* Show login with facebook, with email, create account, forgot password elements */}
+    {(!this.state.createAccount) &&
+    <Animated.View style={{flex: 1, display: 'flex', width: 300, opacity: fadeInAnimation, justifyContent: 'flex-end', marginBottom: 30}}>
+
+      <Button 
+        onPress = {() => this.handleLogin()} 
+        rounded 
+        bordered 
+        style={{
+          justifyContent: 'center', 
+          margin: 10, 
+          backgroundColor: 'white',
+          borderColor: 'white',
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 3,
+          },
+          shadowOpacity: 0.29,
+          shadowRadius: 4.65,
+          elevation: 7}}>
+            <Text style={{color: primaryColor}}>Login with Email</Text>
+        </Button>
+
+        <Button 
+          rounded 
+          onPress = {() => this.onLoginOrRegister()} 
+          style={{
+            justifyContent: 'center', 
+            margin: 10, 
+            backgroundColor: '#4267B2',
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 3,
+            },
+            shadowOpacity: 0.29,
+            shadowRadius: 4.65,
+            elevation: 7}}>
               <Text>Login with Facebook</Text>
-          </Button>         
-          <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-around', margin: 10}}>
+          </Button>   
+
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around', margin: 10}}>
             <TouchableOpacity onPress = {() => this.setState({createAccount: true, email: '', password: ''})} style={{flex: 1, alignItems: 'center'}}>
-                <Text style={{color: primaryColor}}>Create Account</Text>
+                <Text style={{color: 'white'}}>Create Account</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress = {() => this.forgotPassword()} style={{flex: 1, alignItems: 'center'  }}>
-                <Text style={{color: primaryColor}}>Forgot Password?</Text>
+                <Text style={{color: 'white'}}>Forgot Password?</Text>
             </TouchableOpacity>
           </View>
-        </View>
-        }
 
-        {/* if create account is clicked, show create account button */}
-        {(this.state.createAccount) &&
-        <View style={{flex: 1, width: '85%', marginTop: 60}}>
-          <Button onPress = {() => this.validateAccount()} bordered style={{justifyContent: 'center', margin: 10, borderColor: primaryColor}}>
-              <Text style={{color: primaryColor}}>Create Account</Text>
-          </Button>     
-          <Button onPress = {() => this.setState({createAccount: false, email: '', password: '', gender: 'Gender identity'})} transparent style={{justifyContent: 'center', margin: 10}}>
-              <Text style={{color: primaryColor}}>Go back</Text>
-          </Button>      
-        </View>
-        }
-      </View>
+    </Animated.View>
+    }
+
+    {/* if create account is clicked, show create account button */}
+    {(this.state.createAccount) &&
+    <Animated.View style={{flex: 1, display: 'flex', width: 300, opacity: fadeInAnimation, justifyContent: 'flex-end', marginBottom: 30}}>
+     
+      <Button 
+        onPress = {() => this.validateAccount()} 
+        bordered 
+        rounded 
+        style={{
+          justifyContent: 'center', 
+          margin: 10, 
+          backgroundColor: 'white',
+          borderColor: 'white',
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 3,
+          },
+          shadowOpacity: 0.29,
+          shadowRadius: 4.65,
+          elevation: 7}}>
+          <Text style={{color: primaryColor}}>Create Account</Text>
+      </Button>     
+      
+     
+      <Button 
+        onPress = {() => this.setState({createAccount: false, email: '', password: '', gender: 'Gender identity'})} transparent style={{justifyContent: 'center', margin: 10}}>
+          <Text style={{color: 'white'}}>Already have an account?</Text>
+      </Button>      
+    </Animated.View>
+    }
+
+    </Animated.View>
+    
+  }
+
+
+
+  </LinearGradient>
+
   )
-
-
   }
 }
 

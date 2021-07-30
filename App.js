@@ -15,6 +15,8 @@ import Registration from "./components/Registration";
 import Payments from "./components/Payments";
 import Refer from "./components/Refer";
 import codePush from "react-native-code-push";
+import SplashScreen from  "react-native-splash-screen";
+
 
 
 // const RootStack = createStackNavigator(
@@ -105,8 +107,15 @@ const RootStack = createStackNavigator(
 
 const AppContainer = codePush(createAppContainer(RootStack));
 
+  //Hide Splash screen on app load.
+    setTimeout(() => {
+      SplashScreen.hide()
+    }, 2000)
+  
 
 export default class App extends React.Component {
+
+
   render() {
     return <Root><AppContainer /></Root>;
   }

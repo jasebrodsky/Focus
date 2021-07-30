@@ -513,13 +513,13 @@ class Chat extends Component {
         }.bind(this),time);  
     }
 
-    //handle when sneakpeek is pushed. Unblur photos for n time or show payments modal if user is subscribed. 
+    //handle when sneakpeek is pushed. Unblur photos for n time or show payments modal if user is not subscribed. 
     _handleSneekPeek = () => {
 
-        alert("Send a message to focus their photos. When this conversation expires, you'll be able focus their photos.");
         const { state, navigate } = this.props.navigation;
 
-        if (this.state.subscribed == true){
+        //if match is expired, deblur photos when sneekpeek is clicked. 
+        if (this.state.matchActive == false){
           //set blur to 0 if subscribed
             this.deBlur(75,100)
             this.deBlur(60,200)
@@ -537,8 +537,12 @@ class Chat extends Component {
           this.setState({images: newImages});
 
         }else{
+
+          //match must be active, alert user what button will do after expiration. 
+          alert("Send a message to focus their photos. After this conversation expires, you'll be able use this button to focus their photos.");
+
           //navigate to payments component, since user is not subscribed.
-           navigate("Payments", { flow: 'peek'});
+          //navigate("Payments", { flow: 'peek'});
 
         }
     }

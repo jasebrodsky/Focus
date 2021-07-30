@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.RNFetchBlob.RNFetchBlobPackage;
+import org.devio.rn.splashscreen.SplashScreenReactPackage;
 import io.expo.appearance.RNCAppearancePackage;
 import com.microsoft.codepush.react.CodePush;
 import com.bluroverly.SajjadBlurOverlayPackage;

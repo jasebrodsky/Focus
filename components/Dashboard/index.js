@@ -9,10 +9,11 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 import LinearGradient from 'react-native-linear-gradient';
 import Geocoder from 'react-native-geocoding';
 import Geolocation from '@react-native-community/geolocation';
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob from 'react-native-fetch-blob';
 import * as firebase from "firebase";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCog, faUsers, faPlus, faArrowAltCircleLeft } from '@fortawesome/free-solid-svg-icons';
+import SplashScreen from 'react-native-splash-screen';
 
 import {
   ActionSheet,
@@ -188,6 +189,9 @@ class Dashboard extends Component {
 
   //After component mounts prompt for permission to recieve notifications and save fcmToken to database
   componentDidMount() {
+
+    //hide splash screen after app loads
+    SplashScreen.hide();
       
     //send vaidate function to nav as param, so that it can be referenced in the navigation. 
     this.props.navigation.setParams({ validate: this.validateSettings });

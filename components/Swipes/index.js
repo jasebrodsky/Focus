@@ -93,7 +93,6 @@ class Swipes extends Component {
 
   componentDidMount() {
 
-
     //force update match data so that updated settings and matches will be reflected fetched data, to get fetch fresh batch of matches. 
     const didFocus = this.props.navigation.addListener(
       'didFocus',

@@ -10,7 +10,7 @@ import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import Geocoder from 'react-native-geocoding';
 import * as Progress from 'react-native-progress';
 import Geolocation from '@react-native-community/geolocation';
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob from 'react-native-fetch-blob';
 import * as firebase from "firebase";
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
