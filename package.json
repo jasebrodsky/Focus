@@ -37,7 +37,7 @@
     "npm": "^6.4.1",
     "prop-types": "^15.7.2",
     "react": "16.11.0",
-    "react-native": "0.61",
+    "react-native": "0.62",
     "react-native-app-intro-slider": "3.0.0",
     "react-native-appearance": "^0.3.2",
     "react-native-blur-overlay": "^1.0.7",
