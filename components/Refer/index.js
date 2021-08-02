@@ -116,14 +116,16 @@ class Refer extends Component {
   _onCancel = () => {
 
     let onCancel = this.props.navigation.getParam('onCancel');
+    let from = this.props.navigation.getParam('from');
     const { navigate } = this.props.navigation;
 
     if((onCancel == 'Intro') && (this.state.gender)){
     //if((onCancel == 'Intro') && (this.state.gender == 'female')){
       navigate("Registration");
     }else{
-      this.props.navigation.goBack();
 
+      //goback
+      this.props.navigation.goBack();
     }  
   }
 
@@ -141,6 +143,7 @@ class Refer extends Component {
     let name = this.state.name;
     let reason = this.state.reason;
     let reasonLength = reason.length;
+    
 
     if(!name || reasonLength < 30){
 
@@ -188,15 +191,29 @@ class Refer extends Component {
             else {
               console.log('Share successful');
             
-              //record in analytics that share was dismissed 
-              // Analytics.logEvent('shareDialogSent', {
-              //   testParam: 'testParamValue1'
-              // });
+               //update swipeCount in firebase, so that cloud function will return fresh batch of matches. 
+              let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+              
+              //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
+              userRef.update({  
+                swipe_count: 0,
+                last_swipe_sesh_date: new Date().getTime() 
+              }).then(()=>{
+                
+                //check if coming from swipes
+                if ( this.props.navigation.getParam('from') == 'swipes') {
 
-              //redirect to settings component
-              //const { navigate } = this.props.navigation;
-              //navigate("Settings");
-              this._onCancel(); 
+                  //redirect to swipes and pass params if getMatches needs to be force updated. 
+                  this.props.navigation.navigate("Swipes", {forceUpdate: true, swipeCount: 0});
+                  console.log("successfully updated swipecount, getting more matches.");
+
+                }else{
+                  //goback
+                  this.props.navigation.goBack();
+                }
+              }).catch(error => {
+                console.log("couldnt update swipdconnt with error: " + error);
+              });
 
             }
           })

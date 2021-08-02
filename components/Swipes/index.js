@@ -217,6 +217,8 @@ class Swipes extends Component {
   } 
 
 
+
+
   //async function to fetch matches from cloud function
   async getMatches(userId) {
 
@@ -489,6 +491,33 @@ class Swipes extends Component {
 
   }
 
+    //function to get 10 more matches, used when user successfully invites friend. 
+    getMoreMatches = (userid) => {
+
+      //reset cardindex to 0
+      this.setState({ loading: true, cardIndex: 0});
+
+      //update swipeCount in firebase, so that cloud function will return fresh batch of matches. 
+      let userRef = firebase.database().ref('users/'+userid+'/');
+      
+      //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
+      userRef.update({  
+        swipe_count: 8,
+        last_swipe_sesh_date: new Date().getTime() 
+      }).then(()=>{
+        this.getMatches(userid);
+        console.log("successfully updated swipecount, getting more matches.");
+
+      }).catch(error => {
+        console.log("couldnt update swipdconnt with error: " + error);
+      });
+
+      //set state with data. 
+      this.setState({
+        swipeCountStart: 0
+      })
+    }
+
   //Function to save new swipe object
   calculateAge (dateString) {// birthday is a date
       var today = new Date();
@@ -681,7 +710,7 @@ class Swipes extends Component {
                   },
                   shadowOpacity: 0.29,
                   shadowRadius: 4.65,}} icon={ faUserClock }/>
-                  <Text style={{color: 'black', marginTop: 10}}> Come back tomorrow for more matches. </Text>
+                  <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}> Invite a friend to get 10 more matches or {"\n"}come back tomorrow at noon for more. </Text>
                   <View style ={{marginTop: 20}}>
                     <Button rounded 
                       style={{ 
@@ -694,7 +723,11 @@ class Swipes extends Component {
                         },
                         shadowOpacity: 0.29,
                         shadowRadius: 4.65, }} 
-                        onPress = {() => navigate("Refer", {flow: 'invite' })}>
+
+                        //onPress={() => this.getMoreMatches(this.state.userId)} 
+                        
+                        onPress = {() => navigate("Refer", {flow: 'invite', from: 'swipes' })}
+                        >
                       <Text style={{color: 'white'}}>Invite Friend</Text>
                     </Button>
                   </View>

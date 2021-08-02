@@ -1255,14 +1255,14 @@ class Dashboard extends Component {
           (buttonIndex) => {
             if ((buttonIndex) === 0) {
               //close editProfile modal
-              this.setState({ editProfileVisible: false});
+              this.setState({ editProfileVisible: false, profileViewerVisible: false});
               //open refer module
               navigate("Refer", {flow: 'endorse' });
               }
 
             if ((buttonIndex) === 1) {
               //close editProfile modal
-              this.setState({ editProfileVisible: false});
+              this.setState({ editProfileVisible: false, profileViewerVisible: false});
               //open refer module
               navigate("Refer", {name: review.name, flow: 'endorse' });
             }
