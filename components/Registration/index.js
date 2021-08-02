@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Linking, StyleSheet, KeyboardAvoidingView, Image, Alert, Dimensions, Modal, ScrollView, Platform, TextInput, TouchableOpacity } from 'react-native';
+import { Linking, StyleSheet,TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Image, Alert, Dimensions, Modal, ScrollView, Platform, TextInput, TouchableOpacity } from 'react-native';
 import RNfirebase from 'react-native-firebase';
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import DatePicker from 'react-native-datepicker';
@@ -131,6 +131,7 @@ class Registration extends Component {
         interested: null,
         min_age: 18,
         max_age: 50,
+        //age: '25',
         error: null,
         notifications_message: true,
         notifications_match: true,
@@ -391,18 +392,41 @@ class Registration extends Component {
     //convert location geo data into location data
     Geolocation.watchPosition(
       position => {
-        Geocoder.from(position.coords.latitude, position.coords.longitude)
+        Geocoder.from(position.coords.latitude, position.coords.longitude,1)
         .then(json => {
-                let city_address_component = json.results[0].address_components[2];
-                let state_address_component = json.results[0].address_components[4];
-                let city_state = city_address_component.long_name+', '+state_address_component.short_name;
+                
+                //define placeholders for city state texts. 
+                let cityText = '';
+                let stateText = '';
+
+                //find long_name where arraddress has type of locality and administrative_area_level_1
+                json.results[0].address_components.forEach((place) => {
+                    
+                  if( place.types.includes("locality") ){
+                      console.log('city is: '+JSON.stringify(place.short_name));
+                      cityText = place.short_name;
+                  }
+                  else if( place.types.includes("administrative_area_level_1") ){
+                      console.log('state is: '+JSON.stringify(place.short_name));
+                      stateText = place.short_name;
+                  }                            
+                })
+
+                //contenate strings
+                let city_state = cityText+', '+stateText;
+  
+                //update firebase
                 firebaseRefCurrentUser.update({city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude});
-        })
+
+        
+              })
         .catch(error => console.warn(error));
       },
       error => console.log(error.message),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
     );
+    
+
   }
 
 
@@ -1611,7 +1635,9 @@ class Registration extends Component {
           }else{ //continue or skip clicked
             
             if (action == 'continue'){ //if continue was clicked, update data from step and go to next step then validate it. 
-               console.log('go next');
+               
+              
+              console.log('go next');
                 let step = this.state.steps[this.state.stepIndex].input;
   
               //update with db with new data from current step
@@ -1711,8 +1737,10 @@ class Registration extends Component {
     //format images for imageViewer .. not sure why images obj in state didnt' work direclty... 
     let profileImages = this.state.profile.images.map(image => ({ url: image.url }));
     console.log('profileImages? :'+JSON.stringify(profileImages));
- 
+
     return (
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} >
+
       <LinearGradient style={{
         flex: 3,
         alignItems: 'center',
@@ -1792,7 +1820,7 @@ class Registration extends Component {
                     <TouchableOpacity>
                       <Card transparent style={{padding: 10}}>   
                         <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.state.profile.first_name}</H3>
-                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.state.profile.age}, {this.state.profile.gender}, {this.state.profile.city_state}</H3>
+                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.getAge(this.state.profile.birthday)}, {this.state.profile.gender}, {this.state.profile.city_state}</H3>
                         <Text numberOfLines={1} style={{}} >{this.state.profile.work} </Text>
                         <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.education} </Text>
                         <Text note style={{marginTop: 10}}>{this.state.profile.about}</Text>
@@ -1894,11 +1922,12 @@ class Registration extends Component {
               },
               dateInput: {
                 marginLeft: 0,
-                height: 0
+                height: 0,
+                display: 'none',
               },
               dateTouchBody: {
                 width: 0,
-                height: 0
+                height: 0,
               },
               dateText: {
                 width: 0
@@ -2397,6 +2426,7 @@ class Registration extends Component {
         
       </KeyboardAvoidingView>
       </LinearGradient>
+    </TouchableWithoutFeedback>
         
      
       

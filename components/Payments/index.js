@@ -18,6 +18,7 @@ import {
 
 const primaryColor = "#a83a59";
 const secondaryColor = "#c60dd9";
+
 const btnColor = 'white';
 const btnTextColor = primaryColor;
 
@@ -103,10 +104,10 @@ class Payments extends Component {
 
                 {/* top section */}
                 <LinearGradient 
-                    colors={[primaryColor, 'black']}
+                    colors={[primaryColor, secondaryColor]}
                     start={{ x: 0, y: 0.6 }}
                     end={{ x: 0, y: 1}}
-                    style={{flex: 6, alignItems: 'center', justifyContent: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
+                    style={{flex: 8, alignItems: 'center', justifyContent: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
                     {/* static header */}
                     <View style={{flex: 1, marginTop:50}}>
                         <H1 style={{ textAlign: 'center', justifyContent:'center', color: 'white'}}>Get Focus Premium</H1>
@@ -138,17 +139,20 @@ class Payments extends Component {
                         <Text style={{paddingTop: 15, textAlign: 'center', color: 'white'}}>Get unlimited time to chat</Text>
                     </View>
     
-                </LinearGradient>
 
                 {/* body with descriptions of pricing */}
-                <View style={{ flex: 3, justifyContent: 'center', backgroundColor: "black", width: deviceWidth}}>
+                <View style={{ flex: 2, justifyContent: 'center', width: deviceWidth}}>
                     <Text style={{ fontWeight: 'bold', fontSize: 50,textAlign: 'center', color: "white"}}>12 </Text>
                     <Text style={{ fontSize: 30, textAlign: 'center', color: "white"}}>months </Text>
                     <Text style={{ fontWeight: 'bold',fontSize: 30, textAlign: 'center', color: "white"}}>$9.99/mo  </Text>
                 </View>
 
+                </LinearGradient>
+
+
+
                 {/* footer with buttons */}
-                <View style={{ flex: 3, justifyContent: 'center', alignContent: 'center' }}>
+                <View style={{ flex: 2, justifyContent: 'center', alignContent: 'center' }}>
                     <Button 
                       bordered 
                       style={{

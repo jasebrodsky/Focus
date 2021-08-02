@@ -753,7 +753,7 @@ class Chat extends Component {
 
                   </TouchableOpacity>
                   <View style={{flex: 1, alignSelf: 'flex-start'}}>
-                    <TouchableOpacity>
+                    <View>
                       <Card transparent style={{padding: 10}}>   
                         <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{name}</H3>
                         <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{age}, {gender}, {city_state}</H3>
@@ -765,7 +765,7 @@ class Chat extends Component {
                         {this._renderReview(this.state.reviews)}
 
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </ScrollView>
               }
@@ -840,6 +840,7 @@ class Chat extends Component {
           messages={this.state.messages}
           renderInputToolbar={!matchActive ? () => null : undefined}
           minInputToolbarHeight = {matchActive == false ? 0 : undefined}
+          bottomOffset={33}
           onSend={
             (message) => {
               this.onSend(message);

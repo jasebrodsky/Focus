@@ -266,7 +266,7 @@ class Refer extends Component {
             placeholder='Name'
             value={this.props.navigation.getParam('name')}
             onChangeText={(name) => this.setState({name})}
-            style={{fontSize: 25}}
+            style={{fontSize: 18}}
             />
           </Item>
         </View>
@@ -286,7 +286,7 @@ class Refer extends Component {
           <Form>
             <Textarea
             rowSpan={this.state.reasonRows} 
-            style={{backgroundColor: 'white', fontSize: 25}}
+            style={{backgroundColor: 'white', fontSize: 18}}
             bordered 
             rounded
             placeholder={this.state.reasonCopy}

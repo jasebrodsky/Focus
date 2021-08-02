@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
-import { LayoutAnimation, Alert, Animated, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { Keyboard, TouchableWithoutFeedback, LayoutAnimation, Image, Alert, Animated, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
 import Geocoder from 'react-native-geocoding';
@@ -19,6 +19,8 @@ import {
 import { AccessToken, LoginButton, LoginManager, GraphRequest, GraphRequestManager } from 'react-native-fbsdk';
 
 const logo = require("../../images/focus-logo-old.svg");
+const logoText = require("../../images/logoText.png");
+const logoTextSvg = require("../../images/logoText.svg");
 const primaryColor = "#a83a59";
 const secondaryColor = "#c60dd9";
 
@@ -110,12 +112,31 @@ getLocation = () => {
     position => {
       Geocoder.from(position.coords.latitude, position.coords.longitude)
       .then(json => {
-              let city_address_component = json.results[0].address_components[2];
-              let state_address_component = json.results[0].address_components[4];
-              let city_state = city_address_component.long_name+', '+state_address_component.short_name;
-              firebaseRefCurrentUser.update({city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude});
-      })
-      .catch(error => console.warn(error));
+  
+          //define placeholders for city state texts. 
+          let cityText = '';
+          let stateText = '';
+
+          //find long_name where arraddress has type of locality and administrative_area_level_1
+          json.results[0].address_components.forEach((place) => {
+              
+            if( place.types.includes("locality") ){
+                console.log('city is: '+JSON.stringify(place.short_name));
+                cityText = place.short_name;
+            }
+            else if( place.types.includes("administrative_area_level_1") ){
+                console.log('state is: '+JSON.stringify(place.short_name));
+                stateText = place.short_name;
+            }                            
+          })
+
+          //contenate strings
+          let city_state = cityText+', '+stateText;
+
+          //update firebase
+          firebaseRefCurrentUser.update({city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude});
+        
+        }).catch(error => console.warn(error));
     },
     error => console.log(error.message),
     { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
@@ -330,18 +351,12 @@ handleSignUp = () => {
 
 //handle when to spin logo
 spinLogo = () => {
-  
-  const CustomLayoutAnimation = {
-    duration: 2000,
-    create: {
-      type: LayoutAnimation.Types.easeInEaseOut,
-    },
-    update: {
-      type: LayoutAnimation.Types.curveEaseInEaseOut,
-    },
-  };
+
   //set up layout animation for next state transition
-  LayoutAnimation.configureNext(CustomLayoutAnimation);
+  // LayoutAnimation.configureNext(LayoutAnimation.create(2000, 'easeInEaseOut', 'opacity'));
+  
+  LayoutAnimation.configureNext(LayoutAnimation.create(2000, 'easeInEaseOut', 'opacity'));
+
   this.setState({ slideUp: true})
   
   //check state if logo has been rotated. If true, rotate back and set state flag to false. 
@@ -360,7 +375,7 @@ spinLogo = () => {
   //fade in form
     Animated.timing(this.state.fadeInAnimation, {
       useNativeDriver: true,
-      duration: 2000,
+      duration: 1000,
       toValue: 1,
   }).start();
 
@@ -530,202 +545,311 @@ onLoginOrRegister = () => {
 
 
     return (
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} >
 
         <LinearGradient style={{
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        //backgroundColor: primaryColor, dimensions
-        }}
-        colors={[primaryColor, secondaryColor]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.1, y: 1 }}
-        >
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: primaryColor, 
+                }}
+                colors={[primaryColor, secondaryColor]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0.1, y: 1 }}
+                >
+                  <View style={{
+                      flex: 1, 
+                      flexDirection: 'column', 
+                      justifyContent: 'center', 
+                      alignItems: 'center', 
+                    }}>
 
 
-        <Animated.View  style={{
-          flex: 1, 
-          justifyContent: 'center',
-          padding:45, 
-          transform: [{rotate: rotation}]
-        }}>
-        
-          <Button transparent onPress = {() => this.spinLogo()} >
-            <SvgCssUri 
-              width="200" 
-              height="200"   
-              fill="white"
-              fillOpacity="0"
-              strokeWidth="0"
-              stroke="red"
-              color="green" 
-              source={logo}
-              style={{          
-                shadowColor: "#000",
-                shadowOffset: {
-                width: 0,
-                  height: 3,
-                },
-              shadowOpacity: 0.29,
-              shadowRadius: 4.65,}}
-            />
-          </Button>
+                    {(this.state.slideUp) && 
+                      <View style={{
+                          flex: 1, 
+                          //flexDirection: 'column', 
+                          //justifyContent: 'center', 
+                          //alignItems: 'center', 
+                          // backgroundColor: 'black',
+                          width: 400,
+                          height: 10,
+                          marginBottom: 30
+                        }}> 
+                        
+                      </View>
+                      }
+                    
+                    
+                    <Animated.View  style={{
+                      flex: 1, 
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      //alignItems: 'center',
+                      //backgroundColor: 'blue',
+                      //height: 200,
+                      //margin: 0,
+                      //padding:50, 
+                      transform: [{rotate: rotation}]
+                    }}>
 
-        </Animated.View>
 
-          
-      {(this.state.slideUp) && 
-      
-      <Animated.View style={{ flex: 2, display: 'flex', opacity: fadeInAnimation, width: 300}}>
-          
-        <TextInput
-            style={styles.inputBox}
-            value={this.state.email}
-            onChangeText={email => this.setState({ email })}
-            placeholder='Email'
-            autoCapitalize='none'
-            placeholderTextColor='white'
-            color='white'
-        />
-        <TextInput
-            style={styles.inputBox}
-            value={this.state.password}
-            onChangeText={password => this.setState({ password })}
-            placeholder='Password'
-            secureTextEntry={true}
-            placeholderTextColor='white'
-            color='white'
-        />
-        
-        {/* if create account is clicked, show gender dropdown in form */}
-        {(this.state.createAccount) &&
-        
-        <Item style={{width: '95%', marginLeft: 10, marginTop: 10}}              
-          onPress={
-            ()=> ActionSheet.show
-            (
-              {
-                options: GENDER_OPTIONS,
-                cancelButtonIndex: CANCEL_INDEX,
-                destructiveButtonIndex: DESTRUCTIVE_INDEX,
-                title: 'Gender identity'
-              },
-              (buttonIndex) => {
-                if ((buttonIndex) === 2) {
-                    console.log(GENDER_OPTIONS[buttonIndex])
-                } else {
-                  this.setState({ gender: GENDER_OPTIONS[buttonIndex]})    
-                } 
-              }
-            )
-          }           
-        >
+                    
+                      <Button transparent onPress = {() => this.spinLogo()} >
+                        <SvgCssUri 
+                          width="120" 
+                          height="120"   
+                          fill="white"
+                          fillOpacity="0"
+                          strokeWidth="0"
+                          source={logo}
+                          style={{          
+                            shadowColor: "#000",
+                            shadowOffset: {
+                            width: 0,
+                              height: 3,
+                            },
+                          shadowOpacity: 0.8,
+                          shadowRadius: 8.65,}}
+                        />
+                      </Button>
 
-        
-        <View style={{flex: 1, flexDirection: 'row', opacity: 1, justifyContent: 'flex-start'}}>
-          <Button  disabled transparent >
-            <Text style={{color: (this.state.gender == 'Gender Identity') ? 'white' : 'white', textTransform: 'capitalize'}}>{this.state.gender}</Text>
-          </Button>
-        </View>
+                    </Animated.View>
+                      
 
-      </Item>
+                </View>
+
                   
-        }
+              {(this.state.slideUp) &&
+              
+              <View style={{flex: 4, flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
 
-    
-    {/* Show login with facebook, with email, create account, forgot password elements */}
-    {(!this.state.createAccount) &&
-    <Animated.View style={{flex: 1, display: 'flex', width: 300, opacity: fadeInAnimation, justifyContent: 'flex-end', marginBottom: 30}}>
+                    <Animated.View style={{ 
+                      //backgroundColor: 'lightgrey', 
+                      flex: 1,  
+                      flexDirection: "column",
+                      justifyContent: 'flex-start', 
+                      marginTop: 35
+                      
+                    }}>
 
-      <Button 
-        onPress = {() => this.handleLogin()} 
-        rounded 
-        bordered 
-        style={{
-          justifyContent: 'center', 
-          margin: 10, 
-          backgroundColor: 'white',
-          borderColor: 'white',
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 3,
-          },
-          shadowOpacity: 0.29,
-          shadowRadius: 4.65,
-          elevation: 7}}>
-            <Text style={{color: primaryColor}}>Login with Email</Text>
-        </Button>
-
-        <Button 
-          rounded 
-          onPress = {() => this.onLoginOrRegister()} 
-          style={{
-            justifyContent: 'center', 
-            margin: 10, 
-            backgroundColor: '#4267B2',
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 3,
-            },
-            shadowOpacity: 0.29,
-            shadowRadius: 4.65,
-            elevation: 7}}>
-              <Text>Login with Facebook</Text>
-          </Button>   
-
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', margin: 10}}>
-            <TouchableOpacity onPress = {() => this.setState({createAccount: true, email: '', password: ''})} style={{flex: 1, alignItems: 'center'}}>
-                <Text style={{color: 'white'}}>Create Account</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress = {() => this.forgotPassword()} style={{flex: 1, alignItems: 'center'  }}>
-                <Text style={{color: 'white'}}>Forgot Password?</Text>
-            </TouchableOpacity>
-          </View>
-
-    </Animated.View>
-    }
-
-    {/* if create account is clicked, show create account button */}
-    {(this.state.createAccount) &&
-    <Animated.View style={{flex: 1, display: 'flex', width: 300, opacity: fadeInAnimation, justifyContent: 'flex-end', marginBottom: 30}}>
-     
-      <Button 
-        onPress = {() => this.validateAccount()} 
-        bordered 
-        rounded 
-        style={{
-          justifyContent: 'center', 
-          margin: 10, 
-          backgroundColor: 'white',
-          borderColor: 'white',
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 3,
-          },
-          shadowOpacity: 0.29,
-          shadowRadius: 4.65,
-          elevation: 7}}>
-          <Text style={{color: primaryColor}}>Create Account</Text>
-      </Button>     
-      
-     
-      <Button 
-        onPress = {() => this.setState({createAccount: false, email: '', password: '', gender: 'Gender identity'})} transparent style={{justifyContent: 'center', margin: 10}}>
-          <Text style={{color: 'white'}}>Already have an account?</Text>
-      </Button>      
-    </Animated.View>
-    }
-
-    </Animated.View>
-    
-  }
+                      <SvgCssUri 
+                          width="120" 
+                          height="40"   
+                          fill="white"
+                          fillOpacity="0"
+                          strokeWidth="0"
+                          source={logoTextSvg}
+                          style={{          
+                            shadowColor: "#000",
+                            shadowOffset: {
+                            width: 0,
+                              height: 3,
+                            },
+                          shadowOpacity: 0.8,
+                          shadowRadius: 8.65,}}
+                      />
+                  </Animated.View>
 
 
 
-  </LinearGradient>
+
+                  <View style={{
+                    flex: 3,
+                    //backgroundColor: 'yellow',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+
+
+                  }}>
+                  
+                  
+                  <Animated.View style={{ 
+                    flex: 2, 
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    //backgroundColor: 'brown',
+                    opacity: fadeInAnimation, 
+                    //width: 200
+                    }}>
+                      
+
+
+
+                      
+                    <TextInput
+                        style={styles.inputBox}
+                        value={this.state.email}
+                        onChangeText={email => this.setState({ email })}
+                        placeholder='Email'
+                        autoCapitalize='none'
+                        placeholderTextColor='white'
+                        color='white'
+                        keyboardType='email-address'
+                    />
+                    <TextInput
+                        style={styles.inputBox}
+                        value={this.state.password}
+                        onChangeText={password => this.setState({ password })}
+                        placeholder='Password'
+                        secureTextEntry={true}
+                        placeholderTextColor='white'
+                        color='white'
+                    />
+                    
+                    {/* if create account is clicked, show gender dropdown in form */}
+                    {(this.state.createAccount) &&
+                    
+                    <Item style={{borderBottomWidth: 1, height: 60, width: 250}}             
+                      onPress={
+                        ()=> ActionSheet.show
+                        (
+                          {
+                            options: GENDER_OPTIONS,
+                            cancelButtonIndex: CANCEL_INDEX,
+                            destructiveButtonIndex: DESTRUCTIVE_INDEX,
+                            title: 'Gender identity'
+                          },
+                          (buttonIndex) => {
+                            if ((buttonIndex) === 2) {
+                                console.log(GENDER_OPTIONS[buttonIndex])
+                            } else {
+                              this.setState({ gender: GENDER_OPTIONS[buttonIndex]})    
+                            } 
+                          }
+                        )
+                      }           
+                    >
+
+                    
+
+                      <Button  disabled transparent >
+                        <Text style={{paddingLeft: 15, color: (this.state.gender == 'Gender Identity') ? 'white' : 'white', textTransform: 'capitalize'}}>{this.state.gender}</Text>
+                      </Button>
+                  
+
+                  </Item>
+                              
+                    }
+
+                
+                {/* Show login with facebook, with email, create account, forgot password elements */}
+                {(!this.state.createAccount) &&
+                <Animated.View style={{
+                  flex: 1, 
+                  width: 300,
+                  flexDirection: 'column',
+                  //backgroundColor: 'green',
+                  marginBottom: 45,
+                  opacity: fadeInAnimation, 
+                  justifyContent: 'flex-end', 
+                  }}>
+
+                  <Button 
+                    onPress = {() => this.handleLogin()} 
+                    rounded 
+                    bordered 
+                    style={{
+                      justifyContent: 'center', 
+                      margin: 10, 
+                      backgroundColor: 'white',
+                      borderColor: 'white',
+                      shadowColor: "#000",
+                      shadowOffset: {
+                        width: 0,
+                        height: 3,
+                      },
+                      shadowOpacity: 0.5,
+                      shadowRadius: 4.65,
+                      elevation: 7}}>
+                        <Text style={{color: primaryColor}}>Login</Text>
+                    </Button>
+
+                    {/* Login with Facebook button */}
+                    {/* <Button 
+                      rounded 
+                      onPress = {() => this.onLoginOrRegister()} 
+                      style={{
+                        justifyContent: 'center', 
+                        margin: 10, 
+                        backgroundColor: '#4267B2',
+                        shadowColor: "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: 3,
+                        },
+                        shadowOpacity: 0.29,
+                        shadowRadius: 4.65,
+                        elevation: 7}}>
+                          <Text>Login with Facebook</Text>
+                      </Button>    */}
+
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-around', }}>
+                        <Button transparent onPress = {() => this.setState({createAccount: true, email: '', password: ''})} style={{flex: 1, alignItems: 'center'}}>
+                            <Text style={{color: 'white'}}>Create Account</Text>
+                        </Button>
+                        <Button transparent onPress = {() => this.forgotPassword()} style={{flex: 1, alignItems: 'center'  }}>
+                            <Text style={{color: 'white'}}>Forgot Password</Text>
+                        </Button>
+                      </View>
+
+                </Animated.View>
+                }
+
+                {/* if create account is clicked, show create account button */}
+                {(this.state.createAccount) &&
+                <Animated.View style={{
+                  //backgroundColor: 'brown', 
+                  flex: 1, 
+                  width: 300, 
+                  marginBottom: 45,
+                  opacity: fadeInAnimation, 
+                  justifyContent: 'flex-end', }}>
+                
+                  <Button 
+                    onPress = {() => this.validateAccount()} 
+                    bordered 
+                    rounded 
+                    style={{
+                      justifyContent: 'center', 
+                      margin: 10, 
+                      backgroundColor: 'white',
+                      borderColor: 'white',
+                      shadowColor: "#000",
+                      shadowOffset: {
+                        width: 0,
+                        height: 3,
+                      },
+                      shadowOpacity: 0.6,
+                      shadowRadius: 4.65,
+                      elevation: 7}}>
+                      <Text style={{color: primaryColor}}>Create Account</Text>
+                  </Button>     
+                  
+                
+                  <Button 
+                    transparent
+                    onPress = {() => this.setState({createAccount: false, email: '', password: '', gender: 'Gender identity'})} 
+                    style={{justifyContent: 'center', }}>
+                      <Text style={{color: 'white'}}>Sign in</Text>
+                  </Button>      
+                </Animated.View>
+                }
+
+                </Animated.View>
+                    
+                  </View>
+
+              </View>
+          }
+
+
+
+          </LinearGradient>
+
+      </TouchableWithoutFeedback>
+
 
   )
   }
@@ -742,7 +866,7 @@ const styles = StyleSheet.create({
       
   },
   inputBox: {
-      //width: '85%',
+      width: 250,
       margin: 10,
       padding: 15,
       fontSize: 16,

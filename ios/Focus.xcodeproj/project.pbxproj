@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00E356F31AD99517003FC87E /* FocusTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* FocusTests.m */; };
 		0A65B7230921A13FB5508D4E /* libPods-Focus-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A424E1327F1AE55146CDADC /* libPods-Focus-tvOSTests.a */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
@@ -25,16 +24,12 @@
 		5A2615B123B6BB20009EDCE5 /* images in Resources */ = {isa = PBXBuildFile; fileRef = 5A2615B023B6BB20009EDCE5 /* images */; };
 		5A2E1D4C23DCCF56002C463A /* AppCenter-Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A2E1D4B23DCCF55002C463A /* AppCenter-Config.plist */; };
 		5A67DBE823B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
-		5A67DBE923B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
 		5A67DBEA23B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
 		5A67DBEB23B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
-		5AB7EB0423B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */; };
 		5AB7EB0523B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */; };
 		5AB7EB0623B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */; };
-		5AB7EB0923B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0723B59A8B00DA7014 /* FBSDKLoginKit.framework */; };
 		5AB7EB0A23B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0723B59A8B00DA7014 /* FBSDKLoginKit.framework */; };
 		5AB7EB0B23B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0723B59A8B00DA7014 /* FBSDKLoginKit.framework */; };
-		5AB7EB0E23B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0C23B59A9900DA7014 /* FBSDKShareKit.framework */; };
 		5AB7EB0F23B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0C23B59A9900DA7014 /* FBSDKShareKit.framework */; };
 		5AB7EB1023B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0C23B59A9900DA7014 /* FBSDKShareKit.framework */; };
 		5AC564BF26AE8777004E5BEE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5AC564BE26AE8777004E5BEE /* LaunchScreen.storyboard */; };
@@ -54,7 +49,6 @@
 		C1E67E6F26A54A46AE9E6398 /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8F181ECE9BDB4104AF4D8246 /* SimpleLineIcons.ttf */; };
 		CF12D3F05B9C493D95389AE9 /* FontAwesome5_Solid.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8A8F9A69BF0340738F88533D /* FontAwesome5_Solid.ttf */; };
 		DB3A3329679140C19B92CCF1 /* FontAwesome.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3CF866DFE320430B824916C6 /* FontAwesome.ttf */; };
-		E296552B89A6CFC6F4419982 /* libPods-FocusTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 229A13E100570C0EF4B43ECC /* libPods-FocusTests.a */; };
 		E307B7D13FB845E1A9212F7D /* Ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 24F9067D368246B8A0ECFD29 /* Ionicons.ttf */; };
 		E9623F6FFA2845F5B90A82BC /* Roboto.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E2D32CEC2D964498861D5F00 /* Roboto.ttf */; };
 /* End PBXBuildFile section */
@@ -67,18 +61,10 @@
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = Focus;
 		};
-		5AB7EAE923B51EB300DA7014 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = Focus;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
-		00E356EE1AD99517003FC87E /* FocusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FocusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* FocusTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FocusTests.m; sourceTree = "<group>"; };
 		02EB3E63AB83E74ECB88F004 /* libPods-Focus-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Focus-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -137,17 +123,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		00E356EB1AD99517003FC87E /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				5AB7EB0E23B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */,
-				5AB7EB0423B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */,
-				5AB7EB0923B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */,
-				E296552B89A6CFC6F4419982 /* libPods-FocusTests.a in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -291,7 +266,6 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* Focus.app */,
-				00E356EE1AD99517003FC87E /* FocusTests.xctest */,
 				2D02E47B1E0B4A5D006451C7 /* Focus-tvOS.app */,
 				2D02E4901E0B4A5D006451C7 /* Focus-tvOSTests.xctest */,
 			);
@@ -316,25 +290,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E356ED1AD99517003FC87E /* FocusTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "FocusTests" */;
-			buildPhases = (
-				4258DFCD477254D480353A77 /* [CP] Check Pods Manifest.lock */,
-				00E356EA1AD99517003FC87E /* Sources */,
-				00E356EB1AD99517003FC87E /* Frameworks */,
-				00E356EC1AD99517003FC87E /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				5AB7EAEA23B51EB300DA7014 /* PBXTargetDependency */,
-			);
-			name = FocusTests;
-			productName = FocusTests;
-			productReference = 00E356EE1AD99517003FC87E /* FocusTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		13B07F861A680F5B00A75B9A /* Focus */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Focus" */;
@@ -404,10 +359,6 @@
 				LastUpgradeCheck = 940;
 				ORGANIZATIONNAME = Facebook;
 				TargetAttributes = {
-					00E356ED1AD99517003FC87E = {
-						CreatedOnToolsVersion = 6.2;
-						TestTargetID = 13B07F861A680F5B00A75B9A;
-					};
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = F583Y3M9CR;
 						SystemCapabilities = {
@@ -442,7 +393,6 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* Focus */,
-				00E356ED1AD99517003FC87E /* FocusTests */,
 				2D02E47A1E0B4A5D006451C7 /* Focus-tvOS */,
 				2D02E48F1E0B4A5D006451C7 /* Focus-tvOSTests */,
 			);
@@ -450,14 +400,6 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		00E356EC1AD99517003FC87E /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				5A67DBE923B685A400EDBC47 /* GoogleService-Info.plist in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		13B07F8E1A680F5B00A75B9A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -537,28 +479,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
-		};
-		4258DFCD477254D480353A77 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-FocusTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
 		};
 		512D92251E81D9249D4B55B6 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -721,14 +641,6 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		00E356EA1AD99517003FC87E /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				00E356F31AD99517003FC87E /* FocusTests.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		13B07F871A680F5B00A75B9A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -763,11 +675,6 @@
 			target = 13B07F861A680F5B00A75B9A /* Focus */;
 			targetProxy = 5AB7EAE723B51EA800DA7014 /* PBXContainerItemProxy */;
 		};
-		5AB7EAEA23B51EB300DA7014 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* Focus */;
-			targetProxy = 5AB7EAE923B51EB300DA7014 /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -783,49 +690,6 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		00E356F61AD99517003FC87E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = D3874A912D2F5B04C4970A12 /* Pods-FocusTests.debug.xcconfig */;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = FocusTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				OTHER_LDFLAGS = (
-					"-lc++",
-					"-ObjC",
-					"$(inherited)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Focus.app/Focus";
-			};
-			name = Debug;
-		};
-		00E356F71AD99517003FC87E /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3D401065B8919D5F94F56EE8 /* Pods-FocusTests.release.xcconfig */;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				COPY_PHASE_STRIP = NO;
-				INFOPLIST_FILE = FocusTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				OTHER_LDFLAGS = (
-					"-lc++",
-					"-ObjC",
-					"$(inherited)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Focus.app/Focus";
-			};
-			name = Release;
-		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E63666F93B0F70B3EE46EE39 /* Pods-Focus.debug.xcconfig */;
@@ -838,7 +702,7 @@
 				INFOPLIST_FILE = Focus/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.51;
+				MARKETING_VERSION = 1.52;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -861,7 +725,7 @@
 				INFOPLIST_FILE = Focus/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.51;
+				MARKETING_VERSION = 1.52;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -1099,15 +963,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "FocusTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				00E356F61AD99517003FC87E /* Debug */,
-				00E356F71AD99517003FC87E /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Focus" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

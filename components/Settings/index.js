@@ -307,12 +307,31 @@ class Settings extends Component {
     Geolocation.watchPosition(
       position => {
         Geocoder.from(position.coords.latitude, position.coords.longitude)
-        .then(json => {
-                let city_address_component = json.results[0].address_components[2];
-                let state_address_component = json.results[0].address_components[4];
-                let city_state = city_address_component.long_name+', '+state_address_component.short_name;
-                firebaseRefCurrentUser.update({city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude});
-        })
+        .then(json => {                
+                  //define placeholders for city state texts. 
+                  let cityText = '';
+                  let stateText = '';
+
+                  //find long_name where arraddress has type of locality and administrative_area_level_1
+                  json.results[0].address_components.forEach((place) => {
+                      
+                    if( place.types.includes("locality") ){
+                        console.log('city is: '+JSON.stringify(place.short_name));
+                        cityText = place.short_name;
+                    }
+                    else if( place.types.includes("administrative_area_level_1") ){
+                        console.log('state is: '+JSON.stringify(place.short_name));
+                        stateText = place.short_name;
+                    }                            
+                  })
+
+                  //contenate strings
+                  let city_state = cityText+', '+stateText;
+
+                  //update firebase
+                  firebaseRefCurrentUser.update({city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude});             
+        
+              })
         .catch(error => console.warn(error));
       },
       error => console.log(error.message),

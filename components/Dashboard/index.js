@@ -309,11 +309,32 @@ class Dashboard extends Component {
       position => {
         Geocoder.from(position.coords.latitude, position.coords.longitude)
         .then(json => {
-                let city_address_component = json.results[0].address_components[2];
-                let state_address_component = json.results[0].address_components[4];
-                let city_state = city_address_component.long_name+', '+state_address_component.short_name;
+
+                //define placeholders for city state texts. 
+                let cityText = '';
+                let stateText = '';
+
+                //find long_name where arraddress has type of locality and administrative_area_level_1
+                json.results[0].address_components.forEach((place) => {
+                    
+                  if( place.types.includes("locality") ){
+                      console.log('city is: '+JSON.stringify(place.short_name));
+                      cityText = place.short_name;
+                  }
+                  else if( place.types.includes("administrative_area_level_1") ){
+                      console.log('state is: '+JSON.stringify(place.short_name));
+                      stateText = place.short_name;
+                  }                            
+                })
+
+                //contenate strings
+                let city_state = cityText+', '+stateText;
+  
+                //update firebase
                 firebaseRefCurrentUser.update({city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude});
-        })
+        
+              })
+
         .catch(error => console.warn(error));
       },
       error => console.log(error.message),
@@ -408,8 +429,9 @@ class Dashboard extends Component {
 
   _closeAndEndorse = () => {
     const { navigate } = this.props.navigation;
-
     this.setState({ profileViewerVisible: false});
+    this.setState({ editProfileVisible: false});
+
     navigate("Refer", {flow: 'invite' });  
 
   }
@@ -1166,28 +1188,41 @@ class Dashboard extends Component {
       //return empty state
       return (
 
-        <ListItem noBorder style={{flexDirection: "column", justifyContent: "center", backgroundColor: secondaryColor, marginLeft: 0, height: 150}}>
-          <Text style={{color: 'white', textAlign: 'center'}}>If a friend invited you, you'll see why here.</Text>          
-          <Button 
-            disabled = {!this.state.currentStepValidated}
-            rounded 
+        <ListItem noBorder style={{justifyContent: "center", marginLeft: 0, paddingRight: 0, paddingTop: 0 }}>   
+          <LinearGradient 
             style={{
+              flex: 1,
+              flexDirection: 'column',
               justifyContent: 'center',
-              marginTop: 10, 
-              width: 200,
-              backgroundColor: btnColor, 
-              borderRadius: 20,
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 3,
-              },
-              shadowOpacity: 0.29,
-              shadowRadius: 4.65, }} 
-              onPress = {() => this._closeAndEndorse()}
-              >
-            <Text style={{color: btnTextColor}}>Invite Friend</Text>
-          </Button>
+              alignItems: 'center',
+              height: '100%',
+              padding: 10,
+              }}
+              colors={[primaryColor, secondaryColor]}
+              start={{ x: 0, y: 0.1 }}
+              end={{ x: 0.1, y: 1 }}
+            >
+              <Text style={{color: 'white', textAlign: 'center'}}>If a friend invited you, you'll see why here.</Text>          
+              <Button 
+                rounded 
+                style={{
+                  justifyContent: 'center',
+                  marginTop: 10, 
+                  width: 200,
+                  backgroundColor: btnColor, 
+                  borderRadius: 20,
+                  shadowColor: "#000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 3,
+                  },
+                  shadowOpacity: 0.29,
+                  shadowRadius: 4.65, }} 
+                  onPress = {() => this._closeAndEndorse()}
+                  >
+                <Text style={{color: btnTextColor}}>Invite Friend</Text>
+              </Button>
+            </LinearGradient>
           </ListItem>
 
         );
@@ -1356,7 +1391,7 @@ class Dashboard extends Component {
             transparent={false}
             animationType="slide">
               <KeyboardAvoidingView 
-                style={{ flexGrow: 1,  }} 
+                style={{ flex: 1,  }} 
                 onStartShouldSetResponder={Keyboard.dismiss}             
                 behavior={"position"}
                 enabled>
@@ -1400,30 +1435,33 @@ class Dashboard extends Component {
             
             <ScrollView 
               ref='ScrollView_Reference'
+              style={{height: '100%',}}
+              
               contentContainerStyle={{
                 flexGrow: 1,
                 backgroundColor:'white',
-                marginTop: 30,
+                
                 //justifyContent: 'center'
               }}>
 
                 <View 
-                  style ={{flexDirection: 'row', marginBottom: 20 }}>
+                  style ={{flexDirection: 'row', height: 70, justifyContent: 'center', }}>
                   
                   
                   <View 
-                    style ={{flex: 1, alignItems: 'center'}}>
+                    style ={{flex: 1, alignItems: 'center', }}>
                   </View>   
 
-                  <Text 
-                    style ={{flex: 1, textAlign: 'center'}}
+                  <TouchableOpacity 
+                    onPress = {() => this.setState({editProfileVisible: false})}
+                    style ={{flex: 1, textAlign: 'center', justifyContent: 'flex-end'}}
                     >
                     <H1 style={{color: primaryColor}}>Edit Profile</H1>
-                  </Text>   
+                  </TouchableOpacity>   
 
                   <TouchableOpacity
                     transparent 
-                    style ={{flex: 1, alignItems: 'center', justifyContent: 'center'}}
+                    style ={{flex: 1, alignItems: 'center', justifyContent: 'flex-end'}}
                     onPress = {() => this.setState({editProfileVisible: false})}>
                     <Text style={{color: primaryColor, textAlign: 'center'}}>Done</Text>
                   </TouchableOpacity>  
@@ -1557,16 +1595,9 @@ class Dashboard extends Component {
                   </Button>
                 </ListItem>
 
-                  {this._renderReview()}
+                  {this._renderReview(this.state.profile.reviews)}
 
-                  {/* <ListItem noBorder style={{justifyContent: "center"}}>
-                    <Button bordered style={{borderColor: primaryColor}} 
-                      onPress = {() =>this.setState({ editProfileVisible: false}) }>
-                      <Text style={{color: primaryColor}}>Save</Text>
-                    </Button>        
-                  </ListItem> */}
                 </Form>
-
               </ScrollView>
             </KeyboardAvoidingView>
           </Modal> 
@@ -1625,19 +1656,18 @@ class Dashboard extends Component {
 
                   </TouchableOpacity>
                   <View style={{flex: 1, alignSelf: 'flex-start'}}>
-                    <TouchableOpacity>
+                    <View>
                       <Card transparent style={{padding: 10}}>   
                         <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.state.profile.first_name}</H3>
-                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.state.profile.age}, {this.state.profile.gender}, {this.state.profile.city_state}</H3>
+                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.getAge(this.state.profile.birthday)}, {this.state.profile.gender}, {this.state.profile.city_state}</H3>
                         <Text numberOfLines={1} style={{}} >{this.state.profile.work} </Text>
                         <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.education} </Text>
                         <Text note style={{marginTop: 10}}>{this.state.profile.about}</Text>
                       </Card>
                       <View style={{width: deviceWidth}}>
                         {this._renderReview(this.state.profile.reviews)}
-
                       </View>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </ScrollView>
               }

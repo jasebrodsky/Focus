@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { ActivityIndicator, StyleSheet, Alert, Share, TouchableOpacity } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faRestroom, faCog, faCommentDots, faCoffee, faDoorOpen, faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faEye, faUserLock } from '@fortawesome/free-solid-svg-icons';
+import { faRestroom, faCog, faCommentDots, faCoffee, faDoorOpen, faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faBolt, faEye, faUserLock } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
 import RNfirebase from 'react-native-firebase';
 import AppIntroSlider from 'react-native-app-intro-slider';
@@ -109,7 +109,7 @@ const slidesFemale = [
     key: '3',
     title:  'Women empowered', //'Only gentlemen', 'Invite a friend',
     text:  'Men need to be invited by women to enter.', //'Spread the word.',
-    icon:   faUserLock, //faUnlockAlt, //faRestroom //faShield
+    icon:   faBolt, //faUserLock, //faUnlockAlt, //faRestroom //faShield
     //image: require('./assets/banner-gentlemen.jpg'),
     //imageStyle: styles.image,
     //backgroundColor: primaryColor,
@@ -127,7 +127,7 @@ const slidesMale = [
     //image: {uri: 'https://edmullen.net/test/rc.jpg', cache: 'force-cache'},
     imageStyle: styles.image,
     backgroundColor: primaryColor,
-    colors: ['#29ABE2', '#4F00BC'],
+    colors: [primaryColor, secondaryColor],
   },
   {
     key: '2',
@@ -137,7 +137,7 @@ const slidesMale = [
     icon: faComments,  //faCoffee faCommentDots
     imageStyle: styles.image,
     backgroundColor: primaryColor,
-    colors: ['#29ABE2', '#4F00BC'],
+    colors: [primaryColor, secondaryColor],
   },
   {
     key: '3',
@@ -147,7 +147,7 @@ const slidesMale = [
     icon: faUnlockAlt,
     imageStyle: styles.image,
     backgroundColor: primaryColor,
-    colors: ['#29ABE2', '#4F00BC'],
+    colors: [primaryColor, secondaryColor],
 
     // key: '3',
     // title: 'Invite a friend', //'Women empowered', //'Only gentlemen',
@@ -474,7 +474,7 @@ class Intro extends Component {
       end={{ x: 0.1, y: 1 }}
       >
         
-        <FontAwesomeIcon size={ 230 } style={{
+        <FontAwesomeIcon size={ 100 } style={{
           color: 'white', 
           backgroundColor: 'transparent', 
           shadowColor: "#000",
