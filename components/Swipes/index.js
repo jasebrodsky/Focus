@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Dimensions, ActivityIndicator, Image, ImageBackground, TouchableOpacity, Modal,ScrollView,Share } from 'react-native'
+import { Dimensions, Animated, ActivityIndicator, Image, ImageBackground, TouchableOpacity, Modal,ScrollView,Share } from 'react-native'
 import RNFirebase from "react-native-firebase";
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import * as firebase from "firebase";
@@ -7,6 +7,7 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 import Swiper from 'react-native-deck-swiper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import LinearGradient from 'react-native-linear-gradient';
+import  SvgCssUri from 'react-native-svg-uri';
 import { faCog, faArrowAltCircleLeft, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock } from '@fortawesome/free-solid-svg-icons';
 import {
   Badge,
@@ -40,6 +41,7 @@ class Swipes extends Component {
   constructor (props) {
     super(props)
     this.state = {
+      rotation: new Animated.Value(0),
       userId: '',
       user_name: null,
       user_images: '',
@@ -92,6 +94,9 @@ class Swipes extends Component {
   };
 
   componentDidMount() {
+
+    //rotate logo 
+    this.runAnimation()
 
     //force update match data so that updated settings and matches will be reflected fetched data, to get fetch fresh batch of matches. 
     const didFocus = this.props.navigation.addListener(
@@ -172,6 +177,16 @@ class Swipes extends Component {
 
        })
       )
+    }
+
+    //function to run animated loading in a rotation running indefinetly
+    runAnimation = () => {
+      this.state.rotation.setValue(0);
+      Animated.timing(this.state.rotation, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      }).start(() => this.runAnimation());
     }
 
     getUnreadChatCount = (userId) => {
@@ -661,6 +676,14 @@ class Swipes extends Component {
   }
 
   render () {
+    //logo config
+    const logo = require("../../images/focus-logo-old.svg");
+    const rotation = this.state.rotation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '360deg']
+    });
+
+    //other config
     const { navigate } = this.props.navigation;
     const dimensions = Dimensions.get('window');
     const height = dimensions.height;
@@ -733,18 +756,40 @@ class Swipes extends Component {
                   </View>
                 </LinearGradient>}
             { (this.state.loading) &&
-              <LinearGradient style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                //backgroundColor: primaryColor, dimensions
-                }}
-                colors={['white', 'white']}
-                start={{ x: 0, y: 0.1 }}
-                end={{ x: 0.1, y: 1 }}
-                >
-                  <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
-              </LinearGradient>       
+            <LinearGradient style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              }}
+              colors={['white', 'white']}
+              //colors={[primaryColor, secondaryColor]}
+              start={{ x: 0, y: 0.1 }}
+              end={{ x: 0.1, y: 1 }}
+              >  
+                <Animated.View  style={{
+                    flex: 1, 
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    transform: [{rotate: rotation}]
+                  }}>
+                      <SvgCssUri 
+                        width="60" 
+                        height="60"   
+                        fill= {primaryColor}
+                        fillOpacity="0"
+                        strokeWidth="0"
+                        source={logo}
+                        style={{          
+                          shadowColor: "#000",
+                          shadowOffset: {
+                          width: 0,
+                            height: 3,
+                          },
+                        shadowOpacity: 0.8,
+                        shadowRadius: 8.65,}}
+                      />
+                  </Animated.View>
+                </LinearGradient>       
             }
             
             {/* only show swiper if loading is false - loading finished  */}

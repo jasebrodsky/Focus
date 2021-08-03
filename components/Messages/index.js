@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
-import {Dimensions, ActivityIndicator, ScrollView, Share} from 'react-native';
+import {Dimensions, Animated, ScrollView, Share} from 'react-native';
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faUsers, faComments,faInbox } from '@fortawesome/free-solid-svg-icons';
 import ProgressCircle from 'react-native-progress-circle';
 import LinearGradient from 'react-native-linear-gradient';
-
+import  SvgCssUri from 'react-native-svg-uri';
 
 import {
   Container,
@@ -33,6 +33,7 @@ class Messages extends Component {
 
     //set state to convos var
     this.state = {
+      rotation: new Animated.Value(0),
       convoData: [],
       currentDate: new Date(),
       loading: true,
@@ -54,6 +55,17 @@ class Messages extends Component {
       )
     };
   };
+
+
+  //function to run animated loading in a rotation running indefinetly
+  runAnimation = () => {
+    this.state.rotation.setValue(0);
+    Animated.timing(this.state.rotation, {
+      toValue: 1,
+      duration: 2000,
+      useNativeDriver: true,
+    }).start(() => this.runAnimation());
+  }
 
   //Share function when sharing referral code native share functionality. 
   onShare = () => {
@@ -174,6 +186,10 @@ class Messages extends Component {
   
 
   componentWillMount() {
+
+    //rotate logo 
+    this.runAnimation()
+
     const { state, navigate } = this.props.navigation;
     let Analytics = RNfirebase.analytics();
     userId = firebase.auth().currentUser.uid;
@@ -215,6 +231,7 @@ class Messages extends Component {
 
             //put convos array into state and turn off loading
             this.setState({
+              rotation: new Animated.Value(0),
               convoData: [],
               loading: false,
               isEmpty: true
@@ -253,6 +270,15 @@ class Messages extends Component {
   }
 
   render() {
+
+    //logo config
+    const logo = require("../../images/focus-logo-old.svg");
+    const rotation = this.state.rotation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '360deg']
+    });
+
+    //other config
     const { navigate } = this.props.navigation; //needed for navigation functions, should combine with same const in the render function. 
     const dimensions = Dimensions.get('window');
     const height = dimensions.height;
@@ -271,14 +297,36 @@ class Messages extends Component {
               flex: 1,
               alignItems: 'center',
               justifyContent: 'center',
-              //backgroundColor: primaryColor, dimensions
               }}
               colors={['white', 'white']}
+              //colors={[primaryColor, secondaryColor]}
               start={{ x: 0, y: 0.1 }}
               end={{ x: 0.1, y: 1 }}
-              >
-                <ActivityIndicator animating={this.state.loading} size="large" color="#0000ff" />
-            </LinearGradient>
+              >  
+                <Animated.View  style={{
+                    flex: 1, 
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    transform: [{rotate: rotation}]
+                  }}>
+                      <SvgCssUri 
+                        width="60" 
+                        height="60"   
+                        fill= {primaryColor}
+                        fillOpacity="0"
+                        strokeWidth="0"
+                        source={logo}
+                        style={{          
+                          shadowColor: "#000",
+                          shadowOffset: {
+                          width: 0,
+                            height: 3,
+                          },
+                        shadowOpacity: 0.8,
+                        shadowRadius: 8.65,}}
+                      />
+                  </Animated.View>
+                </LinearGradient>  
           }
 
           {(this.state.isEmpty  && !this.state.loading ) &&          

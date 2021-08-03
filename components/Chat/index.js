@@ -463,26 +463,29 @@ class Chat extends Component {
   //function to renderReviews into markup
   _renderReview = (reviews) => {
     const { navigate } = this.props.navigation;
+    let deviceWidth = Dimensions.get('window').width
 
       //return markup for each review
       return ( 
       reviews ? (
       <View style={{marginTop: 10}} >
         {Object.values(reviews).map((review, index) => (
-          <Card>
+               
+        <Card style={{flex: 1, width: deviceWidth-25,}}>
           <List>
-            <ListItem avatar noBorder>
+            <ListItem avatar noBorder button >
               <Left>
                 <Thumbnail large source={{uri: review.photo}} />
               </Left>
               <Body>
                 <Text style={{color: primaryColor}}>{review.name+' says:'}</Text>
                 <Text note>{review.reason}</Text>
-              </Body>
-            </ListItem>
-          </List>
-        </Card>
-        ))}
+            </Body>
+          </ListItem>
+        </List>
+      </Card>
+
+       ))}
       </View>) : null
       );
     }
@@ -752,7 +755,7 @@ class Chat extends Component {
                     />
 
                   </TouchableOpacity>
-                  <View style={{flex: 1, alignSelf: 'flex-start'}}>
+                  <View style={{flex: 1, flexDirection: 'row', alignSelf: 'flex-start'}}>
                     <View>
                       <Card transparent style={{padding: 10}}>   
                         <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{name}</H3>
@@ -761,7 +764,7 @@ class Chat extends Component {
                         <Text numberOfLines={1} style={{marginBottom: 10}} >{education} </Text>
                         <Text note style={{marginTop: 10}}>{about}</Text>
                       </Card>
-                      <View style={{padding:10}}>
+                      <View style={{flex: 1,padding:10}}>
                         {this._renderReview(this.state.reviews)}
 
                       </View>
