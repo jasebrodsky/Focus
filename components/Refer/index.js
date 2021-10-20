@@ -1,9 +1,12 @@
 import React, { Component } from 'react';
 import { StyleSheet, Alert, Share, Keyboard, KeyboardAvoidingView } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import RNfirebase from 'react-native-firebase';
-import LinearGradient from 'react-native-linear-gradient';
 import * as firebase from "firebase";
+import RNfirebase from 'react-native-firebase';
+import dynamicLinks from '@react-native-firebase/dynamic-links';
+
+import LinearGradient from 'react-native-linear-gradient';
+
 
 import {
   Container,
@@ -58,25 +61,30 @@ class Refer extends Component {
   };
 
 
-  componentWillMount() {
-     
-    let userId = firebase.auth().currentUser.uid;
+  componentDidMount() {
 
+    let userId = firebase.auth().currentUser.uid;
     let onCancel = this.props.navigation.getParam('onCancel');
     let name = this.props.navigation.getParam('name');
     let flow = this.props.navigation.getParam('flow');
 
+
+
+    //build deeplink and save to state
+    //this.setState({ deepLink: this.buildLink('testCode') }); 
+    
+
     if (flow == 'invite'){
       //invite flow
       this.setState({ titleCopy: 'Invite a Friend' }); 
-      this.setState({ reasonCopy: 'Why should they be invited to Focus?' }); 
+      this.setState({ reasonCopy: 'Why should they be invited? This will be shown their profile.' }); 
       this.setState({ primaryCTA: 'Generate Invite Code'}); 
       this.setState({ secondaryCTA: 'Invite Later' });
       this.setState({ errorCopy: 'Invitation reason needs to be at least 100 characters. ' });
     }else if (flow == 'refer'){
       //refer flow
       this.setState({ titleCopy: 'Refer a Friend' }); 
-      this.setState({ reasonCopy: 'Why should they be refered to Focus?' }); 
+      this.setState({ reasonCopy: 'Why should they be invited? This will be shown their profile.' }); 
       this.setState({ primaryCTA: 'Generate Referal Code' }); 
       this.setState({ secondaryCTA: 'Refer Later' }); 
       this.setState({ errorCopy: 'Referral reason needs to be at least 100 characters. ' });
@@ -84,7 +92,7 @@ class Refer extends Component {
     }else if (flow == 'endorse'){
       //endorse flow
       this.setState({ titleCopy: 'Endorse a Friend' }); 
-      this.setState({ reasonCopy: 'What is special about them?' }); 
+      this.setState({ reasonCopy: 'What is special about them? This will be shown on their profile.' }); 
       this.setState({ primaryCTA: 'Generate Endorse Code' }); 
       this.setState({ secondaryCTA: 'Endorse Later' }); 
       this.setState({ errorCopy: 'Endorsement reason needs to be at least 100 characters. ' });
@@ -130,109 +138,118 @@ class Refer extends Component {
   }
 
 
-  //Share function when sharing referral code native share functionality. 
-  _onShare = () => {
 
-    //record in analytics that share was dismissed 
-    // Analytics.logEvent('friendReferred', {
-    //   testParam: 'testParamValue1'
-    // });
-
-
-    //first validate that both name and reasons are complete, if not prompt error. 
-    let name = this.state.name;
-    let reason = this.state.reason;
-    let reasonLength = reason.length;
+  //function to build deep link. pass code from getCode function into link, then trigger share dialog
+  _buildLinkAndShare = async () => {
     
+    //fetch from getCode cloud function, then build short link from returned code
+     await fetch('https://us-central1-blurred-195721.cloudfunctions.net/getCode?name_creator='+this.state.user_name+'&gender_creator='+this.state.gender+'&photo_creator='+this.state.user_photo+'&reason='+this.state.reason+'&userid='+this.state.userId)
+    .then((response) => response.json())
+    .then((responseJson) => {
+   
+      console.log('responseJson is: '+responseJson);
+      //save code var.
+      let code = responseJson.sharable_code;
+      let codeDelete = responseJson.code_id;
+      this.setState({codeDelete: codeDelete}); //save codeDelete to state, in case user cancels share. 
 
-    if(!name || reasonLength < 30){
-
-      if(!name){
-        Alert.alert("Sorry", "Please enter a name first.")
-      }else {
-        Alert.alert("Sorry", this.state.errorCopy+(30-reasonLength)+' characters remaining.')
-      }
-
-      alert('please enter name or reason over 10 char');
-    }else{
-      //contiue and fetch from getCode cloud function
-      fetch('https://us-central1-blurred-195721.cloudfunctions.net/getCode?name_creator='+this.state.user_name+'&gender_creator='+this.state.gender+'&photo_creator='+this.state.user_photo+'&reason='+this.state.reason+'&userid='+this.state.userId)
-      .then((response) => response.json())
-      .then((responseJson) => {
-                
-          //save code var.
-          let code = responseJson.sharable_code;
-          let codeDelete = responseJson.code_id;
-
-          //prompt native share functionality 
-          Share.share({
-            //message: 'You gotta check out Focus. It\'s a dating app where only men invited by women can join. You\'ll need this code to enter: '+code,
-            message: 'Hi '+this.state.name+'! I just referred you to Focus and shared the following: "'+this.state.reason.substring(0, 50)+'..." read the rest on the app and using referral code of '+code,  
-            url: 'https://focusdating.co', //make landing page with query param of reason. 
-            title: 'Wow, have you seen this yet?' //what does this do?
-          }).then(({action, activityType}) => {
-
-            let Analytics = RNfirebase.analytics();
-            if(action === Share.dismissedAction) {
-              //delete unsent code from db
-              firebase.database().ref('codes/' + codeDelete).remove();
-
-              //record in analytics that share was dismissed 
-              // Analytics.logEvent('shareDialogDismissed', {
-              //   testParam: 'testParamValue1'
-              // });
-
-              //redirect to settings component
-              //const { navigate } = this.props.navigation;
-              //navigate("Settings"); 
-              //this._onCancel();           
-
-            } 
-            else {
-              console.log('Share successful');
-            
-               //update swipeCount in firebase, so that cloud function will return fresh batch of matches. 
-              let userRef = firebase.database().ref('users/'+this.state.userId+'/');
-              
-              //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
-              userRef.update({  
-                swipe_count: 0,
-                last_swipe_sesh_date: new Date().getTime() 
-              }).then(()=>{
-                
-                //check if coming from swipes
-                if ( this.props.navigation.getParam('from') == 'swipes') {
-
-                  //redirect to swipes and pass params if getMatches needs to be force updated. 
-                  this.props.navigation.navigate("Swipes", {forceUpdate: true, swipeCount: 0});
-                  console.log("successfully updated swipecount, getting more matches.");
-
-                }else{
-                  //goback
-                  this.props.navigation.goBack();
-                }
-              }).catch(error => {
-                console.log("couldnt update swipdconnt with error: " + error);
-              });
-
-            }
-          })
+      const link = dynamicLinks().buildShortLink({
+        link: encodeURI('https://focusdating.co/refer/?type=refer&code='+code+'&user_id_creator='+this.state.userId+'&gender_creator='+this.state.gender+'&name_creator='+this.state.user_name+'&name_created='+this.state.name+'&reason='+this.state.reason),
+        domainUriPrefix: 'https://focusdating.page.link',
+        ios: {
+          bundleId: 'com.helm.focus',
+          appStoreId: '1492965606',
+        },
       })
-      .catch(function(error) {
-          alert("Data could not be saved." + error);
-      });
+      
+      return link;
+    })
 
-    }
 
- 
-  };
+      .then((link) => {
+
+        //let link2 = 'testlink';
+        console.log(`got link: ${link}`);
+
+        //set up share 
+        let name = this.state.name;
+        let reason = this.state.reason;
+        let reasonLength = reason.length;
+
+        if(!name || reasonLength < 30){
+
+          if(!name){
+            Alert.alert("Sorry", "Please enter a name first.")
+          }else {
+            Alert.alert("Sorry", this.state.errorCopy+(30-reasonLength)+' characters remaining.')
+          }
+    
+          alert('please enter name or reason over 10 char');
+        }else{
+
+        Share.share({
+          message: this.state.name+' - just referred you to Focus and shared the following: "'+this.state.reason.substring(0, 50)+'..." read the rest on the app.',  
+          url: link, //make landing page with query param of reason. 
+          title: 'Check this out' //what does this do?
+        }).then(({action, activityType}) => {
+
+
+          let Analytics = RNfirebase.analytics();
+          if(action === Share.dismissedAction) {
+            
+            //delete unsent code from db
+            firebase.database().ref('codes/' + this.state.codeDelete).remove();
+          } 
+          else {
+          
+            //update swipeCount in firebase, so that cloud function will return fresh batch of matches. 
+            let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+            
+            //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
+            userRef.update({  
+              swipe_count: 0,
+              last_swipe_sesh_date: new Date().getTime() 
+            }).then(()=>{
+              
+              //check if coming from swipes
+              if ( this.props.navigation.getParam('from') == 'swipes') {
+
+                //redirect to swipes and pass params if getMatches needs to be force updated. 
+                this.props.navigation.navigate("Swipes", {forceUpdate: true, swipeCount: 0});
+                console.log("successfully updated swipecount, getting more matches.");
+
+              }else{
+                //goback
+                this.props.navigation.goBack();
+              }
+            }).catch(error => {
+              console.log("couldnt update swipdconnt with error: " + error);
+            });
+
+          }
+        })
+    
+        .catch(function(error) {
+            alert("Data could not be saved." + error);
+        });
+      }
+      })
+      
+      .catch((err) => {
+        console.log('unable to build link?', err);
+      })
+    
+              
+    return link;
+  }
+
 
   render() {
     const { navigate } = this.props.navigation;
 
     //count character remaining
     let charRemainingCopy = (30 - this.state.reason.length)+' charaters remaining';
-        
+            
     return (
 
 
@@ -327,7 +344,7 @@ class Refer extends Component {
               },
               shadowOpacity: 0.29,
               shadowRadius: 4.65, }} 
-            onPress={() => {this._onShare();}}>
+            onPress={() => {this._buildLinkAndShare();}}>
             <Text style={{color: btnTextColor}}>{this.state.primaryCTA}</Text>
           </Button>
           <Button transparent full onPress={() => {this._onCancel();}} >

@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, useEffect } from "react";
 import PropTypes from 'prop-types';
 import { Keyboard, TouchableWithoutFeedback, LayoutAnimation, Image, Alert, Animated, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import RNfirebase from 'react-native-firebase';
@@ -6,6 +6,9 @@ import * as firebase from "firebase";
 import Geocoder from 'react-native-geocoding';
 import LinearGradient from 'react-native-linear-gradient';
 import  SvgCssUri from 'react-native-svg-uri';
+import 'react-native-url-polyfill/auto';
+import IAP, { purchaseUpdatedListener } from "react-native-iap";
+import dynamicLinks from '@react-native-firebase/dynamic-links';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import {
   ActionSheet,
@@ -38,6 +41,8 @@ class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      nextScreen: 'Registration',
+      searchParams: '',
       name: '',
       email: '',
       password: '',
@@ -58,7 +63,7 @@ class Login extends Component {
   };
 
   componentDidMount() {
-
+  
     //Hide Splash screen on app load.
     setTimeout(() => {
       this.spinLogo();
@@ -143,6 +148,68 @@ getLocation = () => {
   );
 }
 
+
+//run this to check subscription status
+haveSubscription = async (userid) => {
+  //initialize connetion to store for in app purchases
+  IAP.initConnection().catch(() =>{
+    console.log("error connecting to store...")
+  }).then(() => {
+    console.log("connected to store...")
+    //after intialized, also get purchase history and validate the receipt
+    IAP.getPurchaseHistory().catch(() => {
+      console.log('problem getPurchaseHistory')
+    }).then((res) => {
+      const receipt = res[res.length-1].transactionReceipt; 
+      //if receipt returns, validate the reciept
+      if (receipt){
+        console.log('validated receipt');
+        //return this._validateReceipt(receipt);
+        this._validateReceipt(receipt, userid);
+      }else{
+        console.log('no receipt to validate');
+        //if no reciept history, update db with subscription as false
+        firebase.database().ref('/users/' + userid).update({subscribed: false})       
+      }
+    })
+  })
+}
+
+
+  //validate receipt and update database with subscription status
+  _validateReceipt = async (receipt, userid) => {
+    const receiptBody = {
+      "receipt-data": receipt,
+      "password": 'e03a9014589647b0ba532ec17d7ee42a',
+    }
+    const result = await IAP.validateReceiptIos(receiptBody, true).catch(() =>{
+      console.log('this is an error validating the receipt')
+    }).then((reciept) => {
+      try{
+        //console.log('receipt is: '+receipt)
+        const renewalHistory = reciept.latest_receipt_info;
+        console.log('renewalHistory is: '+JSON.stringify(renewalHistory));
+        const expiration = renewalHistory[0].expires_date_ms;
+        console.log('expiration is: '+expiration);
+        let expired = Date.now() > expiration;
+        //delete unless doing someting when status
+        if (!expired){
+          console.log('Purchase history validated');
+          //update firebase with subcription status, for logged in user
+         firebase.database().ref('/users/' + userid).update({subscribed: true})
+        }else{
+          console.log('Purchase expired');
+          //update firebase with subcription status, for logged in user
+          firebase.database().ref('/users/' + userid).update({subscribed: false})
+        }
+      } catch (error) {
+        console.log('error is: '+error)
+      }
+    })
+  }
+
+
+
 validateAccount = () => {
 
   let email = this.state.email;
@@ -225,7 +292,18 @@ forgotPassword = (email) => {
 
 }
 
-redirectUser = (userId) => {
+redirectUser = async (userId) => {
+
+  //get subscriptions for updating firebase with
+  //let subscribed = await this.haveSubscription(userId);
+
+  //update users subscription if needed. 
+  this.haveSubscription(userId);
+
+  //let subscribed = true;
+
+  //console.log('subscribed is: '+JSON.stringify(subscribed));
+
   firebase.database().ref('/users/' + userId).once('value')
   .then((snapshot) => {
       
@@ -244,6 +322,16 @@ redirectUser = (userId) => {
       let gender = (snapshot.val().gender == 'female') ? 'female' : 'male' ;
       let intialUser = snapshot.val().intialUser;
 
+      //save deeplink params from state or save as null if no deeplink.
+      let type = this.state.searchParams ? this.state.searchParams.get('type') : null ;
+      let code = this.state.searchParams ? this.state.searchParams.get('code') : null ;
+      let user_id_creator = this.state.searchParams ? this.state.searchParams.get('user_id_creator') : null ;
+      let gender_creator = this.state.searchParams ? this.state.searchParams.get('gender') : null ;
+      let image_creator = this.state.searchParams ? this.state.searchParams.get('image') : null ;
+      let name_creator = this.state.searchParams ? this.state.searchParams.get('name_creator') : null ;
+      let name_created = this.state.searchParams ? this.state.searchParams.get('name_created') : null ;
+      let reason = this.state.searchParams ? this.state.searchParams.get('reason') : null ;
+
       //compute if profile is complete
       let profileComplete = (aboutValidated && educationValidated && first_nameValidated && workValidated && genderValidated && birthdayValidated && interestedValidated);
   
@@ -251,29 +339,43 @@ redirectUser = (userId) => {
       if((gender == 'male') && (code_accepted == false)){
 
         //show intro slides for men
-        this.props.navigation.navigate("Intro", {user_id: userId, gender: gender});
+        this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, gender: gender, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
       }
 
-      //men who have used a valid code previously -- either settings or swipes. 
-      else if ((gender == 'male') && (code_accepted == true)){
+      //men who have used a valid code previously -- either dashboard, registration, or swipes. 
+      else if ((gender == 'male') && (code_accepted == true) && (type == 'refer')){
                 
+        // if it's not a new user, but they're using a refer deeplink, send to Dashboard, else send to Swipes 
+        (profileComplete) ? this.props.navigation.navigate('Dashboard') : this.props.navigation.navigate('Registration');
+      }
+
+      //men who have used a valid code previously and not using a deeplink -- either dashboard or swipes. 
+      else if ((gender == 'male') && (code_accepted == true  && (type !== 'refer') )){
+          
         // if settings are valid - send to swipes. if not send to settings. 
-        //CHANGE THIS BACK 
         (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Registration');
       }
       
     //case 2 -females who are first time users - show intro slides. 
      if((gender == 'female') && (intialUser == true)){
 
-      //show intro slides for females
-      this.props.navigation.navigate("Intro", {user_id: userId, gender: gender});
+      //show intro slides for females, with deeplink params if present
+      this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, gender: gender, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
+
     }
     
     //females who are not first time users - show either swipes or settings. 
     else if ((gender == 'female') && (intialUser == false)){
       
-      // if settings are valid - send to swipes. if not send to settings. 
-      (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Registration')
+      //if refer deeplink exists, send to Dashboard, else send to swipes
+      if(type == 'refer'){
+        (profileComplete) ? this.props.navigation.navigate('Dashboard') : this.props.navigation.navigate('Registration')
+      
+      }else{
+        // if settings are valid - send to swipes. if not send to settings. 
+        (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Registration')
+      
+      }
     }
   })
 }
@@ -287,8 +389,7 @@ handleLogin = () => {
       .signInWithEmailAndPassword(email, password)
       
       //query exisitng user in order to check where to redirect them to - intro, swipes, or setings. 
-      .then((data) => this.redirectUser(data.user.uid)
-      )
+      .then((data) => this.redirectUser(data.user.uid))
       //alert any errors from firebase
       .catch(error => alert(error))
 }
@@ -380,6 +481,29 @@ spinLogo = () => {
   }).start();
 
 }
+
+handleDynamicLink = link => {
+
+  // // get query string of deeplink 
+  // let paramsString = decodeURI(link.url).substring((link.url).indexOf('?') + 1);
+  // // convert to URLSearchParams obj
+  // let searchParams = new URLSearchParams(paramsString);
+  // //save searchParams to state, so that redirectUser() can reference, when sending params to next screens
+  // this.setState({ searchParams: searchParams });
+
+  // console.log('deep link is:  '+link.url);
+  //if link is type navigation:
+  //save nextScreen into state as Chat, Messages, Swipes, ...
+  //Redirect if user is logged in, else login user then redirect afterwards
+
+  //if link is type refer:
+  //save nextScreen into state as Intro
+  //pass link params into navigation, for registration to access it. 
+  // (if login UX is updated with Review info, save that info into state to render in UX)
+
+  // if (searchParams.get('type') == 'refer') {
+    
+};
 
 onLoginOrRegister = () => {
   
@@ -542,8 +666,7 @@ onLoginOrRegister = () => {
       outputRange: [0, 1]
     });
 
-
-
+  
     return (
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} >
 

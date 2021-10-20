@@ -36,6 +36,7 @@ import TimerMachine from 'react-timer-machine';
 import moment from "moment";
 import momentDurationFormatSetup from "moment-duration-format";
 
+
 const primaryColor = "#a83a59";
 const secondaryColor = "#c60dd9";
 const btnColor = 'white';
@@ -58,7 +59,7 @@ class Chat extends Component {
       removed: false,
       timeLeft: null,
       matchDate: null,
-      expirationDate: null,
+      expirationDate: '1630892236878',
       matchActive: true,
       name: null,
       birthday: '',
@@ -161,14 +162,14 @@ class Chat extends Component {
     let education = state.params.education;
     let work = state.params.work;
     let match_userid = state.params.match_userid; 
-    let match_state = state.params.match_state;
+    //let match_state = state.params.match_state;
     let time_remaining = state.params.time_remaining;
 
     //update state with subscribed, if user is susbscribed. listen on changes if subscribes changes in db.
     firebase.database().ref('/users/'+userId+'/').on("value", profile =>{
 
       let subscribed = profile.val().subscribed;
-      this.setState({'subscribed': subscribed})
+      this.setState({'subscribed': subscribed })
 
     })
     
@@ -203,7 +204,7 @@ class Chat extends Component {
         //create valure for the blur radius
         var blurRadius = dataSnapshot.val().blur;
 
-        //create valure for the match status 
+        //create value for the match status 
         var chatActive = dataSnapshot.val().active;
 
         //get name of user who is not me.
@@ -269,10 +270,12 @@ class Chat extends Component {
             userName: participantLoggedInUserName,
             blur: dataSnapshot.val().blur,
             chatActive: chatActive,
+            //expirationDate: null,
             //timeLeft: dataSnapshot.val().time_left, //should be conversation start date. js would subtract today's date from that = time_left
             matchDate: dataSnapshot.val().match_date,
-            expirationDate: dataSnapshot.val().expirationDate,
-            matchActive: match_state == 'active' ? true : false,
+            expirationDate: dataSnapshot.val().expiration_date,
+            matchActive: true,
+            //matchActive: match_state == 'active' ? true : false,
             image: imagesArray[0].url,
             userId: userId,
             userIdMatch: participantUserId,
@@ -354,19 +357,19 @@ class Chat extends Component {
     }
   }
 
-  expiredChat = () => {
+  // expiredChat = () => {
 
-    return (
-      <View style={{ height: 150, backgroundColor: 'white', alignItems:'center', flexDirection:'column', justifyContent: 'center'}}>
-        <Text style = {{paddingBottom: 5, fontWeight: '700'}}>Need some extra time?</Text>
-        <Text>Ask for permission to extend</Text>
-        <View style={{ paddingTop: 20}}>
-          <Button rounded bordered><Text>Extend</Text></Button>
-        </View>
-      </View>
-    );
+  //   return (
+  //     <View style={{ height: 150, backgroundColor: 'white', alignItems:'center', flexDirection:'column', justifyContent: 'center'}}>
+  //       <Text style = {{paddingBottom: 5, fontWeight: '700'}}>Need some extra time?</Text>
+  //       <Text>Ask for permission to extend</Text>
+  //       <View style={{ paddingTop: 20}}>
+  //         <Button rounded bordered><Text>Extend</Text></Button>
+  //       </View>
+  //     </View>
+  //   );
 
-  }
+  // }
 
 
   //function to toggle profile show/hide
@@ -562,12 +565,15 @@ class Chat extends Component {
           let firebaseMatchesRef1 = firebase.database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
           let firebaseMatchesRef2 = firebase.database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
 
+
+          //DEBUG WHY CHAT IS NOT UPDATING TO ACTIVE AFTER EXTENDING IT. IT SEEMS TO WORK IN THE DB FOR THE MATCH, BUT NOT THE CHAT, CHECK chatActive property. 
+
           //86000000 - 1 day in ms
-          let extendTimeBy = 10000; //in ms
+          let extendTimeBy = 86000000; //in ms
           let newExpirationDate = (new Date().getTime() + extendTimeBy);
           //update the conversation with extended expiration
           firebaseRef.update({
-            expirationDate: newExpirationDate,
+            expiration_date: newExpirationDate,
             active: true
           });
 
@@ -584,7 +590,7 @@ class Chat extends Component {
           });
 
           //update local state so chat is active. listen to db if timeremaining is updated. This way the match can extend the conversation and the other person can send first chat. 
-          this.setState({  matchActive: true, expirationDate: newExpirationDate })
+          this.setState({  matchActive: true, chatActive: true, expirationDate: newExpirationDate })
 
       }else{
         //navigate to payments component, since user is not subscribed.
@@ -599,9 +605,13 @@ class Chat extends Component {
   //Call this function every second until componetn is unmounted
   _renderCountdownTimer = () => {
     const { state, navigate } = this.props.navigation;
-        
+
     //save expiration date sent via messages, into let, for calculating timeLeft
-    let expiration_date = state.params.expiration_date;
+    let expiration_date2 = state.params.expiration_date;
+
+    //WHY IS THIS NOT PULLING CORRECT EXPIRATION DATE. undefined
+    let expiration_date = this.state.expirationDate;
+    //alert(expiration_date);
 
     //calculate time left based off difference btw expiration date and current date. 
     let timeLeft = expiration_date - new Date().getTime();
@@ -647,6 +657,7 @@ class Chat extends Component {
     }else{
       
       //set state to expired and disable the chat with matchActive = false
+      //INVESTIGATE WHY THIS CONDITION IS BEING CALLED AFTER MESSAGE IS SENT?
       this.setState({ matchActive: false, timeRemaining: 'Expired'})
 
       //save refs to db for conversation and matches, to reflect new status
@@ -908,7 +919,8 @@ class Chat extends Component {
 
   componentDidMount() {
 
-    this.interval = setInterval(() => this._renderCountdownTimer(), 1000);
+    this.interval = setInterval(() => this._renderCountdownTimer(this.state.expirationDate), 1000);
+   // this.interval = setInterval(() => this._renderCountdownTimer(), 100000);
     
     //send blockOrReport function to nav as param, so that it can be referenced in the navigation. 
     this.props.navigation.setParams({ block: this.blockOrReport });

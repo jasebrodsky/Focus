@@ -376,10 +376,10 @@ PODS:
     - ReactCommon/jscallinvoker (= 0.61.5)
   - RNDateTimePicker (3.4.7):
     - React-Core
-  - RNFBApp (6.3.1):
+  - RNFBApp (6.7.1):
     - Firebase/Core (~> 6.13.0)
     - React
-  - RNFBDynamicLinks (6.3.1):
+  - RNFBDynamicLinks (6.7.1):
     - Firebase/Core (~> 6.13.0)
     - Firebase/DynamicLinks (~> 6.13.0)
     - React
@@ -395,6 +395,8 @@ PODS:
     - React
   - RNGestureHandler (1.6.0):
     - React
+  - RNIap (7.3.0):
+    - React-Core
   - RNImageCropPicker (0.25.3):
     - QBImagePickerController
     - React-Core
@@ -462,6 +464,7 @@ DEPENDENCIES:
   - "RNFBDynamicLinks (from `../node_modules/@react-native-firebase/dynamic-links`)"
   - RNFirebase (from `../node_modules/react-native-firebase/ios`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNIap (from `../node_modules/react-native-iap`)
   - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -582,6 +585,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-firebase/ios"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNIap:
+    :path: "../node_modules/react-native-iap"
   RNImageCropPicker:
     :path: "../node_modules/react-native-image-crop-picker"
   RNSVG:
@@ -657,10 +662,11 @@ SPEC CHECKSUMS:
   React-RCTVibration: a49a1f42bf8f5acf1c3e297097517c6b3af377ad
   ReactCommon: 198c7c8d3591f975e5431bec1b0b3b581aa1c5dd
   RNDateTimePicker: 624e46df09f3f8bb38aea717cd364dc6d2605737
-  RNFBApp: 279ec5c4bb43b8fc7b8031eed90ad7d2bea7a048
-  RNFBDynamicLinks: 39ce015aece46c0d5bcb88690ebc41c395f5b193
+  RNFBApp: 7b539bb25520fa73d6a240f5c6ea569e27683645
+  RNFBDynamicLinks: 9dd4895eda7b597a8dbce706cfd3f79fbfc783b2
   RNFirebase: ac0de8b24c6f91ae9459575491ed6a77327619c6
   RNGestureHandler: dde546180bf24af0b5f737c8ad04b6f3fa51609a
+  RNIap: f3902d15afa4d062867625cc60c66850c7cb998c
   RNImageCropPicker: bfb3ea9c8622f290532e2fe63f369e0d5a52f597
   RNSVG: 8ba35cbeb385a52fd960fd28db9d7d18b4c2974f
   RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
@@ -669,6 +675,6 @@ SPEC CHECKSUMS:
   SSZipArchive: e7b4f3d9e780c2acc1764cd88fbf2de28f26e5b2
   Yoga: f2a7cd4280bfe2cca5a7aed98ba0eb3d1310f18b
 
-PODFILE CHECKSUM: 00c12dee02e051a91dc54e6df9621559a4cbe16d
+PODFILE CHECKSUM: 9cae16d4a9977d62b1f899efc87a9051141c8f40
 
 COCOAPODS: 1.10.1

@@ -1373,24 +1373,24 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/slider/-/slider-2.0.8.tgz#c4a3c342638270e0adc942b51427ec17104a786d"
   integrity sha512-FZC3wjYzHQiD7jT7ALy3QNccyLj9zQBRiKGBFr/QvrWLkVg5orpIJ53aYFXm3eOkNvUV+wjhoI9uCkh3LCN2+A==
 
-"@react-native-firebase/app-types@6.2.0":
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/app-types/-/app-types-6.2.0.tgz#4d3c0e7fa4e4f00061c52b1a32d76e85e5db9f2c"
-  integrity sha512-3UW3cuCgY/JMp+7n6bLeRXKDS/JcXwnHwL0RUIUHg2NhlNAXmIUQbbl0gZbW10YHRnW7D3+JE60Mpm9atTzh9g==
+"@react-native-firebase/app-types@6.7.1":
+  version "6.7.1"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app-types/-/app-types-6.7.1.tgz#93497885e6c112203db310636616647c16478da9"
+  integrity sha512-jfP2wdBUaptGXO6BC0g3RYMgmGLGOkdWhkGxPhZZy1uxIxN4IXPfeUKEPL0as6ZJqfdx0IMvSvtcp7ywoFNxyg==
 
-"@react-native-firebase/app@^6.2.0":
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-6.2.0.tgz#2d4327399f5e8021d7bad264624f1a29f0741f6c"
-  integrity sha512-LlYvml2hhqE28T9rU0SpwcKvlrwp0QyY90HTV0tvEEfGaCahd9xlIj7IFQCXNUNYICFi7Vn2YjxAZNF8KgKpmQ==
+"@react-native-firebase/app@^6.7.1":
+  version "6.7.1"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-6.7.1.tgz#0fe8bb9a82292d672da524763dc42e224dda4fde"
+  integrity sha512-MzRlcR+5+RCU3Za+QMV064oPpZhkXvLoZbB8CdYxI66Qd2XKAGUT0FoQlFaeXZxkrfisdhLbvRUYJo1TY/Iuxg==
   dependencies:
-    "@react-native-firebase/app-types" "6.2.0"
+    "@react-native-firebase/app-types" "6.7.1"
     opencollective-postinstall "^2.0.1"
     superstruct "^0.6.2"
 
-"@react-native-firebase/dynamic-links@^6.2.0":
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/dynamic-links/-/dynamic-links-6.2.0.tgz#f7d4e8b52fc3e1528eaf964d444d929034b5763a"
-  integrity sha512-jG5GBgPPeFT9hKPa/O5IAMu/0sHDECI5AvLW2vV2JtakxWxka7qN9IccZs5q1xgkMcoKd/6YH5ha2GAqB4QvQQ==
+"@react-native-firebase/dynamic-links@^12.4.0":
+  version "12.4.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/dynamic-links/-/dynamic-links-12.4.0.tgz#b4e94ee7c7e6ca413d4479f462bde5a16aad1e77"
+  integrity sha512-PcQI9cYbMeR3ypDmbmluWgKuDujbBwaVhZ8C26fEmBYe3oMvH7XN8h82iFjHdR4Oiq+sL33gIOW+3o6uCqyH1g==
 
 "@react-navigation/core@^3.5.1":
   version "3.5.1"
@@ -1870,12 +1870,12 @@ anymatch@^2.0.0:
     micromatch "^3.1.4"
     normalize-path "^2.1.1"
 
-appcenter-analytics@2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/appcenter-analytics/-/appcenter-analytics-2.5.0.tgz#4d6ffe53ec6c933db014f35141248fb231c3d12c"
-  integrity sha512-KK8px+QjYsHM/bQvsbl4dLNQtkIaToI3Lezwzq0kPVs8kJfywZrE7ZxCVHF3Diqs2EUybqUNj0TDOTo3h8kw+w==
+appcenter-analytics@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/appcenter-analytics/-/appcenter-analytics-4.2.0.tgz#2d30dbbfd3cf77f6427962c25e00c281e143ac93"
+  integrity sha512-bUOXtoqFuiXm4ngXJHlhvGt72/HX6hV0VTRekzy7VrA6kA28LRrp78wqJE2G0Vl175USmuCLdka5jkAbHsbpAA==
   dependencies:
-    appcenter "2.5.0"
+    appcenter "4.2.0"
 
 appcenter-crashes@^4.2.0:
   version "4.2.0"
@@ -1883,18 +1883,6 @@ appcenter-crashes@^4.2.0:
   integrity sha512-fcAud3b7nqRvO8KZb9BbRj9ejLeIEvxnM9yxio9MTZ9Un5BrvI4r0ywLh7R6UzwHs8E7bOX4nijug24rq5ixEA==
   dependencies:
     appcenter "4.2.0"
-
-appcenter-link-scripts@2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/appcenter-link-scripts/-/appcenter-link-scripts-2.5.0.tgz#b1d53c56c7ba5d0c6fccdca35c4f5e603400d237"
-  integrity sha512-LJZVPKKFNLf7R8Sr8wXkMJp/oIImbnwULkWggAGg2/1bZ96LItDvkl6MjNjlctM+3kqel21Yw3SfU2oEOvvm+w==
-  dependencies:
-    debug "4.1.1"
-    glob "5.0.15"
-    mkdirp "0.5.1"
-    plist "3.0.1"
-    which "1.2.11"
-    xcode "2.0.0"
 
 appcenter-link-scripts@4.2.0:
   version "4.2.0"
@@ -1908,13 +1896,6 @@ appcenter-link-scripts@4.2.0:
     plist "^3.0.2"
     which "1.2.11"
     xcode "2.0.0"
-
-appcenter@2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/appcenter/-/appcenter-2.5.0.tgz#b0cb424eee698324d159b62d468172163d026cb9"
-  integrity sha512-d79MJPUGM0to4fFCowBYCXAA5ayRGMvyACJikzeZfAsmI+Fkd17EyiD7hCP+sFwyWfy+/W9mwlngLiwPYzD+Ww==
-  dependencies:
-    appcenter-link-scripts "2.5.0"
 
 appcenter@4.2.0, appcenter@^4.2.0:
   version "4.2.0"
@@ -8122,19 +8103,19 @@ mixin-object@^2.0.1:
     for-in "^0.1.3"
     is-extendable "^0.1.1"
 
-mkdirp@0.5.1, mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.0, mkdirp@~0.5.1:
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
-  integrity sha1-MAV0OOrGz3+MR2fzhkjWaX11yQM=
-  dependencies:
-    minimist "0.0.8"
-
 mkdirp@0.5.3:
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.3.tgz#5a514b7179259287952881e94410ec5465659f8c"
   integrity sha512-P+2gwrFqx8lhew375MQHHeTlY8AuOJSrGf0R5ddkEndUkmwpgUob/vQuBD1V22/Cw1/lJr4x+EjllSezBThzBg==
   dependencies:
     minimist "^1.2.5"
+
+mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.0, mkdirp@~0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
+  integrity sha1-MAV0OOrGz3+MR2fzhkjWaX11yQM=
+  dependencies:
+    minimist "0.0.8"
 
 mkdirp@^1.0.3:
   version "1.0.4"
@@ -10639,14 +10620,6 @@ rimraf@~2.2.6:
   version "2.2.8"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.2.8.tgz#e439be2aaee327321952730f99a8929e4fc50582"
   integrity sha1-5Dm+Kq7jJzIZUnMPmaiSnk/FBYI=
-
-rn-fetch-blob@^0.12.0:
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/rn-fetch-blob/-/rn-fetch-blob-0.12.0.tgz#ec610d2f9b3f1065556b58ab9c106eeb256f3cba"
-  integrity sha512-+QnR7AsJ14zqpVVUbzbtAjq0iI8c9tCg49tIoKO2ezjzRunN7YL6zFSFSWZm6d+mE/l9r+OeDM3jmb2tBb2WbA==
-  dependencies:
-    base-64 "0.1.0"
-    glob "7.0.6"
 
 rn-host-detect@^1.1.5:
   version "1.2.0"

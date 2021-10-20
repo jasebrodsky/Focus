@@ -52,6 +52,7 @@ class Swipes extends Component {
       user_education: '',
       user_work: '',
       matchImages: [{url: 'https://image.nj.com/home/njo-media/width620/img/entertainment_impact/photo/lil-bub-catsbury-park-cat-convention-asbury-park-2018jpg-42ba0699ef9f22e0.jpg'}],
+      imageIndex: 0,
       matchAbout: '',
       profiles: [],
       loading: true,
@@ -1001,7 +1002,7 @@ class Swipes extends Component {
                   imageUrls={this.state.matchImages}
                   onChange = {(index) => this.setState({ imageIndex: index})}
                   onSwipeDown = {() => this.setState({ imageViewerVisible: false, imageIndex: this.state.imageIndex})}
-                  onClick = {() => this.setState({ imageViewerVisible: false})}
+                  onClick = {() => this.setState({ imageViewerVisible: false, imageIndex: 0})}
                 />  
 
 
