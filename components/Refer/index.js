@@ -127,14 +127,9 @@ class Refer extends Component {
     let from = this.props.navigation.getParam('from');
     const { navigate } = this.props.navigation;
 
-    if((onCancel == 'Intro') && (this.state.gender)){
-    //if((onCancel == 'Intro') && (this.state.gender == 'female')){
-      navigate("Registration");
-    }else{
-
-      //goback
-      this.props.navigation.goBack();
-    }  
+    //goback
+    this.props.navigation.goBack();
+    
   }
 
 
@@ -208,11 +203,12 @@ class Refer extends Component {
             //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
             userRef.update({  
               swipe_count: 0,
-              last_swipe_sesh_date: new Date().getTime() 
+              last_swipe_sesh_date: new Date().getTime(),
+              status: 'active',
             }).then(()=>{
               
               //check if coming from swipes
-              if ( this.props.navigation.getParam('from') == 'swipes') {
+              if ( this.props.navigation.getParam('from') == 'swipes' || 'waitlist') {
 
                 //redirect to swipes and pass params if getMatches needs to be force updated. 
                 this.props.navigation.navigate("Swipes", {forceUpdate: true, swipeCount: 0});

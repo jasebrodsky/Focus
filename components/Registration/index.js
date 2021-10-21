@@ -15,6 +15,7 @@ import * as firebase from "firebase";
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCog, faUsers, faPlus,faArrowAltCircleLeft,  faChevronLeft, faImage, faCamera } from '@fortawesome/free-solid-svg-icons';
+import DeepLinkContext from "../DeepLinkContext";
 
 import {
   ActionSheet,
@@ -99,8 +100,8 @@ Geocoder.init('AIzaSyCbt43Up1r0ywnqWX2xxMWGiwWJ3CSBrAI');
 
 class Registration extends Component {
 
-  constructor(props){
-    super(props)
+  constructor(props, contexts){
+    super(props, contexts)
     //Analytics.setAnalyticsCollectionEnabled(true);
 
   this.state = {
@@ -223,10 +224,12 @@ class Registration extends Component {
           required: true
         }
       ]
+      
     }
   }
 
-
+  //Assign context type of the DeeplinkContext
+  static contextType = DeepLinkContext;
 
 
   //before component mounts, update state with value from database
@@ -491,8 +494,15 @@ class Registration extends Component {
     //update db to intialUser = false, if not already. This will move user to swipes on login and they will appear in matches
     firebaseRef.update({intialUser: false});
 
-    //redirect to swipes and pass params if getMatches needs to be force updated. 
-    this.props.navigation. navigate("Swipes", {forceUpdate: this.state.forceUpdate, swipeCount: this.state.profile.swipe_count});
+    //if user is invited, make status 'active' and go to swipes, if not go to waitlist flow. 
+    if(this.context.deepLinkParams.expired == false){
+      
+      firebaseRef.update({status: 'active'});
+      this.props.navigation.navigate("Swipes");
+
+    }else{
+      this.props.navigation.navigate("Waitlist", {forceUpdate: this.state.forceUpdate, swipeCount: this.state.profile.swipe_count});
+    }
 
 
     }

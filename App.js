@@ -16,6 +16,7 @@ import Dashboard from "./components/Dashboard";
 import Registration from "./components/Registration";
 import Payments from "./components/Payments";
 import Refer from "./components/Refer";
+import Waitlist from "./components/Waitlist";
 import codePush from "react-native-code-push";
 import SplashScreen from  "react-native-splash-screen";
 import dynamicLinks from '@react-native-firebase/dynamic-links';
@@ -101,7 +102,10 @@ const RootStack = createStackNavigator(
     },
     Registration: {
       screen: Registration,
-    }    
+    },    
+    Waitlist: {
+      screen: Waitlist,
+    }      
   },
   {
     mode: 'modal',

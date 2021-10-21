@@ -426,7 +426,8 @@ handleSignUp = () => {
         about: '',
         work: '',
         education: '',
-        status: 'active',
+        //status: 'active',
+        status: 'waitlist',
         code_accepted: (gender == 'female') ? true : false, //if new user is female set code accepted to true, check this before letting user (men) in next time. 
         interested: (gender == 'male') ? 'female' : 'male', //default interested in to straight to have less required field to validate. 
         min_age: 18,

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { ActivityIndicator, StyleSheet, Alert, Share, TouchableOpacity } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faRestroom, faCog, faCommentDots, faCoffee, faDoorOpen, faLockAlt,  faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faBolt, faEye, faUserLock } from '@fortawesome/free-solid-svg-icons';
+import { faRestroom, faCog, faCommentDots, faCoffee, faDoorOpen, faLockAlt,  faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faBolt,  faEye, faUserLock } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
 import RNfirebase from 'react-native-firebase';
 import AppIntroSlider from 'react-native-app-intro-slider';
@@ -85,6 +85,34 @@ class Intro extends Component {
       gender: '',
       userId: firebase.auth().currentUser.uid,
       reason: '',
+      slides: [
+
+        {
+          key: '1',
+          title: 'Welcome to Focus',
+          text: "Blind dating re-imagined." ,
+          icon: faDoorOpen,
+          colors: [primaryColor, secondaryColor],
+        },
+        {
+          key: '2',
+          title: 'Better conversations',
+          text: 'Photos re-focus as messages are exchanged.', //'With each message, photos will re-focus.',
+          icon: faComments,
+          image: require('./assets/banner-chat.jpg'),
+          imageStyle: styles.image,
+          backgroundColor: primaryColor,
+          colors: [primaryColor, secondaryColor],
+        },
+        {
+          key: '3',
+          title:  'Begin to Focus', //'Only gentlemen', 'Invite a friend',
+          text:  'Connections made with you and not your photos', //'Spread the word.',
+          icon:   faEye, //faBolt, //faUserLock, //faUnlockAlt, //faRestroom //faShield
+          colors: [primaryColor, secondaryColor],
+          }
+        ],
+
       slidesFemale: [
 
     {
@@ -220,9 +248,9 @@ class Intro extends Component {
         linkReview(this.context.reviewObj, this.state.userId);
 
         //if user is a male and invited by a female, update slides that invite link has been applied. 
-        if(this.context.deepLinkParams.gender_creator == 'female' && this.state.gender == 'male'){
-            console.log('you may pass since you are a man invited by a female');
-        }
+        // if(this.context.deepLinkParams.gender_creator == 'female' && this.state.gender == 'male'){
+        //     console.log('you may pass since you are a man invited by a female');
+        // }
 
 
       }else{
@@ -234,27 +262,33 @@ class Intro extends Component {
 
   _onDone = () => {
     const { navigate } = this.props.navigation;
+      
+    //go to Registration flow
+    navigate("Registration");
 
     //if user canJoin redirect to Registration. 
-    if (this.context.deepLinkParams.gender_creator == 'female' || this.state.gender == 'female'){
+    //if (this.context.deepLinkParams.gender_creator == 'female' || this.state.gender == 'female'){
+    
+    //check if deeplink is not expired, then route user to Registration since they off the waitlist.
+    // if (this.context.deepLinkParams.expired == 'false'){
 
-      //redirect to settings component, with onCancel param as "Intro", so that user is redirected to Settings afterwards. 
-      const { navigate } = this.props.navigation;
-      //navigate("Refer", {onCancel: 'Intro', flow: 'invite'});
+    //   //redirect to settings component, with onCancel param as "Intro", so that user is redirected to Settings afterwards. 
+    //   const { navigate } = this.props.navigation;
+    //   //navigate("Refer", {onCancel: 'Intro', flow: 'invite'});
       
-      //comment on to turn on going to refer step here. 
-      navigate("Registration");
+    //   //comment on to turn on going to refer step here. 
+    //   navigate("Registration");
 
-    }else{
+    // }else{
 
-      //else render ask to be invited
-      Share.share({
-        message: "Can you invite me to Focus. Men need to be invited by women to join.",
-        url: 'https://focusdating.co', //make landing page with query param of reason. 
-        title: 'Wow, have you seen this yet?' //what does this do?
-      })
+    //   //else render ask to be invited
+    //   Share.share({
+    //     message: "Can you invite me to Focus. Men need to be invited by women to join.",
+    //     url: 'https://focusdating.co', //make landing page with query param of reason. 
+    //     title: 'Wow, have you seen this yet?' //what does this do?
+    //   })
 
-    }
+    // }
   }
 
   _renderItem = ({ item, dimensions }) => (
@@ -314,8 +348,11 @@ class Intro extends Component {
   _renderDoneButton = () => {
         
     //done label will be "enter" if user is female, or user is male and has been invited by a female and link is not expired. 
-    let doneLabel = ((this.context.deepLinkParams.gender_creator == 'female' && this.context.deepLinkParams.expired == false ) || this.state.gender == 'female') ? 'Enter' : 'Ask for invite'; //'Invite and continue' was language when showing invtie flow here.  
-  
+    //let doneLabel = ((this.context.deepLinkParams.gender_creator == 'female' && this.context.deepLinkParams.expired == false ) || this.state.gender == 'female') ? 'Enter' : 'Ask for invite'; //'Invite and continue' was language when showing invtie flow here.  
+    //done label will be enter if off waitlist, else 'invite fried'.
+    //let doneLabel = (this.context.deepLinkParams.expired == false ) ? 'Enter' : 'Invite Friend'; //'Invite and continue' was language when showing invtie flow here.  
+    let doneLabel = 'Create profile';
+
     return (
 
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 25}}>
@@ -385,32 +422,34 @@ _renderNextButton  =  ()  => {
     render() {
       const { navigate } = this.props.navigation;
       //set up intial slides, based off gender
-      let slides = (this.state.gender == 'male') ? this.state.slidesMale : this.state.slidesFemale; 
-        
+      //let slides = (this.state.gender == 'male') ? this.state.slidesMale : this.state.slidesFemale; 
+
       //if refer link is used
       if(this.context.deepLinkParams.type == 'refer'){
 
-        if(this.context.deepLinkParams.expired == false){
-          //run invite flow if link is not expired
-          this._inviteFlow();
+        // if(this.context.deepLinkParams.expired == false){
+        //   //run invite flow if link is not expired
+        //   this._inviteFlow();
 
-          //show slides for invited men who can join since invited by women.
-          if (this.state.gender == 'male' && this.context.deepLinkParams.gender_creator == 'female'){
-            slides = this.state.slidesMaleInvited;
-          }
-          //show slides for men who are not yet invited by a female. 
-          else if (this.state.gender == 'male' && this.context.deepLinkParams.gender_creator !== 'female'){
-            slides = this.state.slidesMale;
-          }    
-          //show slides for females who can always join.
-          else if (this.state.gender == 'female'){
-            slides = this.state.slidesFemale;
-          }
+        //   slides = this.state.slidesOffWaitlist;
 
-        }else{
-          //link has been used, ask for another one. 
-          console.log('link has expired');
-        }
+        //   // //show slides for invited men who can join since invited by women.
+        //   // if (this.state.gender == 'male' && this.context.deepLinkParams.gender_creator == 'female'){
+        //   //   slides = this.state.slidesMaleInvited;
+        //   // }
+        //   // //show slides for men who are not yet invited by a female. 
+        //   // else if (this.state.gender == 'male' && this.context.deepLinkParams.gender_creator !== 'female'){
+        //   //   slides = this.state.slidesMale;
+        //   // }    
+        //   // //show slides for females who can always join.
+        //   // else if (this.state.gender == 'female'){
+        //   //   slides = this.state.slidesFemale;
+        //   // }
+
+        // }else{
+        //   //link has been used, ask for another one. 
+        //   console.log('link has expired');
+        // }
 
       }
 
@@ -455,7 +494,7 @@ _renderNextButton  =  ()  => {
       <View style={{flex: 7}}>
         <AppIntroSlider 
           
-          slides={slides} 
+          slides={this.state.slides} 
           //doneLabel={doneLabel}
           ref={component => {this.refSlider = component}}
           bottomButton={true}
