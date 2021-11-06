@@ -2,14 +2,15 @@ import React, { Component } from 'react';
 import { ActivityIndicator, StyleSheet, Alert, Share, TouchableOpacity } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faRestroom, faCog, faCommentDots, faCoffee, faDoorOpen, faLockAlt,  faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faBolt,  faEye, faUserLock } from '@fortawesome/free-solid-svg-icons';
+import { faRestroom, faHeart,  faCog, faCommentDots, faCoffee, faDoorOpen, faLockAlt,  faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faBolt,  faEye, faUserLock } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
 import RNfirebase from 'react-native-firebase';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import * as firebase from "firebase";
 import dynamicLinks from '@react-native-firebase/dynamic-links';
 import DeepLinkContext from "../DeepLinkContext"
-import {doSomethingWithInput, justAnAlert, test, linkReview} from "../DeepLinkContext/functions.js"
+import {doSomethingWithInput, justAnAlert, linkReview} from "../DeepLinkContext/functions.js"
+import PropTypes from 'prop-types';
 
 import {
   Container,
@@ -37,6 +38,8 @@ const btnColor = 'white';
 const btnTextColor = primaryColor;
 
 const logo = require("../../images/Focus_dating2.png");
+
+
 
 //LINE 234 TO TURN ON REDIRECT FOR TESTING - BUILD INTO CONFIG
 // 412, 495
@@ -71,9 +74,7 @@ const styles = StyleSheet.create({
 
 
 
-
 class Intro extends Component {
-
   constructor(props, contexts){
     super(props, contexts)
 
@@ -90,14 +91,14 @@ class Intro extends Component {
         {
           key: '1',
           title: 'Welcome to Focus',
-          text: "Blind dating re-imagined." ,
+          text: "where blind dating is re-imagined." ,
           icon: faDoorOpen,
           colors: [primaryColor, secondaryColor],
         },
         {
           key: '2',
           title: 'Better conversations',
-          text: 'Photos re-focus as messages are exchanged.', //'With each message, photos will re-focus.',
+          text: 'as photos re-focus while chatting.', //'With each message, photos will re-focus.',
           icon: faComments,
           image: require('./assets/banner-chat.jpg'),
           imageStyle: styles.image,
@@ -106,9 +107,9 @@ class Intro extends Component {
         },
         {
           key: '3',
-          title:  'Begin to Focus', //'Only gentlemen', 'Invite a friend',
-          text:  'Connections made with you and not your photos', //'Spread the word.',
-          icon:   faEye, //faBolt, //faUserLock, //faUnlockAlt, //faRestroom //faShield
+          title:  'Because love is blind', //'Only gentlemen', 'Invite a friend',
+          text:  "and connections are made with you not your photos.", //'Spread the word.',
+          icon:   faHeart, //faBolt, //faUserLock, //faUnlockAlt, //faRestroom //faShield
           colors: [primaryColor, secondaryColor],
           }
         ],
@@ -219,6 +220,7 @@ class Intro extends Component {
 
   
   componentDidMount() {
+    
 
     //check if deeplink exists of type refer, if so, run inviteFlow, which updates UX based off invite link
     
@@ -226,6 +228,8 @@ class Intro extends Component {
     this.setState({
       gender: this.props.navigation.getParam('gender'), //get from login screen
     });
+
+    
       // RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
       // RNfirebase.analytics().setUserId(this.state.userId);
       // RNfirebase.analytics().setCurrentScreen('Intro', 'Intro');
@@ -301,11 +305,14 @@ class Intro extends Component {
       }}
       colors={item.colors}
       start={{ x: 0, y: 0 }}
-      end={{ x: 0.1, y: 1 }}
+      end={{ x: 1, y: 1 }}
       >
         
-        <FontAwesomeIcon size={ 100 } style={{
+
+
+        <FontAwesomeIcon blurRadius={100} size={ 100 } style={{
           color: 'white', 
+          //opacity:0.2,
           backgroundColor: 'transparent', 
           shadowColor: "#000",
           shadowOffset: {
@@ -341,7 +348,9 @@ class Intro extends Component {
             {item.text}
           </Text>
         </View>
+
       </LinearGradient>
+      
   );
 
 
@@ -351,7 +360,7 @@ class Intro extends Component {
     //let doneLabel = ((this.context.deepLinkParams.gender_creator == 'female' && this.context.deepLinkParams.expired == false ) || this.state.gender == 'female') ? 'Enter' : 'Ask for invite'; //'Invite and continue' was language when showing invtie flow here.  
     //done label will be enter if off waitlist, else 'invite fried'.
     //let doneLabel = (this.context.deepLinkParams.expired == false ) ? 'Enter' : 'Invite Friend'; //'Invite and continue' was language when showing invtie flow here.  
-    let doneLabel = 'Create profile';
+    let doneLabel = 'Continue';
 
     return (
 
@@ -508,8 +517,6 @@ _renderNextButton  =  ()  => {
           onDone={this._onDone}
         />
       </View>
-
-
     </View> ;
 
      

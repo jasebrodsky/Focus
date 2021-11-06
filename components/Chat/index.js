@@ -564,30 +564,40 @@ class Chat extends Component {
           let firebaseRef = firebase.database().ref('/conversations/'+conversationId+'/');
           let firebaseMatchesRef1 = firebase.database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
           let firebaseMatchesRef2 = firebase.database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
+          
+          //86000000 - 1 day in ms
+          let extendTimeBy = 86000000 * 7; //in ms
+          let newExpirationDate = (new Date().getTime() + extendTimeBy);
 
+          //query for fcmToken used for triggering notification in the cloud. 
+          firebase.database().ref('/users/'+state.params.match_userid+'/').once("value", profile =>{
+
+
+            let notifyFcmToken = profile.val().fcmToken;
+
+            //update the conversation with extended expiration
+            firebaseRef.update({
+              expiration_date: newExpirationDate,
+              active: true,
+              notifyFcmToken: notifyFcmToken,
+            });
+
+            //update match to true status and set new expiration date
+            firebaseMatchesRef1.update({
+              active: true,
+              expiration_date: newExpirationDate,
+            });
+
+            //update match to true status and set new expiration date
+            firebaseMatchesRef2.update({
+              active: true,
+              expiration_date: newExpirationDate,
+              notifyFcmToken: notifyFcmToken, //notify the person who has their converation
+            });
+
+          })
 
           //DEBUG WHY CHAT IS NOT UPDATING TO ACTIVE AFTER EXTENDING IT. IT SEEMS TO WORK IN THE DB FOR THE MATCH, BUT NOT THE CHAT, CHECK chatActive property. 
-
-          //86000000 - 1 day in ms
-          let extendTimeBy = 86000000; //in ms
-          let newExpirationDate = (new Date().getTime() + extendTimeBy);
-          //update the conversation with extended expiration
-          firebaseRef.update({
-            expiration_date: newExpirationDate,
-            active: true
-          });
-
-          //update match to true status and set new expiration date
-          firebaseMatchesRef1.update({
-            active: true,
-            expiration_date: newExpirationDate,
-          });
-
-          //update match to true status and set new expiration date
-          firebaseMatchesRef2.update({
-            active: true,
-            expiration_date: newExpirationDate,
-          });
 
           //update local state so chat is active. listen to db if timeremaining is updated. This way the match can extend the conversation and the other person can send first chat. 
           this.setState({  matchActive: true, chatActive: true, expirationDate: newExpirationDate })
@@ -882,9 +892,9 @@ class Chat extends Component {
                 justifyContent: 'center',
                 //backgroundColor: primaryColor, dimensions
                 }}
-                colors={[primaryColor, secondaryColor]}
-                start={{ x: 0, y: 0.1 }}
-                end={{ x: 0.1, y: 1 }}
+                colors={[primaryColor, secondaryColor  ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 2, y: 2 }}
                 >
           
           <View style = {{flex: 1, justifyContent: 'center',}}>

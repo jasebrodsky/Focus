@@ -364,8 +364,8 @@ class Messages extends Component {
                       },
                       shadowOpacity: 0.29,
                       shadowRadius: 4.65, }} 
-                      onPress = {() => navigate("Refer", {flow: 'invite' })}>
-                    <Text style={{color: btnTextColor}}>Invite Friend</Text>
+                      onPress = {() => this.props.navigation.goBack()}>
+                    <Text style={{color: btnTextColor}}>Go Back</Text>
                   </Button>
                 </View>
               </LinearGradient>

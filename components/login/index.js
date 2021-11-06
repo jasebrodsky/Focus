@@ -112,6 +112,10 @@ getLocation = () => {
   //save ref to current user in db. 
   firebaseRefCurrentUser = firebase.database().ref('/users/' + userId);
 
+  let date = new Date();
+  let offsetInMin = date.getTimezoneOffset();
+  console.log('offsetInHours is: '+offsetInMin);
+
   //convert location geo data into location data
   Geolocation.watchPosition(
     position => {
@@ -139,7 +143,7 @@ getLocation = () => {
           let city_state = cityText+', '+stateText;
 
           //update firebase
-          firebaseRefCurrentUser.update({city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude});
+          firebaseRefCurrentUser.update({ utc_offset_min: offsetInMin, city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude, });
         
         }).catch(error => console.warn(error));
     },
@@ -306,9 +310,11 @@ redirectUser = async (userId) => {
 
   firebase.database().ref('/users/' + userId).once('value')
   .then((snapshot) => {
+
+
       
-      //update last login of user
-      firebase.database().ref('/users/' + snapshot.val().userid).update({last_login: Date.now()})
+      //update last login and timezone offset of user
+      firebase.database().ref('/users/' + snapshot.val().userid).update({last_login: Date.now(), utc_offset_min: new Date().getTimezoneOffset()})
 
       //save user date in variables check that all required fields are present.
       let first_nameValidated = snapshot.val().first_name !== '';
@@ -321,6 +327,7 @@ redirectUser = async (userId) => {
       let aboutValidated = snapshot.val().about !== '';
       let gender = (snapshot.val().gender == 'female') ? 'female' : 'male' ;
       let intialUser = snapshot.val().intialUser;
+      let status = snapshot.val().status;
 
       //save deeplink params from state or save as null if no deeplink.
       let type = this.state.searchParams ? this.state.searchParams.get('type') : null ;
@@ -335,48 +342,62 @@ redirectUser = async (userId) => {
       //compute if profile is complete
       let profileComplete = (aboutValidated && educationValidated && first_nameValidated && workValidated && genderValidated && birthdayValidated && interestedValidated);
   
-      //case 1 -- men who havent' entered valid code yet - show intro slides. 
-      if((gender == 'male') && (code_accepted == false)){
 
-        //show intro slides for men
-        this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, gender: gender, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
+      if(status == 'waitlist'){
+          //show intro slides, with deeplink params if present
+          this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, gender: gender, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
       }
-
-      //men who have used a valid code previously -- either dashboard, registration, or swipes. 
-      else if ((gender == 'male') && (code_accepted == true) && (type == 'refer')){
-                
-        // if it's not a new user, but they're using a refer deeplink, send to Dashboard, else send to Swipes 
-        (profileComplete) ? this.props.navigation.navigate('Dashboard') : this.props.navigation.navigate('Registration');
-      }
-
-      //men who have used a valid code previously and not using a deeplink -- either dashboard or swipes. 
-      else if ((gender == 'male') && (code_accepted == true  && (type !== 'refer') )){
-          
-        // if settings are valid - send to swipes. if not send to settings. 
-        (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Registration');
-      }
-      
-    //case 2 -females who are first time users - show intro slides. 
-     if((gender == 'female') && (intialUser == true)){
-
-      //show intro slides for females, with deeplink params if present
-      this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, gender: gender, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
-
-    }
-    
-    //females who are not first time users - show either swipes or settings. 
-    else if ((gender == 'female') && (intialUser == false)){
-      
-      //if refer deeplink exists, send to Dashboard, else send to swipes
-      if(type == 'refer'){
-        (profileComplete) ? this.props.navigation.navigate('Dashboard') : this.props.navigation.navigate('Registration')
-      
-      }else{
+      else if(status == 'active'|| 'paused'){
+        
         // if settings are valid - send to swipes. if not send to settings. 
         (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Registration')
       
       }
-    }
+
+      
+
+    //   //case 1 -- men who havent' entered valid code yet - show intro slides. 
+    //   if((gender == 'male') && (code_accepted == false)){
+
+    //     //show intro slides for men
+    //     this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, gender: gender, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
+    //   }
+
+    //   //men who have used a valid code previously -- either dashboard, registration, or swipes. 
+    //   else if ((gender == 'male') && (code_accepted == true) && (type == 'refer')){
+                
+    //     // if it's not a new user, but they're using a refer deeplink, send to Dashboard, else send to Swipes 
+    //     (profileComplete) ? this.props.navigation.navigate('Dashboard') : this.props.navigation.navigate('Registration');
+    //   }
+
+    //   //men who have used a valid code previously and not using a deeplink -- either dashboard or swipes. 
+    //   else if ((gender == 'male') && (code_accepted == true  && (type !== 'refer') )){
+          
+    //     // if settings are valid - send to swipes. if not send to settings. 
+    //     (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Registration');
+    //   }
+      
+    // //case 2 -females who are first time users - show intro slides. 
+    //  if((gender == 'female') && (intialUser == true)){
+
+    //   //show intro slides for females, with deeplink params if present
+    //   this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, gender: gender, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
+
+    // }
+    
+    // //females who are not first time users - show either swipes or settings. 
+    // else if ((gender == 'female') && (intialUser == false)){
+      
+    //   //if refer deeplink exists, send to Dashboard, else send to swipes
+    //   if(type == 'refer'){
+    //     (profileComplete) ? this.props.navigation.navigate('Dashboard') : this.props.navigation.navigate('Registration')
+      
+    //   }else{
+    //     // if settings are valid - send to swipes. if not send to settings. 
+    //     (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Registration')
+      
+    //   }
+    // }
   })
 }
 
@@ -400,6 +421,8 @@ handleSignUp = () => {
   gender = this.state.gender.toLocaleLowerCase();
   var that = this;
 
+  let offsetInMin = new Date().getTimezoneOffset();
+
   firebase.auth()
       .createUserWithEmailAndPassword(email, password)
       //.then((data) => console.log('user id is: '+data.user.uid))
@@ -411,6 +434,7 @@ handleSignUp = () => {
         email: email,
         images: [{file: 0, url: "https://focusdating.co/images/user.jpg", cache: 'force-cache'}],
         last_login: Date.now(),
+        utc_offset_min: offsetInMin,
         intialUser: true,
         showInstructionsSettings: true,
         showInstructionsSwipes: true,
@@ -437,6 +461,7 @@ handleSignUp = () => {
         last_conversation_count: 0,
         notifications_message: true,
         notifications_match: true,
+        notifications_daily_match: true,
         error: null,
         }, function(error) {
           if (error) {
@@ -612,6 +637,7 @@ onLoginOrRegister = () => {
                     last_conversation_count: 0,
                     notifications_message: true,
                     notifications_match: true,
+                    notifications_daily_match: true,
                     error: null,
                     //religion: fb_result.religion,
                     //political: fb_result.political,

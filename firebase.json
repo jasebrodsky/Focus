@@ -1,25 +1,14 @@
 {
-    "functions": {
-        "predeploy": [],
-        "source": "functions"
-    },
-    "hosting": {
-        "public": "web",
-        "ignore": [
-            "firebase.json",
-            "**/.*",
-            "**/node_modules/**"
-        ],
-        "appAssociation": "AUTO",
-        "rewrites": [
-            {
-                "source": "**",
-                "destination": "web/index.html"
-            },
-            {
-                "source": "/links/**",
-                "dynamicLinks": true
-            }
-        ]
-    }
+  "functions": {
+    "predeploy": [],
+    "source": "functions"
+  },
+  "hosting": {
+    "public": "/landingPages",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
 }

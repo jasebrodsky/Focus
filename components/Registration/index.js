@@ -169,7 +169,7 @@ class Registration extends Component {
         },
         {
           progress: 0.31,
-          title: 'I work at',
+          title: 'My job is',
           subtitle: 'How are the bills paid?',
           back: true,
           input: 'work',
@@ -494,18 +494,24 @@ class Registration extends Component {
     //update db to intialUser = false, if not already. This will move user to swipes on login and they will appear in matches
     firebaseRef.update({intialUser: false});
 
-    //if user is invited, make status 'active' and go to swipes, if not go to waitlist flow. 
-    if(this.context.deepLinkParams.expired == false){
-      
-      firebaseRef.update({status: 'active'});
-      this.props.navigation.navigate("Swipes");
+    //if deeplink exists, check if it's valid. if so update to active and go to swipes.
+    if (this.context.deepLinkParam && this.context.deepLinkParams.expired == false){
 
-    }else{
-      this.props.navigation.navigate("Waitlist", {forceUpdate: this.state.forceUpdate, swipeCount: this.state.profile.swipe_count});
+        firebaseRef.update({status: 'active'});
+        this.props.navigation.navigate("Swipes");
+
+      }else{
+
+        //no deeplink used. go to waitlist, unless they're active status then go to swipes
+        if(this.state.profile.status == 'active'){
+          this.props.navigation.navigate("Swipes");
+        }else{
+
+        }
+          this.props.navigation.navigate("Waitlist", {forceUpdate: this.state.forceUpdate, swipeCount: this.state.profile.swipe_count});
+      }
     }
-
-
-    }
+  
 
 
   //function to sign out user

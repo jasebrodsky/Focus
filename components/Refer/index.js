@@ -76,28 +76,46 @@ class Refer extends Component {
 
     if (flow == 'invite'){
       //invite flow
-      this.setState({ titleCopy: 'Invite a Friend' }); 
+      this.setState({ titleCopy: 'Invite Friend' }); 
       this.setState({ reasonCopy: 'Why should they be invited? This will be shown their profile.' }); 
-      this.setState({ primaryCTA: 'Generate Invite Code'}); 
-      this.setState({ secondaryCTA: 'Invite Later' });
+      this.setState({ primaryCTA: 'Invite Friend'}); 
+      this.setState({ secondaryCTA: 'Go Back' });
       this.setState({ errorCopy: 'Invitation reason needs to be at least 100 characters. ' });
     }else if (flow == 'refer'){
       //refer flow
-      this.setState({ titleCopy: 'Refer a Friend' }); 
+      this.setState({ titleCopy: 'Refer Friend' }); 
       this.setState({ reasonCopy: 'Why should they be invited? This will be shown their profile.' }); 
-      this.setState({ primaryCTA: 'Generate Referal Code' }); 
-      this.setState({ secondaryCTA: 'Refer Later' }); 
+      this.setState({ primaryCTA: 'Refer Friend' }); 
+      this.setState({ secondaryCTA: 'Go Back' }); 
       this.setState({ errorCopy: 'Referral reason needs to be at least 100 characters. ' });
 
     }else if (flow == 'endorse'){
       //endorse flow
-      this.setState({ titleCopy: 'Endorse a Friend' }); 
+      this.setState({ titleCopy: 'Endorse Friend' }); 
       this.setState({ reasonCopy: 'What is special about them? This will be shown on their profile.' }); 
-      this.setState({ primaryCTA: 'Generate Endorse Code' }); 
-      this.setState({ secondaryCTA: 'Endorse Later' }); 
+      this.setState({ primaryCTA: 'Endorse Friend' }); 
+      this.setState({ secondaryCTA: 'Go Back' }); 
       this.setState({ errorCopy: 'Endorsement reason needs to be at least 100 characters. ' });
 
+    }else if (flow == 'waitlist'){
+      //waitlist flow
+      this.setState({ titleCopy: 'Refer Friend' }); 
+      this.setState({ secondaryCopy: 'Both of you will skip \n to the front of the line.' }); 
+      this.setState({ reasonCopy: 'What is special about them? This will be shown on their profile.' }); 
+      this.setState({ primaryCTA: 'Refer Friend' }); 
+      this.setState({ secondaryCTA: 'Go Back' }); 
+      this.setState({ errorCopy: 'Refer reason needs to be at least 100 characters. ' });
+
+    }else if (flow == 'swipes'){
+      //waitlist flow
+      this.setState({ titleCopy: 'Refer Friend' }); 
+      this.setState({ secondaryCopy: 'Get more matches immediately.' }); 
+      this.setState({ reasonCopy: 'What is special about them? This will be shown on their profile.' }); 
+      this.setState({ primaryCTA: 'Refer Friend' }); 
+      this.setState({ secondaryCTA: 'Go Back' }); 
+      this.setState({ errorCopy: 'Refer reason needs to be at least 100 characters. ' });
     }
+    
 
     this.setState({ name: name });  
 
@@ -277,8 +295,9 @@ class Refer extends Component {
                 height: 3,
               },
               shadowOpacity: 0.29,
-              shadowRadius: 4.65, }}>{this.state.titleCopy}</H1>
-            {/* <Text style={{textAlign: 'center', marginTop: 10, width: 300}}>If inviting a male, they will still need to be invited by a female to join.</Text> */}
+              shadowRadius: 4.65, }}>{this.state.titleCopy}
+            </H1>
+            <Text style={{textAlign: 'center', color: 'white', marginTop: 10, width: 300}}>{this.state.secondaryCopy}</Text>
           </View>
         </View>
         <View style={{ flex: 1, width: 300}}>

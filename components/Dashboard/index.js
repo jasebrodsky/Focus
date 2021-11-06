@@ -294,6 +294,20 @@ class Dashboard extends Component {
 
   }
 
+  onPressHandle3 = () => {
+
+    //take opposite of current value from state
+    let bool = this.state.profile.notifications_daily_match == true ? false : true;
+
+    //record in analytics that user was doesn't want notifications 
+    RNfirebase.analytics().setUserProperty('notifications_daily_match', this.state.profile.notifications_daily_match.toString());
+
+    //update firebase with new value, then update state
+    firebaseRef.update({notifications_daily_match: bool})
+    .then(this.setState({profile: { ...this.state.profile, notifications_daily_match: bool}}))
+
+  }
+
 
   //function to get update users current location. 
   getLocation = () => {
@@ -884,7 +898,6 @@ class Dashboard extends Component {
                 break;
               case 'name':
                 updateObj[`matches/${key}/${userid}/name`] = payload;
-                updateObj[`matches/3nQajya619ZEVl55TVTAduw2hNv2/6CSGJ2ak39hVkzQYRuPEuO00B932/reviews/-LypRQkDfCOb7jntXIrX/name`] = payload;
                 break;
               case 'about':
                 updateObj[`matches/${key}/${userid}/about`] = payload;
@@ -1591,7 +1604,7 @@ class Dashboard extends Component {
                 <ListItem itemDivider style={{flexDirection: "row", justifyContent: "space-between"}}>
                   <Text>My friends think</Text>
                   <Button small transparent onPress = {() => this._codePrompt()}>
-                    <Text style={{color: primaryColor}}>Enter Refer Code</Text>
+                    {/* <Text style={{color: primaryColor}}>Enter Refer Code</Text> */}
                   </Button>
                 </ListItem>
 
@@ -1699,8 +1712,8 @@ class Dashboard extends Component {
             //backgroundColor: primaryColor, dimensions
             }}
             colors={[primaryColor, secondaryColor]}
-            start={{ x: 0, y: 0.1 }}
-            end={{ x: 0.1, y: 1 }}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1.5, y: 1.5 }}
             >
 
 
@@ -1717,7 +1730,7 @@ class Dashboard extends Component {
                     },
                     (buttonIndex) => {
                       if ((buttonIndex) === 0) {
-                        //open view profile modal
+                        //open view profile modall
                         this.setState({ profileViewerVisible: true})
                         }
           
@@ -2082,6 +2095,21 @@ class Dashboard extends Component {
               <Switch 
                 value={this.state.profile.notifications_match}
                 onValueChange={this.onPressHandle2}
+               />
+            </Right>
+          </ListItem>
+          <ListItem>
+            <Left>
+              <Label style={{color: "dimgrey"}}>Daily Matches</Label>
+            </Left>
+            
+            <Body>              
+            </Body>
+            
+            <Right>
+              <Switch 
+                value={this.state.profile.notifications_daily_match}
+                onValueChange={this.onPressHandle3}
                />
             </Right>
           </ListItem>

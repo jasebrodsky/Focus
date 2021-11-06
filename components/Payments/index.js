@@ -27,16 +27,8 @@ const btnTextColor = primaryColor;
 //items to purchase
 const items = ["fd_999_1m"];
 
-
 class Payments extends Component {
-
-  
-
-//CONFIG 109
-
   constructor(props){
-
-    
     super(props)
 
     //set state to convos var
@@ -45,8 +37,6 @@ class Payments extends Component {
       userId: '',
       products: [], //for payment tiers
     }
-
-    
   }
 
   //hide nav bar on the login screen
@@ -55,12 +45,7 @@ class Payments extends Component {
   };
 
   
-
-
-
   componentWillMount() {
-
-    //UPDATE 911 CHAT TO UPDATE CHAT WITH COUNTOWND TIMER, AFTER DONE TESTING THIS
 
     // global variable for listening for new purchases or errors
     let purchaseUpdatedListener = '';
@@ -88,8 +73,7 @@ class Payments extends Component {
         const receipt = res[res.length-1].transactionReceipt; 
         if (receipt){
           console.log('validating receipt');
-          this._validateReceipt(receipt)
-          
+          this._validateReceipt(receipt) 
         }
       })
 
@@ -105,12 +89,9 @@ class Payments extends Component {
         }catch (error) {
           console.log('there was an error in purchaseUpdatedListener: '+error)
         }
-
       })
-
     })
   
-     
     let userId = firebase.auth().currentUser.uid;
     let flow = this.props.navigation.getParam('flow');
     //can be any one of the entry points. will eventually tie to the default image in slider, to make this module initial state relavent. 
@@ -120,12 +101,10 @@ class Payments extends Component {
       //this.setState({ titleCopy: 'TEST PAYMENTS' }); 
     }else {
       //other flows here
-
     }
 
     //query for logged in users information needed and set state with it.     
     firebase.database().ref('/users/' + userId).once('value', ((snapshot) => {
-                
         //set state with user data. 
         this.setState({ 
           userId: userId,
@@ -237,9 +216,9 @@ class Payments extends Component {
 
                 {/* top section */}
                 <LinearGradient 
-                    colors={[primaryColor, secondaryColor]}
-                    start={{ x: 0, y: 0.6 }}
-                    end={{ x: 0, y: 1}}
+                    colors={[ primaryColor, secondaryColor,   ]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 2, y: 2 }}
                     style={{flex: 8, alignItems: 'center', justifyContent: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
                     {/* static header */}
                     <View style={{flex: 1, marginTop:50}}>

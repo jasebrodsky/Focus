@@ -64,6 +64,7 @@ class Swipes extends Component {
       profileViewerVisible: false,
       profileMaxHeight: "15%",
       swipeCountStart: 0,
+      swipeCount: 0,
       query_start: null,
       query_end: null,
       cardIndex: 0
@@ -106,56 +107,38 @@ class Swipes extends Component {
 
         //save params from nav if swipes needs to be force updated (since navigating backwards won't re-render component)
         let forceUpdate = this.props.navigation.getParam('forceUpdate');
-        let swipeCount = this.props.navigation.getParam('swipeCount');
 
         if (forceUpdate == true){
-
           //reset cardindex to 0
           this.setState({ loading: true, cardIndex: 0});
-
           //fetch new matches and put into state
           this.getMatches(userId);
-
-          //set state with data. 
-          this.setState({
-            swipeCountStart: swipeCount
-          })
-
         }
+
       }
     );
-
-    //subscribe to blur event from navigation, to capture when screen changes. If so, update swipe count with appropriate count from the session. 
-    const didBlur = this.props.navigation.addListener(
-      'didBlur',
-      payload => {
-        //save flag that user has now seen their daily match.
-        let userRef = firebase.database().ref('users/'+this.state.userId+'/');
-        //update swipe count in db in order to compute remaining matches. 
-        userRef.update({
-          swipe_count: this.state.swipeCountStart + this.state.cardIndex,
-          last_swipe_sesh_date: new Date().getTime()
-        });
-      }
-    );
-
 
     //save userId of logged in user, to use for later db queries. 
     const userId = firebase.auth().currentUser.uid;
     this.setState({ userId: userId });
 
-    //getMatches of current user
+    //getMatches of current user initally. 
     this.getMatches(userId);
 
     //get unread chat count
     this.getUnreadChatCount(userId);
 
-    //run newBatch in order to reset swipe count to 0 at the right time. 
-    this.newBatch(userId);
-
     //query for logged in users information needed and set state with it.     
-    firebase.database().ref('/users/' + userId).once('value', ((snapshot) => {
+    firebase.database().ref('/users/' + userId).on('value', ((snapshot) => {
                 
+      //if swipeCount becomes zero while component is loaded, getMore matches. 
+      if (snapshot.val().swipe_count == 0) {
+          //reset cardindex to 0
+          this.setState({ loading: true, cardIndex: 0});
+          //fetch new matches and put into state
+          this.getMatches(userId);
+      }
+
         //set state with user data. 
         this.setState({
             user_name: snapshot.val().first_name,
@@ -170,11 +153,9 @@ class Swipes extends Component {
             swipeCountStart: snapshot.val().swipe_count,
             showInstructionsSwipes: snapshot.val().showInstructionsSwipes,
         }), this.showInstructions(snapshot.val().showInstructionsSwipes),
-          RNFirebase.analytics().setAnalyticsCollectionEnabled(true);
-          RNFirebase.analytics().setCurrentScreen('Swipes', 'Swipes');
-          RNFirebase.analytics().setUserId(userId);
-
-          console.log('snapshot.val().swipe_count is: '+snapshot.val().swipe_count);
+            RNFirebase.analytics().setAnalyticsCollectionEnabled(true);
+            RNFirebase.analytics().setCurrentScreen('Swipes', 'Swipes');
+            RNFirebase.analytics().setUserId(userId);
 
        })
       )
@@ -231,8 +212,6 @@ class Swipes extends Component {
       openOverlay();
     };
   } 
-
-
 
 
   //async function to fetch matches from cloud function
@@ -475,11 +454,10 @@ class Swipes extends Component {
     let potential_match = (match_status == 'potential_match') ? true : false;
     //let potential_match = true; //comment out for testing
 
-
     //define ref to users' swipe object
-    swipesRef = firebase.database().ref('swipes/'+userid+'/'+userid_match+'/');
+    let swipesRef = firebase.database().ref('swipes/'+userid+'/'+userid_match+'/');
+    let swipesRef2 = firebase.database().ref('swipesReceived/'+userid_match+'/'+userid+'/');
 
-    swipesRef2 = firebase.database().ref('swipesReceived/'+userid_match+'/'+userid+'/');
     //set or replace users swipe with latest swipe
     swipesRef.set({
       like: like,
@@ -518,7 +496,7 @@ class Swipes extends Component {
       
       //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
       userRef.update({  
-        swipe_count: 8,
+        swipe_count: 0,
         last_swipe_sesh_date: new Date().getTime() 
       }).then(()=>{
         this.getMatches(userid);
@@ -568,6 +546,15 @@ class Swipes extends Component {
 }
   //handle swipe events
   onSwiped = (cardIndex, direction) => {
+
+    //ref to user object to update their swipeCount
+    let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+
+    //set new swipeCount
+    userRef.update({
+      swipe_count: this.state.swipeCountStart + 1,
+    });
+
     // save variable for direction of swipe
     let like = (direction == 'right') ? true : false;
 
@@ -591,42 +578,12 @@ class Swipes extends Component {
 
         ),this.setState({ cardIndex: cardIndex+1});//update card index in state, so that image modal has correct images 
   };
-
-  //function to load new batch of matches from getMatches service at the new batch time (12) 
-  newBatch = (userid) => {
-    
-    //save context of this
-    var _this = this;
-    
-    //calculate miliseconds until batch time, then update swipe count to 0. 
-    var now = new Date();
-    var millisTillBatch = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0) - now;
-    if (millisTillBatch < 0) {
-         millisTillBatch += 86400000; // it's after 10am, try 10am tomorrow.
-    }
-
-    //set up setTimeout function
-    this.timer = setTimeout(() => {
-
-      //save ref, in order to update swipe count to 0
-      let userRef = firebase.database().ref('users/'+userid+'/');
-
-      //update swipe count in db in order to compute remaining matches. 
-      userRef.update({ 
-          swipe_count: 0,
-          last_swipe_sesh_date: new Date().getTime()
-      }).then(function(){
-        _this.getMatches(userid);
-      }).catch(function(error) {
-        console.log("Data could not be saved." + error);
-      });
-    }, millisTillBatch);
-  }
+  
 
   renderBlurChilds() {
     return (
       <View >
-          <Text style={{textAlign: 'center', color: 'white', margin: 35}}> You will have 10 matches each day. If a match is mutual, you'll be able to message each other. With every message photos will focus. </Text>          
+          <Text style={{textAlign: 'center', color: 'white', margin: 35}}> You'll see up to 10 people per day. If it's a match, you'll be able to message each other while photos are out of focus. With each message sent photos begin to focus. </Text>          
       </View>
     );
 }
@@ -734,7 +691,7 @@ class Swipes extends Component {
                   },
                   shadowOpacity: 0.29,
                   shadowRadius: 4.65,}} icon={ faUserClock }/>
-                  <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}> Invite a friend to get 10 more matches or {"\n"}come back tomorrow at noon for more. </Text>
+                  <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}> No more matches today. </Text>
                   <View style ={{marginTop: 20}}>
                     <Button rounded 
                       style={{ 
@@ -750,9 +707,9 @@ class Swipes extends Component {
 
                         //onPress={() => this.getMoreMatches(this.state.userId)} 
                         
-                        onPress = {() => navigate("Refer", {flow: 'invite', from: 'swipes' })}
+                        onPress = {() => navigate("Refer", {flow: 'swipes', from: 'swipes' })}
                         >
-                      <Text style={{color: 'white'}}>Invite Friend</Text>
+                      <Text style={{color: 'white'}}>Get More</Text>
                     </Button>
                   </View>
                 </LinearGradient>}

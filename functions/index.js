@@ -6,6 +6,79 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 
 
+
+//function to send notification when user is off waitlist.
+exports.notifyOffWaitlist = functions.database.ref('/users/{userId}').onUpdate((change, context) => {
+  
+  //check if user is updated from waitlist to active status
+  if(change.before.val().status == 'waitlist' && change.after.val().status == 'active' ){
+    console.log('user is off waitlist.');
+    //save data of message
+    const fcmToken = change.after.val().fcmToken;
+    const messageTitle = 'Welcome to Focus \uD83D\uDE4C';
+    const messageTxt = 'You are off the waitlist!';
+    
+    //build media messages notification
+    const payload = {
+      notification: {
+          title: messageTitle,
+          body: messageTxt,
+          sound : "default"
+      },
+      data: {
+          VIEW: 'swipes'
+      }
+    };
+
+
+    // Send a message to the device corresponding to the provided registration token.
+    return admin.messaging().sendToDevice(fcmToken, payload)
+      .then((response) => {
+        console.log('Successfully sent message:', response);
+      })
+      .catch((error) => {
+        console.log('Error sending message:', error);
+      });
+  }
+})
+
+//function to send notification when conversation is extended.
+exports.notifyConversationExtended = functions.database.ref('/conversations/{conversationId}').onUpdate((change, context) => {
+  
+  console.log('conversation has been updated');
+  //check if user has an extended conversation 
+  if((change.before.val().active == false) && (change.after.val().active == true)){
+    
+    console.log('conversation is extended.');
+    //save data of message
+    const fcmToken = change.after.val().notifyFcmToken;
+    const messageTitle = 'Conversation Extended \uD83D\uDE0D';
+    const messageTxt = 'Open to find out who.';
+    
+    //build media messages notification
+    const payload = {
+      notification: {
+          title: messageTitle,
+          body: messageTxt,
+          sound : "default"
+      },
+      data: {
+          VIEW: 'messages'
+      }
+    };
+
+    // Send a message to the device corresponding to the provided registration token.
+    return admin.messaging().sendToDevice(fcmToken, payload)
+      .then((response) => {
+        console.log('Successfully sent message:', response);
+      })
+      .catch((error) => {
+        console.log('Error sending message:', error);
+      });
+  }
+})
+
+
 //get referral codes
 exports.getCode = functions.https.onRequest((req, res) => {
     const userid = req.query.userid;
@@ -57,6 +130,8 @@ exports.getCode = functions.https.onRequest((req, res) => {
   })
 
 
+
+
 //function to send notification when message is recieved. 
 exports.notifyNewMessage = functions.database.ref('/conversations/{conversationId}/messages/{messageId}').onCreate((snap, context) => {
   
@@ -74,54 +149,155 @@ exports.notifyNewMessage = functions.database.ref('/conversations/{conversationI
   return admin.database().ref('/users/' + toId ).once('value').then((snapUser) => {
     //build media messages notification
     const sendNotificationMessage = snapUser.val().notifications_message;
-    const registrationTokens = snapUser.val().fcmToken;
+    const fcmToken = snapUser.val().fcmToken;
 
-    console.log('registrationTokens is: '+registrationTokens);
+    console.log('fcmToken is: '+fcmToken);
     console.log('sendNotificationMessage is: '+sendNotificationMessage);
 
     //build media messages notification
     const payload = {
         notification: {
-          title: senderName + " sent you a message",
-          body: messageTxt
+          title: senderName + " sent you a message \uD83D\uDCAC" ,
+          body: messageTxt,
+          sound : "default"
         },
         data: {
-          // SENDER_NAME: senderName,
-          // SENDER_ID: fromId,
           VIEW: 'messages'
-
-        }//end data
-    }//end payload
+        }
+    }
 
     //send message if user allows notifications for messages
     if (sendNotificationMessage == true) {
-      return admin.messaging().sendToDevice(registrationTokens, payload).then( response => {
-        const stillRegisteredTokens = registrationTokens;
 
-        response.results.forEach((result, index) => {
-          const error = result.error
-          if (error) {
-              const failedRegistrationToken = registrationTokens[index]
-              console.error('blah', failedRegistrationToken, error)
-              if (error.code === 'messaging/invalid-registration-token'
-                  || error.code === 'messaging/registration-token-not-registered') {
-                      const failedIndex = stillRegisteredTokens.indexOf(failedRegistrationToken)
-                      if (failedIndex > -1) {
-                          stillRegisteredTokens.splice(failedIndex, 1)
-                      }
-                  }
-            }
-          })//end forEach
-
-          return admin.database().ref("users/" + toId).update({
-              fcmToken: stillRegisteredTokens
-          })//end update
-
-      })//end sendToDevice
+      return admin.messaging().sendToDevice(fcmToken, payload)
+      .then((response) => {
+        console.log('Successfully sent message:', response);
+      })
+      .catch((error) => {
+        console.log('Error sending message:', error);
+      });
     }
 
   })//end return-then
 });
+
+
+//function to send notification at noon local time for newMatchBatch. 
+//run function every 15 min and check which user has offset that equals noon, to send notificaiotn and reset swipe counts. 
+exports.notifyNewMatchBatch = functions.pubsub.schedule('15,30,45,0 * * * *').onRun(async ( context ) => {
+
+  // today date
+  let today = new Date();
+  console.log('today is: '+today);
+  
+  // today's minitues in UTC -- use this, since some timezones are offsetted by 15, 30, 60 min. 
+  let currentUTCMinutes = today.getUTCMinutes();
+  console.log('CurrentUTCMinutes is: '+currentUTCMinutes);
+
+  // today's hour in UTC
+  let currentUTChour = today.getUTCHours();
+  console.log('currentUTChour is: '+currentUTChour);
+
+  // put (hours * 60) + min together, for total min. 
+  let currentUTCtimeMin = (currentUTChour * 60) + currentUTCMinutes;
+  console.log('currentUTCtimeMin is: '+currentUTCtimeMin);
+
+  //the local UTCoffset which equals noon, is the current UTC time - (12 hours * 60 min). 
+  let localUtcOffsetMin = currentUTCtimeMin - (12 * 60); 
+  console.log('localUtcOffsetMin is: '+localUtcOffsetMin);
+
+  //what UTC Offset to target, at noon ....  currentUTC - 12 = localUtcOffset
+  //UTC (GMT) = 0, local UTC offset = -12
+  //UTC (GMT) = 1, local UTC offset = -11
+  //UTC (GMT) = 2, local UTC offset = -10
+  //UTC (GMT) = 3, local UTC offset = -9
+  //UTC (GMT) = 4, local UTC offset = -8
+  //UTC (GMT) = 5, local UTC offset = -7    
+  //UTC (GMT) = 6, local UTC offset = -6
+  //UTC (GMT) = 7, local UTC offset = -5    
+  //UTC (GMT) = 8, local UTC offset = -4
+  //UTC (GMT) = 9, local UTC offset = -3
+  //UTC (GMT) = 10, local UTC offset = -2  
+  //UTC (GMT) = 11, local UTC offset = -1
+  //UTC (GMT) = 12, local UTC offset = 0
+  //UTC (GMT) = 13, local UTC offset = 1
+  //UTC (GMT) = 14, local UTC offset = 2
+  //UTC (GMT) = 15, local UTC offset = 3
+  //UTC (GMT) = 16, local UTC offset = 4
+  //UTC (GMT) = 17, local UTC offset = 5
+  //UTC (GMT) = 18, local UTC offset = 6    
+  //UTC (GMT) = 19, local UTC offset = 7
+  //UTC (GMT) = 20, local UTC offset = 8    
+  //UTC (GMT) = 21, local UTC offset = 9 
+  //UTC (GMT) = 22, local UTC offset = 10 
+  //UTC (GMT) = 23, local UTC offset = 11 
+  //UTC (GMT) = 24, local UTC offset = 12
+  
+  
+  //return promise of users who are in their local noon time
+  let fcmTokenFetchPromise = await admin.database().ref('users').orderByChild('utc_offset_min').equalTo(localUtcOffsetMin).once('value');
+    //save empty array of tokens
+    let fcmTokens = [];
+
+    //for each returned user, put their token into an array.
+    fcmTokenFetchPromise.forEach(user => {
+      //handle when fcmToken is null by excluding from array and also check if user has permission to send notifications
+      if(user.val().fcmToken && user.val().notifications_daily_match == true){
+        //push fcmToken to fcmTokens array
+        fcmTokens.push(user.val().fcmToken);
+      }
+
+      console.log('fcmTokens are: '+fcmTokens);
+
+      //update swipe count to 0 sine it's noon for userday. 
+       admin.database().ref('/users/' + user.val().userid).update({
+        swipe_count: 0,
+      }).catch(reason => {
+        console.log(reason);
+        res.status(500).send('error: '+reason)
+      });   
+    })
+
+    //construct the payload for the Multicast function.
+    const payload = {
+      data: {
+        title: 'Hello again.',
+        body: 'Your daily matches have arrived',
+        VIEW: 'swipes'
+      },
+      apns: {
+        payload: {
+          aps: {
+            alert: {
+              title: 'Hello again',
+              body: 'Your daily matches have arrived. \uD83D\uDE0D',    
+            },
+            badge: 99,
+            sound: 'default',
+          },
+        },
+      },
+      tokens: fcmTokens
+    };
+
+
+
+    // send message to each token in the payload
+    return admin.messaging().sendMulticast(payload)
+      .then((response) => {
+        if (response.failureCount > 0) {
+          const failedTokens = [];
+          response.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+              failedTokens.push(fcmTokens[idx]);              
+            }
+          });
+          console.log('List of tokens that caused failures: ' + failedTokens);
+        }
+        console.log('response:', JSON.stringify(response));
+      });
+    })
+  
 
 
 //function to send notification when new match is recieved. 
@@ -133,57 +309,43 @@ exports.notifyNewMatch = functions.database.ref('/matches/{reciepientId}/{newMat
   console.log('matchName is: '+matchName);
   const toId = context.params.reciepientId;
   console.log('reciepientId is: '+toId);
-  const messageTxt = 'You matched with '+matchName;
+  const messageTitle = 'You have a new match \uD83D\uDE0D';
+  const messageTxt = 'Chat with '+matchName+' to focus their photos.';
 
   //fetch fcmToken of reciepient in order to send push notification
   return admin.database().ref('/users/' + toId ).once('value').then((snapUser) => {
     //build media messages notification
     const sendNotificationMatch = snapUser.val().notifications_match;
-    const registrationTokens = snapUser.val().fcmToken;
+    const fcmToken = snapUser.val().fcmToken;
 
-    console.log('registrationTokens is: '+registrationTokens);
+    console.log('fcmToken is: '+fcmToken);
     console.log('sendNotificationMatch is: '+sendNotificationMatch);
 
     //build media match notification
     const payload = {
-        notification: {
-          body: messageTxt
-        },
-        data: {
-          // SENDER_NAME: senderName,
-          // SENDER_ID: fromId,
-          VIEW: 'messages'
-
-        }//end data
+      notification: {
+        title: messageTitle,
+        body: messageTxt,
+        sound : "default"
+      },
+      data: {
+        // SENDER_NAME: senderName,
+        // SENDER_ID: fromId,
+        VIEW: 'messages'
+      }//end data
     }//end payload
 
     //send message if user allows notifications for matches
     if (sendNotificationMatch == true) {
-      return admin.messaging().sendToDevice(registrationTokens, payload).then( response => {
-        const stillRegisteredTokens = registrationTokens;
-
-        response.results.forEach((result, index) => {
-          const error = result.error
-          if (error) {
-              const failedRegistrationToken = registrationTokens[index]
-              console.error('blah', failedRegistrationToken, error)
-              if (error.code === 'messaging/invalid-registration-token'
-                  || error.code === 'messaging/registration-token-not-registered') {
-                      const failedIndex = stillRegisteredTokens.indexOf(failedRegistrationToken)
-                      if (failedIndex > -1) {
-                          stillRegisteredTokens.splice(failedIndex, 1)
-                      }
-                  }
-            }
-          })//end forEach
-
-          return admin.database().ref("users/" + toId).update({
-              fcmToken: stillRegisteredTokens
-          })//end update
-      })//end sendToDevice
-
+      return admin.messaging().sendToDevice(fcmToken, payload)
+      .then((response) => {
+        console.log('Successfully sent message:', response);
+      })
+      .catch((error) => {
+        console.log('Error sending message:', error);
+      });
     }
-  })//end return-then
+  })
 });
 
 
@@ -210,49 +372,7 @@ exports.getMatches = functions.https.onRequest((req, res) => {
         max_distance = userPrefSnap.val().max_distance;
         max_age = userPrefSnap.val().max_age == 50 ? 100 : userPrefSnap.val().max_age;
         min_age = userPrefSnap.val().min_age;
-        let swipe_count = userPrefSnap.val().swipe_count;
-        let last_swipe_sesh_date = userPrefSnap.val().last_swipe_sesh_date;
-        let current_date = new Date();
-        let last_batch_date = new Date();
-
-        //compute lastBatchDate, the last timestamp when it was noon 
-        //if it's after noon, then set last batch date to today at noon
-        if (current_date.getHours()>=12){
-          last_batch_date.setDate(current_date.getDate());
-          last_batch_date.setHours(12,0,0,0);
-
-        } else{
-          //else must be before noon, set last batch day to yesterday at noon
-          last_batch_date.setDate(current_date.getDate()-1);
-          last_batch_date.setHours(12,0,0,0);
-        }
-
-
-        console.log('last_swipe_sesh_date: '+last_swipe_sesh_date);
-        console.log('last_batch_date: '+last_batch_date.getTime());
-        console.log('current_date: '+current_date.getTime());
-
-        // last swipe sesh date is before nextBatchDate and currentDate is after. 
-        // this must mean that user is swiping first time in new batch period, re set swipeCount to 0 and continue. 
-        
-        //        1547661999148           1547726400000                  1547662263903               1547726400000
-        if ((last_swipe_sesh_date < last_batch_date.getTime()) && (current_date.getTime() > last_batch_date.getTime())){
-          //save swipe_count = 0
-          swipe_count = 0;
-
-          //save ref to user obj in order to reset swipe_count.
-          let userRef = admin.database().ref('/users/' + userid);
-  
-          //update swipe count to 0 since its its a new day. 
-          userRef.update({
-            swipe_count: 0
-          }).catch(reason => {
-              console.log(reason);
-              res.status(500).send('error: '+reason)
-            });          
-
-         }
-
+        swipe_count = userPrefSnap.val().swipe_count;
   
         //convert max and min ages into DOB. Put DOB into gender_pref when logging in. 
         // gender_pref = City_Gender_Pref_DOB
