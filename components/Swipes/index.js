@@ -354,7 +354,7 @@ class Swipes extends Component {
         },
         active: 'true',
         match_date: new Date().getTime(),
-        expiration_date: ( new Date().getTime() + 100000)  //  604800000 is 1 week in ms                                          
+        expiration_date: ( new Date().getTime() + 604800000)  //  604800000 is 1 week in ms                                          
       }, function (error) {
         if (error) {
           //if push fails

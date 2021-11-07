@@ -135,7 +135,7 @@ class Messages extends Component {
     if (type == 'active' && match_state == 'active'){
       
       return(
-        <ListItem key={i} onPress={() => navigate("Chat", {time_remaining: timeRemaining, expiration_date: expiration_date ,  match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur, reviews: reviews })}>        
+        <ListItem key={match_id} onPress={() => navigate("Chat", {time_remaining: timeRemaining, expiration_date: expiration_date ,  match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur, reviews: reviews })}>        
           <ProgressCircle
               matchStatus = {match_state}
               blur={blur}
@@ -197,24 +197,27 @@ class Messages extends Component {
     
       var convos = [];
       //put message data into state in appropriate format
-      firebaseRef.once('value', matchSnap => {
+      firebaseRef.on('value', matchSnap => {
+
+        //clear array, if there's exisiting data here to make sure all items are unique when db is updated. 
+        convos = [];
 
           //push match objects into convos array. If match is removed, don't add to arrary. 
-          matchSnap.forEach((item) => {
+          matchSnap.forEach((match) => {
             
             //save variables to use in forEach loop
-            let matchDate = item.toJSON().match_date;
-            let expirationDdate = item.toJSON().expiration_date;
+            let matchDate = match.val().match_date;
+            let expirationDdate = match.val().expiration_date;
             //let timeRemaining =  86000000 - (this.state.currentDate.getTime() - matchDate);
             let timeRemaining =  expirationDdate - this.state.currentDate.getTime();
             let matchState = (timeRemaining > 0) ? 'active' : 'expired';
-            let matchRemoved = item.toJSON().removed;
-            let matchStatus = item.toJSON().status;
+            let matchRemoved = match.val().removed;
+            let matchStatus = match.val().status;
             
 
             //remove matches that have been removed by match
             if((matchRemoved !== true) && matchStatus !== 'paused'){
-               convos.push(item);
+               convos.push(match);
             }
 
             //set flag expiredMatches so that render function can show the expired matches seperator. 
@@ -238,6 +241,9 @@ class Messages extends Component {
             });
 
           }else{
+
+            //clean convo array for duplicates if they exist
+
 
             //put convos array into state and turn off loading
             this.setState({

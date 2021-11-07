@@ -50,6 +50,7 @@ class Chat extends Component {
 
   constructor(props){
     super(props)
+    const { state, navigate } = this.props.navigation;
 
     this.state = {
       messages:[],
@@ -59,7 +60,7 @@ class Chat extends Component {
       removed: false,
       timeLeft: null,
       matchDate: null,
-      expirationDate: '1630892236878',
+      expirationDate: state.params.expiration_date,
       matchActive: true,
       name: null,
       birthday: '',
@@ -167,14 +168,10 @@ class Chat extends Component {
 
     //update state with subscribed, if user is susbscribed. listen on changes if subscribes changes in db.
     firebase.database().ref('/users/'+userId+'/').on("value", profile =>{
-
       let subscribed = profile.val().subscribed;
       this.setState({'subscribed': subscribed })
-
     })
     
-    
-
     //save fb ref for quering conversation data
     let firebaseRef = firebase.database().ref('/conversations/'+conversationId+'/');
 
@@ -187,38 +184,30 @@ class Chat extends Component {
     });
 
 
-       //listen for new conversation data in db
-       firebaseRef.once('value', (dataSnapshot) => {
-   
-        this.setState({blur: dataSnapshot.val().blur});
-
-      })
-
-
    //listen for new conversation data in db
       firebaseRef.on('value', (dataSnapshot) => {
 
         //create empty array
-        var imagesArray = [];
+        let imagesArray = [];
         
         //create valure for the blur radius
-        var blurRadius = dataSnapshot.val().blur;
+        let blurRadius = dataSnapshot.val().blur;
 
         //create value for the match status 
-        var chatActive = dataSnapshot.val().active;
+        let chatActive = dataSnapshot.val().active;
 
         //get name of user who is not me.
-        var participantsList = dataSnapshot.val().participants;
+        let participantsList = dataSnapshot.val().participants;
 
         //convert participants list into array
-        var participantArray = Object.entries(participantsList);
+        let participantArray = Object.entries(participantsList);
 
         //find participant who is not user in context
         //first users userid
-        var participantArrayFirstID = Object.keys(participantsList)[0];
+        let participantArrayFirstID = Object.keys(participantsList)[0];
 
         //second participants userid
-        var participantArraySecondID = Object.keys(participantsList)[1];
+        let participantArraySecondID = Object.keys(participantsList)[1];
      
         //if user is first element in participants, then the 2nd element must be participant . 
         if (participantArrayFirstID == userId){
@@ -270,7 +259,6 @@ class Chat extends Component {
             userName: participantLoggedInUserName,
             blur: dataSnapshot.val().blur,
             chatActive: chatActive,
-            //expirationDate: null,
             //timeLeft: dataSnapshot.val().time_left, //should be conversation start date. js would subtract today's date from that = time_left
             matchDate: dataSnapshot.val().match_date,
             expirationDate: dataSnapshot.val().expiration_date,
@@ -572,7 +560,6 @@ class Chat extends Component {
           //query for fcmToken used for triggering notification in the cloud. 
           firebase.database().ref('/users/'+state.params.match_userid+'/').once("value", profile =>{
 
-
             let notifyFcmToken = profile.val().fcmToken;
 
             //update the conversation with extended expiration
@@ -617,11 +604,7 @@ class Chat extends Component {
     const { state, navigate } = this.props.navigation;
 
     //save expiration date sent via messages, into let, for calculating timeLeft
-    let expiration_date2 = state.params.expiration_date;
-
-    //WHY IS THIS NOT PULLING CORRECT EXPIRATION DATE. undefined
     let expiration_date = this.state.expirationDate;
-    //alert(expiration_date);
 
     //calculate time left based off difference btw expiration date and current date. 
     let timeLeft = expiration_date - new Date().getTime();
@@ -677,7 +660,7 @@ class Chat extends Component {
 
       //update the unread of my's match obj
       firebaseMatchesRef1.update({
-        active: true
+        active: false
       });
 
       //update the unread of my's match obj
