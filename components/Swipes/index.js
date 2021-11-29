@@ -769,7 +769,9 @@ class Swipes extends Component {
                 cards={this.state.profiles}
                 ref = {swiper => {this.swiper = swiper}}
                 verticalSwipe = {false}
-                onTapCard={() => this.setState({ profileViewerVisible: true, matchAbout: this.state.profiles[cardIndex].about, matchReviews: this.state.profiles[cardIndex].reviews, matchEducation: this.state.profiles[cardIndex].education, matchBirthday: this.state.profiles[cardIndex].birthday, matchWork: this.state.profiles[cardIndex].work, matchGender: this.state.profiles[cardIndex].gender, matchCityState: this.state.profiles[cardIndex].city_state, matchEducation: this.state.profiles[cardIndex].education,  matchImages: Object.values(this.state.profiles[cardIndex].images) })} 
+                //onTapCard={() => this.setState({ profileViewerVisible: true, matchAbout: this.state.profiles[cardIndex].about, matchReviews: this.state.profiles[cardIndex].reviews, matchEducation: this.state.profiles[cardIndex].education, matchBirthday: this.state.profiles[cardIndex].birthday, matchWork: this.state.profiles[cardIndex].work, matchGender: this.state.profiles[cardIndex].gender, matchCityState: this.state.profiles[cardIndex].city_state, matchEducation: this.state.profiles[cardIndex].education,  matchImages: Object.values(this.state.profiles[cardIndex].images) })} 
+                onTapCard={() =>  this.props.navigation.navigate("Profile", {profile: this.state.profiles[cardIndex], flow: 'swipes'})} 
+
                 cardIndex={this.state.cardIndex}
                 backgroundColor={'white'}
                 stackSeparation={11}
@@ -867,12 +869,13 @@ class Swipes extends Component {
                         /> 
                       </View>
                     </CardItem>                  
-                    <CardItem>
-                        <Body>
-                          <H3 style={{ textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday)}, {card.gender}, {card.city_state}</H3>
-                          <Text style={{}} numberOfLines={1}>{card.education} </Text>
-                          <Text style={{}} numberOfLines={1}>{card.work} </Text>
-                          <Text style={{marginTop: 10}} numberOfLines={1} note>{card.about} </Text>                           
+                    <CardItem style={{backgroundColor: 'black'}}>
+                        <Body >
+                          <Text style={{fontSize: 20, fontFamily:'HelveticaNeue-Bold', textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday)} | {card.gender}</Text>
+                          <Text style={{color: 'white', fontSize: 15, fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.city_state} </Text>
+                          <Text style={{color: 'white', fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.education} </Text>
+                          <Text style={{color: 'white', fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.work} </Text>
+                          {/* <Text style={{marginTop: 10}} numberOfLines={1} note>{card.about} </Text>                            */}
                         </Body>
                     </CardItem>            
                   </Card>)
@@ -939,7 +942,7 @@ class Swipes extends Component {
                   <View style={{flex: 1, alignSelf: 'flex-start'}}>
                     <TouchableOpacity>
                       <Card transparent style={{padding: 10}}>   
-                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.calculateAge(this.state.matchBirthday)}, {this.state.matchGender}, {this.state.matchCityState}</H3>
+                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.calculateAge(this.state.matchBirthday)}, {this.state.matchGender}</H3>
                         <Text numberOfLines={1} style={{}} >{this.state.matchWork} </Text>
                         <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.matchEducation} </Text>
                         <Text note style={{marginTop: 10}}>{this.state.matchAbout}</Text>

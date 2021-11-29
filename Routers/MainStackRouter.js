@@ -7,6 +7,7 @@ import Swipes from "../components/Swipes";
 //import Settings from "../components/Settings";
 import Dashboard from "../components/Dashboard";
 import Registration from "../components/Registration";
+import ManageAboutMe from "../components/ManageAboutMe";
 
 import { NavigationEvents, createStackNavigator, NavigationActions } from "react-navigation";
 
@@ -22,6 +23,7 @@ export default (StackNav = createStackNavigator({
 		  Intro: { screen: Intro},	
 		  Dashboard: { screen: Dashboard},  
 		  Registration: { screen: Registration}, 
+		  ManageAboutMe: { screen: ManageAboutMe}, 
 		  //Settings: { screen: Settings},  
 		},
 		{

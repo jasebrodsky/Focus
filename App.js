@@ -13,10 +13,21 @@ import Messages from "./components/Messages";
 import Chat from "./components/Chat";
 import Swipes from "./components/Swipes";
 import Dashboard from "./components/Dashboard";
+
+
+import ManageAboutMe from "./components/ManageAboutMe";
+import ManagePreferences  from "./components/ManagePreferences";
+import ManageConversationPrompts from "./components/ManageConversationPrompts";
+import ManageConversationPromptsEdit from "./components/ManageConversationPromptsEdit";
+import Profile from "./components/Profile";
+
+
 import Registration from "./components/Registration";
+
 import Payments from "./components/Payments";
 import Refer from "./components/Refer";
 import Waitlist from "./components/Waitlist";
+
 import codePush from "react-native-code-push";
 import SplashScreen from  "react-native-splash-screen";
 import dynamicLinks from '@react-native-firebase/dynamic-links';
@@ -48,10 +59,19 @@ const MainStack = createStackNavigator(
     },
     Intro: {
       screen: Intro,
-    },
+    },   
     Dashboard: {
       screen: Dashboard,
     },
+    ManageAboutMe: {
+      screen: ManageAboutMe,
+    },  
+    ManagePreferences: {
+      screen: ManagePreferences,
+    },   
+    ManageConversationPrompts: {
+      screen: ManageConversationPrompts,
+    },     
     Swipes: {
       screen: Swipes,
     },
@@ -84,7 +104,6 @@ const MainStack = createStackNavigator(
       }
     }
 
-
   }
 );
 
@@ -102,10 +121,23 @@ const RootStack = createStackNavigator(
     },
     Registration: {
       screen: Registration,
+    }, 
+    ManageAboutMeModal: {
+      screen: ManageAboutMe,
     },    
+    Profile: {
+      screen: Profile,
+    },   
+    ManageConversationPromptsModal: {
+      screen: ManageConversationPrompts,
+    },  
+    ManageConversationPromptsEdit: {
+      screen: ManageConversationPromptsEdit,
+    },     
     Waitlist: {
       screen: Waitlist,
-    }      
+    },
+   
   },
   {
     mode: 'modal',
@@ -182,6 +214,7 @@ export default class App extends React.Component {
           photo: this.state.image_creator, 
           reason: searchParams.get('reason'), 
           code_key: key[0],
+          type: 'review'
         }
 
         //put search Params into obj

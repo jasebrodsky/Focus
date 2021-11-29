@@ -41,12 +41,12 @@ class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      nextScreen: 'Registration',
+      nextScreen: 'ManageAboutMe',
       searchParams: '',
       name: '',
       email: '',
       password: '',
-      gender: 'Gender Identity',
+      //gender: 'Gender Identity',
       createAccount: true,
       errorMessage: false,
       rotated: false, 
@@ -218,7 +218,7 @@ validateAccount = () => {
 
   let email = this.state.email;
   let password = this.state.password;
-  let gender = this.state.gender; 
+  //let gender = this.state.gender; 
   let errorMessage = '';
 
   if (email === '') {
@@ -241,9 +241,9 @@ validateAccount = () => {
     errorMessage = "@ not included with email.";
   }
     
-  if (gender === 'Gender identity') {
-    errorMessage = "Gender identity is required.";
-  }
+  // if (gender === 'Gender identity') {
+  //   errorMessage = "Gender identity is required.";
+  // }
 
   //return true if there's no more errors. Else, alert the error message.
   if (errorMessage == '') {
@@ -318,14 +318,14 @@ redirectUser = async (userId) => {
 
       //save user date in variables check that all required fields are present.
       let first_nameValidated = snapshot.val().first_name !== '';
-      let genderValidated = genderValidated = snapshot.val().gender !== 'select';
+      //let genderValidated = genderValidated = snapshot.val().gender !== 'select';
       let interestedValidated = snapshot.val().gender_pref !== 'select';
       let birthdayValidated = snapshot.val().birthday !== '';
       let code_accepted = snapshot.val().code_accepted;
       let workValidated = snapshot.val().work !== '';
       let educationValidated = snapshot.val().education !== '';
       let aboutValidated = snapshot.val().about !== '';
-      let gender = (snapshot.val().gender == 'female') ? 'female' : 'male' ;
+      //let gender = (snapshot.val().gender == 'female') ? 'female' : 'male' ;
       let intialUser = snapshot.val().intialUser;
       let status = snapshot.val().status;
 
@@ -340,17 +340,17 @@ redirectUser = async (userId) => {
       let reason = this.state.searchParams ? this.state.searchParams.get('reason') : null ;
 
       //compute if profile is complete
-      let profileComplete = (aboutValidated && educationValidated && first_nameValidated && workValidated && genderValidated && birthdayValidated && interestedValidated);
+      let profileComplete = ( educationValidated && first_nameValidated && workValidated && birthdayValidated && interestedValidated);
   
 
       if(status == 'waitlist'){
           //show intro slides, with deeplink params if present
-          this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, gender: gender, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
+          this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
       }
       else if(status == 'active'|| 'paused'){
         
         // if settings are valid - send to swipes. if not send to settings. 
-        (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Registration')
+        (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('ManageAboutMe');
       
       }
 
@@ -418,7 +418,7 @@ handleLogin = () => {
 handleSignUp = () => {
   const { navigate } = this.props.navigation;
   const { email, password } = this.state
-  gender = this.state.gender.toLocaleLowerCase();
+  //gender = this.state.gender.toLocaleLowerCase();
   var that = this;
 
   let offsetInMin = new Date().getTimezoneOffset();
@@ -443,17 +443,17 @@ handleSignUp = () => {
         latitude: 40.71797067746141, //default to NYC
         longitude: -73.98527588801655, //default to NYC
         city_state: 'New York, NY', //default to NYC
-        gender: gender,
-        gender_pref: (gender == 'male') ? 'male_straight' : 'female_straight', //default gender_pref to straight to have less required field to validate.
-        interested: (gender == 'male') ? 'female' : 'male', //default interested in to straight to have less required field to validate.         
+        gender: '',
+        //gender_pref: (gender == 'male') ? 'male_straight' : 'female_straight', //default gender_pref to straight to have less required field to validate.
+        //interested: (gender == 'male') ? 'female' : 'male', //default interested in to straight to have less required field to validate.         
+        //code_accepted: (gender == 'female') ? true : false, //if new user is female set code accepted to true, check this before letting user (men) in next time. 
+        gender_pref: '',
+        interested: '',
         birthday: '',
         about: '',
         work: '',
         education: '',
-        //status: 'active',
         status: 'waitlist',
-        code_accepted: (gender == 'female') ? true : false, //if new user is female set code accepted to true, check this before letting user (men) in next time. 
-        interested: (gender == 'male') ? 'female' : 'male', //default interested in to straight to have less required field to validate. 
         min_age: 18,
         max_age: 60,
         max_distance: 160934.4,
@@ -469,7 +469,9 @@ handleSignUp = () => {
           } else {
             console.log("Data saved successfully.");
             //redirect to Intro flow. Send gender and user id via navigation prop.                           
-            that.props.navigation.navigate("Intro", {user_id: data.user.uid, gender: gender});
+            //that.props.navigation.navigate("Intro", {user_id: data.user.uid, gender: gender});
+            that.props.navigation.navigate("Intro", {user_id: data.user.uid});
+
           }
         })
       ) 
@@ -849,7 +851,7 @@ onLoginOrRegister = () => {
                     />
                     
                     {/* if create account is clicked, show gender dropdown in form */}
-                    {(this.state.createAccount) &&
+                    {/* {(this.state.createAccount) &&
                     
                     <Item style={{borderBottomWidth: 1, height: 60, width: 250}}             
                       onPress={
@@ -881,7 +883,7 @@ onLoginOrRegister = () => {
 
                   </Item>
                               
-                    }
+                    } */}
 
                 
                 {/* Show login with facebook, with email, create account, forgot password elements */}
@@ -980,7 +982,7 @@ onLoginOrRegister = () => {
                 
                   <Button 
                     transparent
-                    onPress = {() => this.setState({createAccount: false, email: '', password: '', gender: 'Gender identity'})} 
+                    onPress = {() => this.setState({createAccount: false, email: '', password: ''})} 
                     style={{justifyContent: 'center', }}>
                       <Text style={{color: 'white'}}>Sign in</Text>
                   </Button>      

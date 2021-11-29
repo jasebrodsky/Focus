@@ -225,9 +225,9 @@ class Intro extends Component {
     //check if deeplink exists of type refer, if so, run inviteFlow, which updates UX based off invite link
     
     //update state with gender passed from navigation
-    this.setState({
-      gender: this.props.navigation.getParam('gender'), //get from login screen
-    });
+    // this.setState({
+    //   gender: this.props.navigation.getParam('gender'), //get from login screen
+    // });
 
     
       // RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
@@ -268,7 +268,10 @@ class Intro extends Component {
     const { navigate } = this.props.navigation;
       
     //go to Registration flow
-    navigate("Registration");
+    //navigate("ManageAboutMe");
+    this.props.navigation.navigate("ManageAboutMe", {step: 0, userId: this.state.userId}); 
+
+
 
     //if user canJoin redirect to Registration. 
     //if (this.context.deepLinkParams.gender_creator == 'female' || this.state.gender == 'female'){

@@ -370,7 +370,7 @@ class Dashboard extends Component {
     let interestedValidated = this.state.profile.interested !== 'select';
 
     //if all items are true, return true, else return false. 
-    if (aboutValidated && educationValidated && first_nameValidated && workValidated && genderValidated && birthdayValidated && interestedValidated ){
+    if ( educationValidated && first_nameValidated && workValidated && genderValidated && birthdayValidated && interestedValidated ){
       return true; 
     }else {
       return false
@@ -1711,7 +1711,7 @@ class Dashboard extends Component {
             justifyContent: 'center',
             //backgroundColor: primaryColor, dimensions
             }}
-            colors={[primaryColor, secondaryColor]}
+            colors={['black', 'black']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1.5, y: 1.5 }}
             >
@@ -1731,12 +1731,12 @@ class Dashboard extends Component {
                     (buttonIndex) => {
                       if ((buttonIndex) === 0) {
                         //open view profile modall
-                        this.setState({ profileViewerVisible: true})
+                        this.props.navigation.navigate("Profile", {profile: this.state.profile}); 
                         }
           
                       if ((buttonIndex) === 1) {
                         //open edit profile modal
-                        this.setState({ editProfileVisible: true})
+                        this.props.navigation.navigate("Profile", {profile: this.state.profile, flow: 'edit'}); 
                       }              
                     }                       
                   )
@@ -1756,17 +1756,19 @@ class Dashboard extends Component {
                     marginBottom: 10, 
                     overflow: "hidden", 
                     borderRadius: 150, 
-                    borderWidth: 0.5, 
-                    borderColor: 'black' }} 
+                    borderWidth: 1, 
+                    borderColor: 'white' }} 
                   source={{uri: this.state.profile.images["0"].url, cache: 'force-cache'}} 
                 />
             </TouchableOpacity>
 
 
-              <H1 numberOfLines={1} 
+              <Text numberOfLines={1} 
                   style={{
                     textTransform: 'capitalize', 
-                    color: 'white',
+                    fontFamily:'HelveticaNeue-Bold', 
+                    fontSize: 35,
+                    color: primaryColor,
                     shadowColor: "#000",
                     shadowOffset: {
                       width: 0,
@@ -1774,9 +1776,9 @@ class Dashboard extends Component {
                     },
                     shadowOpacity: 0.8,
                     shadowRadius: 4.65,}} >
-                  {this.state.profile.first_name}, {this.getAge(this.state.profile.birthday)}, {this.state.profile.gender}
-              </H1>
-              <Text numberOfLines={1} style={{textTransform: 'capitalize', marginBottom: 10}} >{this.state.profile.city_state}</Text>
+                  {this.state.profile.first_name} | {this.getAge(this.state.profile.birthday)}
+              </Text>
+              <Text numberOfLines={1} style={{fontFamily:'Helvetica', fontSize: 20, color: 'white', textTransform: 'capitalize', marginBottom: 10}} >{this.state.profile.city_state}</Text>
               {/* <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.work} </Text> */}
               {/* <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.education} </Text> */}
 

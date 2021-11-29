@@ -626,8 +626,12 @@ class Chat extends Component {
 
       let timeRemainingText = '';
 
-      //if theres more than 1 day, just so the days left
-      if (daysLeft > 0) {
+      //if theres more than 6 days, just show 1 week left
+      if (daysLeft == 6) {
+        timeRemainingText = '1 week';
+      }
+      //if theres more than 1 day, just show the days left
+      else if (daysLeft > 0) {
         timeRemainingText = daysLeft == 1 ? daysLeft+' day' : daysLeft+' days';
       }
       //if theres less than one day but more than 0 hours, just show hours left
