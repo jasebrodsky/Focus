@@ -1,12 +1,13 @@
 import React, { Component, useState, useEffect } from 'react';
-import { StyleSheet, Alert, Dimensions, Platform } from 'react-native';
+import { StyleSheet, Alert, Dimensions, Platform, TouchableOpacity } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEye, faHistory } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faHistory, faUtensils, faPeopleCarry,  } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
 import IAP, { purchaseUpdatedListener } from "react-native-iap";
+import Carousel, { Pagination } from 'react-native-snap-carousel';
 
 import {
   Container,
@@ -25,7 +26,7 @@ const btnColor = 'white';
 const btnTextColor = primaryColor;
 
 //items to purchase
-const items = ["fd_999_1m"];
+const items = ['fd_2999_1m', 'fd_5999_3m', 'fd_8999_6m'];
 
 class Payments extends Component {
   constructor(props){
@@ -36,6 +37,55 @@ class Payments extends Component {
       loading: true,
       userId: '',
       products: [], //for payment tiers
+      activeTier: 1,
+      selectedProductId: 'fd_5999_3m',
+      activeIndex:0,
+      carouselItems: [
+        {
+            icon:faUtensils,
+            title:"Unlimited Blind Dates",
+            text: "More blind date expirences.",
+        },
+        {
+            icon:faHistory,
+            title:"Unlimited Chat Extends",
+            text: "More time to make connections.",
+        },
+        {
+            icon:faPeopleCarry,
+            title:"Unlimited Matches",
+            text: "More people to connect with.",
+        },
+      ],
+      initalProducts: [      
+        {
+          title: 'Focus Unlimited',
+          description: 'Get Focus Unlimited.',
+          subscriptionPeriodNumberIOS: '1', 
+          subscriptionPeriodUnitIOS: 'MONTHS', 
+          localizedPrice: '$29.99',
+          price: 29.99,  
+          productId: 'fd_2999_1m' 
+        },
+        {
+          title: 'Focus Unlimited',
+          description: 'Get Focus Unlimited.',
+          subscriptionPeriodNumberIOS: '3', 
+          subscriptionPeriodUnitIOS: 'MONTHS', 
+          localizedPrice: '$59.99', 
+          price: 59.99, 
+          productId: 'fd_5999_3m' 
+        },        
+        {
+          title: 'Focus Unlimited',
+          description: 'Get Focus Unlimited.',
+          subscriptionPeriodNumberIOS: '6', 
+          subscriptionPeriodUnitIOS: 'MONTHS', 
+          localizedPrice: '$89.99',
+          price: 89.99,  
+          productId: 'fd_8999_6m' 
+        }
+      ]
     }
   }
 
@@ -181,37 +231,104 @@ class Payments extends Component {
   }
 
 
+  //when user clicks subscription tier button. update UX and state to handle purchase button when subscribing
+  _onPress = (productId, tier) => {
+
+    console.log('pushed tier: '+ tier + 'of productId: '+productId);
+
+    //save actived tier to state
+    this.setState({activeTier: tier, selectedProductId: productId })
+
+  }
+
+
+  //render slider items
+  _renderItem({item,index}){
+    return (
+      <View style={{
+        flex: 3,
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderRadius: 0,
+        marginLeft: 0,
+        marginRight: 0, }}>
+          
+          <View style={{flex:1, color: 'white', margin: 70}}>           
+           <FontAwesomeIcon 
+              size={ 90 } 
+              icon={item.icon}
+              style={{
+                color: 'white', 
+                backgroundColor: 'transparent', 
+                shadowColor: "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 3,
+                },
+                shadowOpacity: 0.29,
+                shadowRadius: 4.65,}} 
+            />
+            </View>
+          <Text style={{flex:1, fontFamily: 'Helvetica-Light',  fontSize: 27, textAlign: 'center', color: 'white', marginTop: 7, marginBottom: 7 }}>{item.title}</Text>
+          <Text style={{flex:1, fontFamily: 'Helvetica-Light',  fontSize: 17, textAlign: 'center', color: 'white',}}>{item.text}</Text>
+      </View>
+
+    )
+}
+
+    get pagination () {
+        const { carouselItems, activeIndex } = this.state;
+        return (
+            <Pagination
+              carouselRef={this.carousel}
+              dotsLength={carouselItems.length}
+              activeDotIndex={activeIndex}
+              containerStyle={{padding: 0, height: 10, width: 20,   }}
+              dotStyle={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 5,
+                  marginHorizontal: 8,
+                  backgroundColor: 'rgba(255, 255, 255, 0.92)'
+              }}
+              inactiveDotStyle={{
+                  // Define styles for inactive dots here
+              }}
+              inactiveDotOpacity={0.4}
+              inactiveDotScale={0.6}
+            />
+        );
+    }
+
+
   render() {
     const { navigate } = this.props.navigation;
     //determine width of device in order for custom margin between iphones
     let deviceWidth = Dimensions.get('window').width
     let blackColor = "#505050"
-    //let BodyBackgroundColor = "#E8E8E8"
-    let BodyBackgroundColor = blackColor
-    //set loading state for pricing data
-    let title = 'Get Focus Premium';
-    let description = 'Get unlimited time to chat';
-    let subscriptionPeriodNumber = '1';
-    let subscriptionPeriod = 'MONTH';
-    let price = '$9.99';
-    let productId = '';
+    let productArray = [];
 
 
 
     // if products have loaded save them to use in render
     if (this.state.products.length > 0 ){
+
       console.log('products length over one');
-      title = 'Get ' + this.state.products[0]['title']; //Focus Premium
-      description = this.state.products[0]['description']; //Get unlimited time to chat.
-      subscriptionPeriodNumber = this.state.products[0]['subscriptionPeriodNumberIOS']; //1,6,12,...
-      subscriptionPeriod = this.state.products[0]['subscriptionPeriodUnitIOS']; //MONTHS
-      price = this.state.products[0]['localizedPrice']; //$9.99
-      productId = this.state.products[0]['productId']; //$9.99
+      //save productArray as products now in state. 
+      productArray = this.state.products ; 
+      
+    }else{
+
+      console.log('products length under one, use initial state');
+      //save productArray as products now in state. 
+      productArray = this.state.initalProducts ; 
+
     }
 
         
     return (
-      <Container style={{ flex: 1, alignItems: 'center',  }}>
+      <Container style={{ flex: 1, alignItems: 'center', backgroundColor: '#1C1C24'  }}>
 
 
                 {/* top section */}
@@ -219,79 +336,174 @@ class Payments extends Component {
                     colors={[ primaryColor, secondaryColor,   ]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 2, y: 2 }}
-                    style={{flex: 8, alignItems: 'center', justifyContent: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
+                    style={{flex: 11, alignItems: 'center', justifyContent: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
                     {/* static header */}
-                    <View style={{flex: 1, marginTop:50}}>
-                        <H1 style={{ textAlign: 'center', justifyContent:'center', color: 'white'}}>{title}</H1>
+                    <View style={{
+                      flex: 1, 
+                      width: deviceWidth-80,
+                      backgroundColor: '#1C1C24',
+                      borderRadius: 30,
+                      padding: 40,
+                      justifyContent: 'center', 
+                      marginLeft: 40,
+                      marginRight: 40,
+                      marginTop: 40, }}>
+
+                        <Text style={{ fontFamily:'Helvetica', textAlign: 'left', fontSize: 45, color: 'white'}}>Get Focus</Text>
+                        <Text style={{ fontFamily:'Helvetica-Light', textAlign: 'left', fontSize: 30, color: 'white'}}>Unlimited</Text>
+
                     </View>
                     
-                    {/* slider of features */}
-                    <View style={{flex: 2, alignItems: 'center', justifyContent: 'center'}}>
-                        <FontAwesomeIcon size={ 130 } style={{
-                          color: 'white', 
-                          backgroundColor: 'transparent', 
-                          shadowColor: "#000",
-                          shadowOffset: {
-                            width: 0,
-                            height: 3,
-                          },
-                          shadowOpacity: 0.29,
-                          shadowRadius: 4.65,}} icon={faHistory}/>
-                        <H1 style={{
-                          paddingTop: 15, 
-                          textAlign: 'center', 
-                          color: 'white', 
-                          shadowColor: "#000",
-                          shadowOffset: {
-                            width: 0,
-                            height: 3,
-                          },
-                          shadowOpacity: 0.29,
-                        shadowRadius: 4.65,}}>Extend Chat</H1>
-                        <Text style={{paddingTop: 15, textAlign: 'center', color: 'white'}}>{description}</Text>
+
+
+                        {/* slider of features */}
+                        <View style={{
+                          flex: 5, 
+                          width: deviceWidth-80,
+                          backgroundColor: '#1C1C24',
+                          borderRadius: 30,
+                          paddingTop: 0,
+                          alignItems: 'center',
+                          justifyContent: 'center', 
+                          margin: 25
+                          }}>
+
+                        <View style={{ flex: 6, flexDirection:'column', justifyContent: 'center', alignItems: 'center'  }}>
+                          <Carousel
+                            layout={"default"}
+                            loop={true}
+                            autoplay={true}
+                            autoplayInterval={4000}
+                            removeClippedSubviews ={false}
+                            enableMomentum={false}
+                            ref={ref => this.carousel = ref}
+                            data={this.state.carouselItems}
+                            sliderWidth={deviceWidth-80}
+                            itemWidth={deviceWidth-80}
+                            //itemHeight={20}
+                            renderItem={this._renderItem}
+                            onSnapToItem = { index => this.setState({activeIndex:index}) } 
+                        />
+                        { this.pagination }
                     </View>
+
+                            {/* body with descriptions of pricing */}
+                            
+                            <View style={{
+                              flex: 2,
+                              alignItems: 'center',
+                              width: deviceWidth-80,
+                            }}>
+
+                              <View style={{
+                                  flex: 2,
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  backgroundColor: primaryColor,
+                                   width: (deviceWidth - 80)/3,
+
+                                }}>
+                                  <Text style={{
+                                    fontSize: 12,
+                                    padding: 3,
+                                    color: 'white',
+                                    fontFamily: 'Helvetica-Bold'
+                                  }}>Recommended</Text>
+                                </View>
+
+                                <View style={{
+                                    flex: 6,
+                                    flexDirection: 'row'                                
+                                }}>
+
+                                    <TouchableOpacity 
+                                    onPress={() => {this._onPress(items[0], 0)}}
+                                    style={{ 
+                                        flex: 1, 
+                                        justifyContent: 'center', 
+                                        backgroundColor: this.state.activeTier == 0 ? '#BDDDEE' : 'white',
+                                        borderBottomLeftRadius: 30,
+                                        borderWidth: 0.5,
+                                        borderColor: 'black',
+                                        }}>
+                                          <Text style={{ fontFamily: 'Helvetica-Bold', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[0]['subscriptionPeriodNumberIOS']+' '+productArray[0]['subscriptionPeriodUnitIOS'].toLowerCase()} </Text>
+                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[0]['localizedPrice']} </Text>
+                                      </TouchableOpacity>
+                                      
+                                      <TouchableOpacity 
+                                      onPress={() => {this._onPress(items[1], 1)}}
+                                      style={{ 
+                                        flex: 1, 
+                                        justifyContent: 'center', 
+                                        backgroundColor: this.state.activeTier == 1 ? '#BDDDEE' : 'white',
+                                        borderWidth: 0.5,
+                                        borderColor: 'black',
+                                        }}>
+                                          <Text style={{ fontFamily: 'Helvetica-Bold', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[1]['subscriptionPeriodNumberIOS']+' '+productArray[1]['subscriptionPeriodUnitIOS'].toLowerCase()} </Text>
+                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[1]['localizedPrice']} </Text>
+                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{'$'+Math.round(100*productArray[1]['price'])/100 +'/'+ productArray[1]['subscriptionPeriodUnitIOS'].toLowerCase()}</Text>
+                                      </TouchableOpacity>
+                                     
+                                      <TouchableOpacity 
+                                      onPress={() => {this._onPress(items[2], 2)}}
+                                      style={{ 
+                                        flex: 1, 
+                                        justifyContent: 'center', 
+                                        backgroundColor: this.state.activeTier == 2 ? '#BDDDEE' : 'white',
+                                        borderBottomRightRadius: 30,
+                                        borderWidth: 0.5,
+                                        borderColor: 'black',
+                                        }}>
+                                          <Text style={{ fontFamily: 'Helvetica-Bold', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[2]['subscriptionPeriodNumberIOS']+' '+productArray[2]['subscriptionPeriodUnitIOS'].toLowerCase()} </Text>
+                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[2]['localizedPrice']} </Text>
+                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{'$'+Math.round(100*productArray[2]['price'])/100 +'/'+ productArray[2]['subscriptionPeriodUnitIOS'].toLowerCase()}</Text>
+                                      </TouchableOpacity>
+
+                                </View>
+
+
+
+                          </View>
+
+                        </View>
+
+
     
 
-                {/* body with descriptions of pricing */}
-                <View style={{ flex: 2, justifyContent: 'center', width: deviceWidth}}>
-                    <Text style={{ fontWeight: 'bold', fontSize: 50,textAlign: 'center', color: "white"}}>{subscriptionPeriodNumber} </Text>
-                        <Text style={{ fontSize: 30, textAlign: 'center', color: "white"}}>{subscriptionPeriod.toLocaleLowerCase()} </Text>
-                    <Text style={{ fontWeight: 'bold',fontSize: 30, textAlign: 'center', color: "white"}}>{price}/{subscriptionPeriod.toLocaleLowerCase()}  </Text>
-                </View>
+
 
                 </LinearGradient>
 
 
 
-                {/* footer with buttons */}
-                <View style={{ flex: 2, justifyContent: 'center', alignContent: 'center' }}>
+                {/* footer with buttons and compliance text */}
+
+                <View style={{ flex: 3, justifyContent: 'center', alignItems: 'center', }}>
                     <Button 
                       bordered 
                       style={{
                         marginTop: 20, 
-                        borderColor: primaryColor, 
-                        backgroundColor: primaryColor, 
+                        width: 200,
+                        backgroundColor: 'white', 
                         borderRadius: 20,
-                        shadowColor: "#000",
-                        shadowOffset: {
-                          width: 0,
-                          height: 3,
-                         },
-                        shadowOpacity: 0.29,
-                        shadowRadius: 4.65, }} 
-                      onPress={() => {this._onSubscribe(productId);}}>
-                        <Text style={{color: 'white', width: 200, textAlign:'center'}}>Continue</Text>
+                         }} 
+                      onPress={() => {this._onSubscribe(this.state.selectedProductId)}}>
+                        <Text style={{color: primaryColor, width: 200, textAlign:'center'}}>Continue</Text>
                     </Button>  
+
                     <Button transparent full onPress={() => {this.props.navigation.goBack()}} >
                         <Text style={{color: primaryColor}}>Cancel</Text>
                     </Button>
+
+                    {/* compliance text */}
+                    <View style={{ flex: 2, justifyContent: 'center', padding: 10 }}>                   
+                        <Text style={{fontWeight: 'bold', fontSize: 11, color: 'white', textAlign:'center'}}>Recurring Billing. Cancel anytime. </Text>
+                        <Text style={{padding: 5, fontSize: 9, color: 'white', textAlign:'center'}}>If you choose to purhcase a subscription, payment will be charged to your iTunes account, and your account will be charged within 24-hours prior to the end of the current period. Auto-renewal may be turned off at any time by going to your iTunes & App Store Account Settings after purchase. </Text>  
+                    </View>
+
                 </View>
 
-                {/* compliance text */}
-                <View style={{ flex: 2, justifyContent: 'center', backgroundColor: 'white', width: deviceWidth }}>                   
-                    <Text style={{fontWeight: 'bold', fontSize: 15, color: blackColor, textAlign:'center'}}>Recurring Billing. Cancel anytime. </Text>
-                    <Text style={{padding: 10, fontSize: 12, color: blackColor, textAlign:'center'}}>If you choose to purhcase a subscription, payment will be charged to your iTunes account, and your account will be charged within 24-hours prior to the end of the current period. Auto-renewal may be turned off at any time by going to your iTunes & App Store Account Settings after purchase. </Text>  
-                </View>
+
 
       </Container>
     );

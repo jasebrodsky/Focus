@@ -8,7 +8,6 @@
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint ."
-               
   },
   "dependencies": {
     "@dudigital/react-native-zoomable-view": "^1.1.3",
@@ -22,6 +21,7 @@
     "@react-native-community/slider": "^2.0.8",
     "@react-native-firebase/app": "^6.2.0",
     "@react-native-firebase/dynamic-links": "^6.2.0",
+    "@types/react-native-snap-carousel": "^3.8.5",
     "appcenter": "^4.2.0",
     "appcenter-analytics": "^4.2.0",
     "appcenter-crashes": "^4.2.0",

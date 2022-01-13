@@ -439,9 +439,9 @@ _renderNextButton  =  ()  => {
       //if refer link is used
       if(this.context.deepLinkParams.type == 'refer'){
 
-        // if(this.context.deepLinkParams.expired == false){
-        //   //run invite flow if link is not expired
-        //   this._inviteFlow();
+        if(this.context.deepLinkParams.expired == false){
+          //run invite flow if link is not expired
+          this._inviteFlow();
 
         //   slides = this.state.slidesOffWaitlist;
 
@@ -458,10 +458,10 @@ _renderNextButton  =  ()  => {
         //   //   slides = this.state.slidesFemale;
         //   // }
 
-        // }else{
-        //   //link has been used, ask for another one. 
-        //   console.log('link has expired');
-        // }
+        }else{
+          //link has been used, ask for another one. 
+          console.log('link has expired');
+        }
 
       }
 

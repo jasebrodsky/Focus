@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Dimensions, Animated, ActivityIndicator, Image, ImageBackground, TouchableOpacity, Modal,ScrollView,Share } from 'react-native'
+import { Dimensions, StatusBar, Animated, ActivityIndicator, Image, ImageBackground, TouchableOpacity, Modal,ScrollView,Share } from 'react-native'
 import RNFirebase from "react-native-firebase";
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import * as firebase from "firebase";
@@ -107,6 +107,7 @@ class Swipes extends Component {
 
         //save params from nav if swipes needs to be force updated (since navigating backwards won't re-render component)
         let forceUpdate = this.props.navigation.getParam('forceUpdate');
+
 
         if (forceUpdate == true){
           //reset cardindex to 0
@@ -654,6 +655,7 @@ class Swipes extends Component {
  
     return (
       <Container style={{}} >
+        <StatusBar hidden={false} />
 
         <BlurOverlay
           radius={14}
@@ -763,14 +765,32 @@ class Swipes extends Component {
               start={{ x: 0, y: 1 }}
               end={{ x: 1, y: 1 }}
               >
-            
-            <View style={{ position: 'relative', bottom: 40, flex: 1, justifyContent: 'flex-start'}}>
+
+
+            <View style={{
+              //backgroundColor: 'black',
+              height: 70,
+              width: deviceWidth,
+              flex: 1,
+            }}>
+              <View style={{flex: 1, backgroundColor: 'black', alignContent: 'center', justifyContent: 'center'}}>
+                <Text style={{
+                  textAlign: 'center',
+                  color: 'white', 
+                  fontFamily:'Helvetica',
+                  fontSize: 40
+                  }}>Blind <Text style={{fontSize: 40, fontFamily:'Helvetica', color: primaryColor}}>Date</Text> With?</Text>
+              </View>
+            </View>
+
+
+            <View style={{ position: 'relative', bottom: 40, flex: 10, justifyContent: 'flex-start',}}>
               <Swiper
                 cards={this.state.profiles}
                 ref = {swiper => {this.swiper = swiper}}
                 verticalSwipe = {false}
                 //onTapCard={() => this.setState({ profileViewerVisible: true, matchAbout: this.state.profiles[cardIndex].about, matchReviews: this.state.profiles[cardIndex].reviews, matchEducation: this.state.profiles[cardIndex].education, matchBirthday: this.state.profiles[cardIndex].birthday, matchWork: this.state.profiles[cardIndex].work, matchGender: this.state.profiles[cardIndex].gender, matchCityState: this.state.profiles[cardIndex].city_state, matchEducation: this.state.profiles[cardIndex].education,  matchImages: Object.values(this.state.profiles[cardIndex].images) })} 
-                onTapCard={() =>  this.props.navigation.navigate("Profile", {profile: this.state.profiles[cardIndex], flow: 'swipes'})} 
+                onTapCard={() =>  this.props.navigation.navigate("Profile", {profile: this.state.profiles[cardIndex], from: 'Swipes'})} 
 
                 cardIndex={this.state.cardIndex}
                 backgroundColor={'white'}
@@ -818,13 +838,13 @@ class Swipes extends Component {
                     }
                   },
                   right: {
-                    title: 'LIKE',
+                    title: 'YEAH',
                     style: {
                       label: {
                         backgroundColor: primaryColor,
                         borderColor: primaryColor,
                         color: 'white',
-                        borderWidth: 1
+                        borderWidth: 1,
                       },
                       wrapper: {
                         flexDirection: 'column',
@@ -855,16 +875,17 @@ class Swipes extends Component {
                 renderCard={(card) => {
                   
                   return (
-                  <Card style={{ elevation: 3 }}>
+                  <Card style={{ elevation: 30, }}>
                     <CardItem cardBody>
                       <View style={{
                         flex: 1,
                         justifyContent: 'center',
-                        alignItems: 'center',                        
+                        alignItems: 'center',
+                                                
                       }}>
                         <ImageBackground
                           resizeMode="cover"
-                          style={{ width: '100%', height: height-245 }}
+                          style={{ width: '100%', height: height-320 }}
                           source={{uri: Object.values(card.images)[0].url}}
                         /> 
                       </View>

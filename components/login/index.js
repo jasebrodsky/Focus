@@ -311,8 +311,6 @@ redirectUser = async (userId) => {
   firebase.database().ref('/users/' + userId).once('value')
   .then((snapshot) => {
 
-
-      
       //update last login and timezone offset of user
       firebase.database().ref('/users/' + snapshot.val().userid).update({last_login: Date.now(), utc_offset_min: new Date().getTimezoneOffset()})
 
@@ -351,7 +349,7 @@ redirectUser = async (userId) => {
         
         // if settings are valid - send to swipes. if not send to settings. 
         (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('ManageAboutMe');
-      
+
       }
 
       
@@ -432,7 +430,7 @@ handleSignUp = () => {
         fb_id: '',
         last_name: '',
         email: email,
-        images: [{file: 0, url: "https://focusdating.co/images/user.jpg", cache: 'force-cache'}],
+        images: [{type: 'image', file: 0, url: "https://focusdating.co/images/user.jpg", cache: 'force-cache'}],
         last_login: Date.now(),
         utc_offset_min: offsetInMin,
         intialUser: true,
@@ -443,7 +441,7 @@ handleSignUp = () => {
         latitude: 40.71797067746141, //default to NYC
         longitude: -73.98527588801655, //default to NYC
         city_state: 'New York, NY', //default to NYC
-        gender: '',
+        gender: 'Select',
         //gender_pref: (gender == 'male') ? 'male_straight' : 'female_straight', //default gender_pref to straight to have less required field to validate.
         //interested: (gender == 'male') ? 'female' : 'male', //default interested in to straight to have less required field to validate.         
         //code_accepted: (gender == 'female') ? true : false, //if new user is female set code accepted to true, check this before letting user (men) in next time. 

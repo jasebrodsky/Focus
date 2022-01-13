@@ -53,6 +53,9 @@ class Chat extends Component {
     const { state, navigate } = this.props.navigation;
 
     this.state = {
+      profile: {
+        userid: 'state.params.match_userid',
+      },
       messages:[],
       block: true,
       blur: null,
@@ -93,24 +96,34 @@ class Chat extends Component {
        </Button>
       ),
       headerTitle: () => (
-        <Button transparent onPress={navigation.getParam('showProfile')} style={{flexDirection: 'row', alignItems: 'center'}}>
-                <Thumbnail 
-                  style={{
-                    shadowColor: "#000",
-                    shadowOffset: {
-                      width: 0,
-                      height: 3,
-                    },
-                    shadowOpacity: 0.8,
-                    shadowRadius: 4.65,
-                    width: 30, 
-                    height: 30,  
-                    overflow: "hidden", 
-                    borderRadius: 150, 
-                    borderWidth: 0.5, 
-                    borderColor: 'black' }} 
-                  source={{uri: navigation.getParam('images')["0"].url, cache: 'force-cache'}} 
-                />
+        <Button 
+          transparent 
+          style={{flexDirection: 'row', alignItems: 'center'}}
+          
+          //decide how to navigate to profile component with correct data
+          //either send object of users profile into profile component
+          //or send just userid of profile, and have profile component derive the rest. Do this, since messages component does not include prompts or reviews
+          //onPress={this.props.navigation.navigate("Profile", {profile: this.state.userIdMatch, flow: 'chat'})}
+          
+          onPress = {() => alert(navigation.getParam('name'))}
+          >
+            <Thumbnail 
+              style={{
+                shadowColor: "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 3,
+                },
+                shadowOpacity: 0.8,
+                shadowRadius: 4.65,
+                width: 30, 
+                height: 30,  
+                overflow: "hidden", 
+                borderRadius: 150, 
+                borderWidth: 0.5, 
+                borderColor: 'black' }} 
+              source={{uri: navigation.getParam('images')["0"].url, cache: 'force-cache'}} 
+            />
           <Title>{navigation.getParam('name')}</Title>
         </Button>
 
@@ -794,56 +807,83 @@ class Chat extends Component {
           </Modal> 
         
                 
-        <View style={{padding:0,  alignItems:'center', flexDirection:'row', justifyContent: 'space-around', paddingLeft: 15, paddingRight: 20}}>
-          <Text style={{marginRight: 10, fontWeight:'600', color: primaryColor}}>TIME REMAINING: </Text>
-          <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', width:200}}>        
-            {this.state.timeRemaining} 
-          </Text> 
-   
-          <Button transparent onPress={() =>
-          
-          ActionSheet.show(
-            {
-              options: BUTTONS,
-              cancelButtonIndex: CANCEL_INDEX,
-              destructiveButtonIndex: DESTRUCTIVE_INDEX
-              
-            },
-            buttonIndex => {
+          <View style={{padding:0,  alignItems:'center', flexDirection:'row', justifyContent: 'space-around', paddingLeft: 15, paddingRight: 20}}>
+            <Text style={{marginRight: 10, fontWeight:'600', color: primaryColor}}>TIME REMAINING: </Text>
+            <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', width:200}}>        
+              {this.state.timeRemaining} 
+            </Text> 
+    
+            <Button transparent onPress={() =>
+            
+            ActionSheet.show(
+              {
+                options: BUTTONS,
+                cancelButtonIndex: CANCEL_INDEX,
+                destructiveButtonIndex: DESTRUCTIVE_INDEX
+                
+              },
+              buttonIndex => {
 
-              //handle blocking profile
-              if ((buttonIndex) == 0){
+                //handle blocking profile
+                if ((buttonIndex) == 0){
 
-                //block user
-                this.blockOrReport('block')
-              
-                //handle block and report a user
-              }else if ((buttonIndex) == 1){
+                  //block user
+                  this.blockOrReport('block')
+                
+                  //handle block and report a user
+                }else if ((buttonIndex) == 1){
 
-                Alert.alert(
-                  'Report & Block',
-                  'We take reports seriously and will investigate this person as well as block them from interacting with you in the future. If you just want to unmatch tap "unmatch" instead.',
-                  [
-                    {text: 'Unmatch', onPress: () => this.blockOrReport('block')},
-                    {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-                    {text: 'Report & Block', onPress: () => this.blockOrReport('report')},
-                  ],
-                  { cancelable: false }
-                )         
+                  Alert.alert(
+                    'Report & Block',
+                    'We take reports seriously and will investigate this person as well as block them from interacting with you in the future. If you just want to unmatch tap "unmatch" instead.',
+                    [
+                      {text: 'Unmatch', onPress: () => this.blockOrReport('block')},
+                      {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                      {text: 'Report & Block', onPress: () => this.blockOrReport('report')},
+                    ],
+                    { cancelable: false }
+                  )         
+                }
               }
-            }
-          )} >
-          <FontAwesomeIcon size={ 20 } style={{ color: 'lightgrey'}} icon={ faFlag } />
-       
-       </Button>
+            )} >
+            <FontAwesomeIcon size={ 20 } style={{ color: 'lightgrey'}} icon={ faFlag } />
+        </Button>
         </View>
 
         <View>
-          <TouchableOpacity onPress={() => this.showProfile()}>
-            <Image source={{uri: image, cache: 'force-cache'}} position="absolute" resizeMode="cover" blurRadius={Number(this.state.blur)}  
-            style={[styles.backgroundImage, {height:height, width: width}]}
-            />
-          </TouchableOpacity>
+          
+            <Button 
+                rounded
+                style={{
+                  marginLeft: deviceWidth/4,
+                  zIndex: 1,
+                  width: 200,
+                  margin: 10,
+                  justifyContent: 'center',
+                  backgroundColor: primaryColor,
+                  borderRadius: 50,
+                  shadowColor: "#000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 3,
+                  },
+                  shadowOpacity: 0.29,
+                  shadowRadius: 4.65,
+                }}                       
+                
+                onPress={() => this.props.navigation.navigate('BlindDate')}
+
+                >
+                <Text>Go on Blind Date</Text>
+              </Button>
+          
+
+            
+          
+              <Image source={{uri: image, cache: 'force-cache'}} position="absolute" resizeMode="cover" blurRadius={Number(this.state.blur)}  
+              style={[styles.backgroundImage, {height:height, width: width}]}
+              />
+
         </View>
         
           
@@ -916,7 +956,10 @@ class Chat extends Component {
 
   componentDidMount() {
 
+    //TURN THIS ON
     this.interval = setInterval(() => this._renderCountdownTimer(this.state.expirationDate), 1000);
+   
+   
    // this.interval = setInterval(() => this._renderCountdownTimer(), 100000);
     
     //send blockOrReport function to nav as param, so that it can be referenced in the navigation. 

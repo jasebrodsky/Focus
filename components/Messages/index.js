@@ -135,7 +135,7 @@ class Messages extends Component {
     if (type == 'active' && match_state == 'active'){
       
       return(
-        <ListItem key={match_id} onPress={() => navigate("Chat", {time_remaining: timeRemaining, expiration_date: expiration_date ,  match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur, reviews: reviews })}>        
+        <ListItem key={match_id} onPress={() => navigate("Chat", {time_remaining: timeRemaining, expiration_date: expiration_date , match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur, reviews: reviews })}>        
           <ProgressCircle
               matchStatus = {match_state}
               blur={blur}

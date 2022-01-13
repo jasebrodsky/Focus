@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Linking, Image, Alert, Dimensions, Modal, ScrollView, Platform, TouchableOpacity, Keyboard, KeyboardAvoidingView } from 'react-native';
+import { Linking, StatusBar, Image, Alert, Dimensions, Modal, ScrollView, Platform, TouchableOpacity, Keyboard, KeyboardAvoidingView } from 'react-native';
 import RNfirebase from 'react-native-firebase';
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import DatePicker from 'react-native-datepicker';
@@ -1376,6 +1376,7 @@ class Dashboard extends Component {
         
     return (
       <Container>
+        <StatusBar hidden={false} />
 
         <BlurOverlay
           radius={14}
@@ -1731,12 +1732,12 @@ class Dashboard extends Component {
                     (buttonIndex) => {
                       if ((buttonIndex) === 0) {
                         //open view profile modall
-                        this.props.navigation.navigate("Profile", {profile: this.state.profile}); 
+                        this.props.navigation.navigate("Profile", {profile: this.state.profile, from: 'Dashboard'}); 
                         }
           
                       if ((buttonIndex) === 1) {
                         //open edit profile modal
-                        this.props.navigation.navigate("Profile", {profile: this.state.profile, flow: 'edit'}); 
+                        this.props.navigation.navigate("Profile", {profile: this.state.profile, from: 'Dashboard', flow: 'edit'}); 
                       }              
                     }                       
                   )

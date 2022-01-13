@@ -2,7 +2,7 @@ import * as React from 'react';
 import 'react-native-gesture-handler';
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
-import { Button, View, Text, useEffect, Linking } from 'react-native';
+import { Button, View, Text, useEffect, Linking, StatusBar } from 'react-native';
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { Root } from "native-base";
@@ -14,12 +14,12 @@ import Chat from "./components/Chat";
 import Swipes from "./components/Swipes";
 import Dashboard from "./components/Dashboard";
 
-
 import ManageAboutMe from "./components/ManageAboutMe";
 import ManagePreferences  from "./components/ManagePreferences";
 import ManageConversationPrompts from "./components/ManageConversationPrompts";
 import ManageConversationPromptsEdit from "./components/ManageConversationPromptsEdit";
 import Profile from "./components/Profile";
+import BlindDate from "./components/BlindDate";
 
 
 import Registration from "./components/Registration";
@@ -127,7 +127,10 @@ const RootStack = createStackNavigator(
     },    
     Profile: {
       screen: Profile,
-    },   
+    }, 
+    BlindDate: {
+      screen: BlindDate,
+    }, 
     ManageConversationPromptsModal: {
       screen: ManageConversationPrompts,
     },  
@@ -247,7 +250,9 @@ export default class App extends React.Component {
   render() {
 
     return <DeepLinkContext.Provider value={this.state}>
-              <Root><AppContainer /></Root>
+              <Root><AppContainer />
+                <StatusBar hidden={true} />
+              </Root>
             </DeepLinkContext.Provider>;
 
   }
