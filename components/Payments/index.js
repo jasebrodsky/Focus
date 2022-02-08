@@ -480,7 +480,6 @@ class Payments extends Component {
 
                 <View style={{ flex: 3, justifyContent: 'center', alignItems: 'center', }}>
                     <Button 
-                      bordered 
                       style={{
                         marginTop: 20, 
                         width: 200,

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Dimensions, Alert, Share, Keyboard, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, Dimensions, Alert, Share, StatusBar, Keyboard, KeyboardAvoidingView } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import * as firebase from "firebase";
 import RNfirebase from 'react-native-firebase';
@@ -279,10 +279,12 @@ class Refer extends Component {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#13131A',
+        paddingBottom: 25
         }}
         >
+          <StatusBar hidden={true} />
 
-        <KeyboardAvoidingView 
+        <View 
           style={{ flex: 1, alignItems: 'center', }} 
           onStartShouldSetResponder={Keyboard.dismiss}
           behavior="padding"
@@ -292,17 +294,18 @@ class Refer extends Component {
             colors={[primaryColor, secondaryColor]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1.5, y: 2.5 }}
-            style={{flex: 4, justifyContent: 'center', alignItems: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
+            style={{flex: 5, justifyContent: 'center', alignItems: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
             
             
             <View style={{
-              flex:2, 
+              flex:1, 
               minWidth: deviceWidth-80,
               backgroundColor: '#1C1C24',
               borderRadius: 30,
               padding: 40,
               justifyContent: 'center',
-              alignItems: 'flex-start', 
+              //alignItems: 'flex-start', 
+
               maxHeight: 160,
               margin: 5, 
 
@@ -323,7 +326,8 @@ class Refer extends Component {
             borderRadius: 30,
             padding: 20,
             justifyContent: "center", 
-            width: 300, 
+            width: 300,
+            maxHeight: 70, 
             backgroundColor: '#1C1C24'
            }}>
           
@@ -353,83 +357,85 @@ class Refer extends Component {
           maxHeight: 60,
           width: 300,
         }}>
-            <Text style={{fontSize:13, fontFamily:'Helvetica-Light', textAlign: 'center', color: 'white'}} >{((this.state.reason.length < 30) && this.state.reason)? charRemainingCopy2 : charRemainingCopy1 }</Text>
+            <Text style={{fontSize:12, fontFamily:'Helvetica-Light', textAlign: 'center', color: 'white'}} >{((this.state.reason.length < 30) && this.state.reason)? charRemainingCopy2 : charRemainingCopy1 }</Text>
         </View>
 
+        <KeyboardAvoidingView 
+          style={{ flex: 9, alignItems: 'center', }} 
+          onStartShouldSetResponder={Keyboard.dismiss}
+          behavior="padding"
+          enabled>
 
-        <View style={{ 
+          <View style={{ 
             flex: 4,        
             borderRadius: 30,
             paddingLeft: 15,
             paddingRight: 15,
-            justifyContent: "center", 
+            paddingTop: 20,
+            //paddingBottom: 20,
+            justifyContent: "flex-start", 
             width: 300, 
             //maxHeight: 200,
             backgroundColor: '#1C1C24' }}>
           
 
-          
-          <Form>
-            <Textarea
-            style={{ fontSize: 18, color: 'white'}}
-            placeholder={this.state.reasonCopy}
-            placeholderTextColor="white"
+            <Form>
+              <Textarea
+              style={{ fontSize: 18, color: 'white',}}
+              placeholder={this.state.reasonCopy}
+              placeholderTextColor="white"
+              rowSpan={this.state.reasonRows} 
+              onFocus={ () => this.setState({reasonRows:3})}
+              onBlur={ () => this.setState({reasonRows:8})}
+              onChangeText={(reason) => this.setState({reason})}
+              value={this.state.reason}           
+              />
+            </Form>
+          </View>  
+
+
+          <View style={{ flex: 6, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 0}}>
             
-            rowSpan={this.state.reasonRows} 
-            onFocus={ () => this.setState({reasonRows:5})}
-            onBlur={ () => this.setState({reasonRows:8})}
+            <View style={{
+              flex: 1,
+              //backgroundColor: 'blue',
+              justifyContent: 'flex-end',
+              padding: 0,
+              marginBottom: 10,
+              width: 300,
+            }}>
+                <Text style={{fontSize:12, fontFamily:'Helvetica-Light', lineHeight: 15, textAlign: 'center', color: 'white'}} >{((this.state.reason.length > 29) && this.state.reason)? 'Share this personal refer link\n generated when you click below.' : null }</Text>
+            </View>
+            
+            <Button 
+              bordered 
+              style={{
+                width: 200,
+                marginTop: 0, 
+                borderColor: 'white', 
+                backgroundColor: 'white', 
+                borderRadius: 20,
+                shadowColor: "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 3,
+                },
+                shadowOpacity: 0.29,
+                shadowRadius: 4.65, }} 
+              onPress={() => {this._buildLinkAndShare();}}>
+                <Text style={{color: primaryColor, width: 200, textAlign:'center'}}>{this.state.primaryCTA}</Text>
+            </Button>
 
-            onChangeText={(reason) => this.setState({reason})}
-            value={this.state.reason}           
-            />
-          </Form>
-        </View>  
-
-
-
-
-
-        <View style={{ flex: 4, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 15}}>
-          
-          <View style={{
-            flex: 1,
-            //backgroundColor: 'blue',
-            justifyContent: 'center',
-        
-            padding: 0,
-            //paddingLeft: 25,
-            maxHeight: 100,
-            width: 300,
-          }}>
-              <Text style={{fontSize:13, fontFamily:'Helvetica-Light', lineHeight: 20, textAlign: 'center', color: 'white'}} >{((this.state.reason.length > 29) && this.state.reason)? 'Share this personal refer link\n generated when you click below.' : null }</Text>
+            <Button transparent full onPress={() => {this._onCancel();}} >
+              <Text style={{color: primaryColor}}>{this.state.secondaryCTA}</Text>
+            </Button>
           </View>
-          
-          <Button 
-            bordered 
-            style={{
-              width: 200,
-              marginTop: 0, 
-              borderColor: 'white', 
-              backgroundColor: 'white', 
-              borderRadius: 20,
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 3,
-              },
-              shadowOpacity: 0.29,
-              shadowRadius: 4.65, }} 
-            onPress={() => {this._buildLinkAndShare();}}>
-              <Text style={{color: primaryColor, width: 200, textAlign:'center'}}>{this.state.primaryCTA}</Text>
-          </Button>
 
-          <Button transparent full onPress={() => {this._onCancel();}} >
-            <Text style={{color: primaryColor}}>{this.state.secondaryCTA}</Text>
-          </Button>
-        </View>
+        </KeyboardAvoidingView>
+
 
        
-        </KeyboardAvoidingView>
+        </View>
       </View>
     );
   }

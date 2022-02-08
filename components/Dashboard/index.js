@@ -135,7 +135,7 @@ class Dashboard extends Component {
         <FontAwesomeIcon size={ 40 } style={{ color: 'lightgrey'}} icon={ faCog } />
         ),
       headerRight: () => (
-        <Button transparent onPress={navigation.getParam('validate')}>
+        <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-end', }} onPress={navigation.getParam('validate')}>
           <FontAwesomeIcon size={ 28 } style={{ right: 16, color: primaryColor}} icon={ faUsers } />
         </Button>
       ),

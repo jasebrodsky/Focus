@@ -43,7 +43,7 @@ class Swipes extends Component {
     this.state = {
       rotation: new Animated.Value(0),
       userId: '',
-      user_name: null,
+      user_name: '',
       user_images: '',
       user_about: '',
       user_birthday: '',
@@ -75,15 +75,14 @@ class Swipes extends Component {
   static navigationOptions = ({ navigation }) => {
     return {
       headerLeft: () => (
-        <Button transparent  onPress={() => navigation.navigate({routeName: 'Dashboard', transitionStyle: 'inverted'}) }>
-                           
+        <Button transparent style={{width: 100, flex: 1,}} onPress={() => navigation.navigate({routeName: 'Dashboard', transitionStyle: 'inverted'}) }>              
           <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faCog } />
        </Button>
       ),
       headerTitle: () => (<FontAwesomeIcon size={ 40 } style={{fontSize: 32, color: 'lightgrey'}} icon={ faUsers } />
       ),
       headerRight: () => (
-        <Button transparent onPress={() => navigation.navigate('Messages')} >
+        <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-end', }} onPress={() => navigation.navigate('Messages')} >
           <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faComments } />
           { navigation.getParam('showChatCount') &&
             <Badge style={{ position: 'absolute', right: 4 }}>
@@ -151,6 +150,7 @@ class Swipes extends Component {
             user_education: snapshot.val().education,
             user_work: snapshot.val().work,
             user_reviews: snapshot.val().reviews,
+            user_last_login: snapshot.val().last_login,
             swipeCountStart: snapshot.val().swipe_count,
             showInstructionsSwipes: snapshot.val().showInstructionsSwipes,
         }), this.showInstructions(snapshot.val().showInstructionsSwipes),
@@ -323,7 +323,7 @@ class Swipes extends Component {
 
 
   //function to call when a new match is intiated.
-  pushNewMatch = (images, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match) => {
+  pushNewMatch = (images, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match, prompts_match) => {
 
     user_name = this.state.user_name;
     user_images = this.state.user_images;
@@ -343,6 +343,9 @@ class Swipes extends Component {
     var newConversationRef = conversationRef.push({
         blur: "40", //start blur at this amount
         messages: null,
+        date: {
+          status: 'none',
+        },
         participants: {
           [userid_match]: {
             name: name_match,
@@ -395,6 +398,7 @@ class Swipes extends Component {
             education: education_match,
             work: work_match,
             reviews: reviews_match ? reviews_match : {},
+            prompts: prompts_match ? prompts_match : {},
             active: 'true',
             match_date: new Date().getTime(),
             expiration_date: ( new Date().getTime() + 604800000),  //  604800000 is 1 week in ms                                          
@@ -449,11 +453,9 @@ class Swipes extends Component {
   }
 
   //Function to save new swipe object
-  pushNewSwipe = (like, userid, userid_match, match_status, name_match, about_match, imagesObj, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match) => {
+  pushNewSwipe = (like, userid, userid_match, match_status, name_match, about_match, imagesObj, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match, prompts_match) => {
 
-    //save potential_match into bool var. 
     let potential_match = (match_status == 'potential_match') ? true : false;
-    //let potential_match = true; //comment out for testing
 
     //define ref to users' swipe object
     let swipesRef = firebase.database().ref('swipes/'+userid+'/'+userid_match+'/');
@@ -476,7 +478,25 @@ class Swipes extends Component {
       // create new match object
       if ((potential_match == true) && (like == true)) { 
          //alert("save new match!");
-         this.pushNewMatch(imagesObj, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match);
+         this.pushNewMatch(imagesObj, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match, prompts_match);
+      }
+
+      //if user swipes right, check if match user has already liked current user (while current user has out of date matches from getMatches function). If so, make into a potential match. 
+      if (like == true){
+        
+        //reference where other user likes current user, filter to likes given since current user logged in. 
+        let likeGivenRef = firebase.database().ref('swipes/'+userid_match+'/'+userid+'/')
+          // .orderByChild("swipe_date")
+          // .startAt(this.state.user_last_login)
+          // .endAt(new Date().getTime())
+          ;
+
+        //if like given is true, then push new match. 
+        likeGivenRef.once('value').then((likeGiven) => {        
+          if (likeGiven.val().like){
+            this.pushNewMatch(imagesObj, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match, prompts_match);
+          }
+        })
       }
 
         // let Analytics = RNFirebase.analytics();
@@ -574,7 +594,8 @@ class Swipes extends Component {
           this.state.profiles[cardIndex].city_state, //match city
           this.state.profiles[cardIndex].education,  // match job
           this.state.profiles[cardIndex].work, // match work
-          this.state.profiles[cardIndex].reviews  // match reviews
+          this.state.profiles[cardIndex].reviews,  // match reviews
+          this.state.profiles[cardIndex].prompts  // match prompts
 
 
         ),this.setState({ cardIndex: cardIndex+1});//update card index in state, so that image modal has correct images 

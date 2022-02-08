@@ -57,8 +57,12 @@ class Chat extends Component {
         userid: 'state.params.match_userid',
       },
       messages:[],
+      date: {
+        status: 'none',
+        waitingOnId: 'none'
+      },
       block: true,
-      blur: null,
+      blur: 30,
       chatActive: true,
       removed: false,
       timeLeft: null,
@@ -88,26 +92,26 @@ class Chat extends Component {
 
 
   //configure navigation
-  static navigationOptions = ({ navigation }) => {
+  static navigationOptions = ({ navigation, state }) => {
     return {
       headerLeft: () => (
-        <Button transparent onPress={() => navigation.goBack()}>
+        <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-start', }} onPress={() => navigation.goBack()}>
           <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faArrowLeft } />
        </Button>
       ),
-      headerTitle: () => (
+      headerTitle: (props) => (
         <Button 
           transparent 
           style={{flexDirection: 'row', alignItems: 'center'}}
-          
-          //decide how to navigate to profile component with correct data
-          //either send object of users profile into profile component
-          //or send just userid of profile, and have profile component derive the rest. Do this, since messages component does not include prompts or reviews
-          //onPress={this.props.navigation.navigate("Profile", {profile: this.state.userIdMatch, flow: 'chat'})}
-          
-          onPress = {() => alert(navigation.getParam('name'))}
+          onPress = {() =>  navigation.navigate("Profile", {
+            profile: navigation.getParam('profile'), 
+            blur: navigation.getParam('blur'), 
+            conversationId: conversationId,  
+            from: 'Chat',
+          })}
           >
             <Thumbnail 
+              blurRadius={navigation.getParam('blur')}
               style={{
                 shadowColor: "#000",
                 shadowOffset: {
@@ -130,7 +134,7 @@ class Chat extends Component {
       ),
       
       headerRight: () => (
-        <Button transparent onPress={navigation.getParam('handleSneekPeek')}>
+        <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-end' }} onPress={navigation.getParam('handleSneekPeek')}>
           <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faEye } />
        </Button>
       ),
@@ -151,6 +155,7 @@ class Chat extends Component {
         _id: data.key,
         text: message.text,
         createdAt: new Date(message.createdAt),
+        system: message.system ? true : false, //system message true if set in db. 
         user: {
           _id: message.user._id,
           name: message.user._name,
@@ -171,6 +176,7 @@ class Chat extends Component {
     let about = state.params.about; //might make more sense to pull from db instead of previous componnet, since now won't be able to deeplink into chat
     let birthday = state.params.birthday;
     let gender = state.params.gender;
+    let profile = state.params.profile;
     let reviews = state.params.reviews;
     let city_state = state.params.city_state;
     let education = state.params.education;
@@ -204,7 +210,9 @@ class Chat extends Component {
         let imagesArray = [];
         
         //create valure for the blur radius
-        let blurRadius = dataSnapshot.val().blur;
+        let blur = dataSnapshot.val().blur;
+
+        let date = dataSnapshot.val().date;
 
         //create value for the match status 
         let chatActive = dataSnapshot.val().active;
@@ -254,18 +262,20 @@ class Chat extends Component {
 
         //loop through array and create an object now including it's blur radious. Push that object to imagesarray arrary.
         imageArray.forEach(function(item) {
-          imageObj = {'url':item.url, cache: 'force-cache', 'props':{'blurRadius': +blurRadius, source: {uri: item.url, cache: 'force-cache'}}};
+          imageObj = {'url':item.url, cache: 'force-cache', 'props':{'blurRadius': +blur, source: {uri: item.url, cache: 'force-cache'}}};
           imagesArray.push(imageObj);
         })
 
         
           //setState with above elements
           this.setState({
+            profile: profile,
             about: about,
             birthday: birthday,
             gender: gender,
             city_state: city_state,
             education: education,
+            date: date,
             work: work,
             reviews: reviews,
             name: participantName,
@@ -311,6 +321,7 @@ class Chat extends Component {
         text: message[i].text, 
         user: message[i].user, 
         userTo: this.state.userIdMatch,
+        notify: true,
         createdAt: firebase.database.ServerValue.TIMESTAMP
       });
 
@@ -318,6 +329,9 @@ class Chat extends Component {
       if(this.state.blur > 0){
         firebaseConversationsRef.update({
           blur: this.state.blur - 3
+        });
+        this.props.navigation.setParams({ 
+          blur: this.state.blur -3 
         });
       }
 
@@ -555,6 +569,7 @@ class Chat extends Component {
     }
 
     //handle when extend conversation is pushed. Reset. 
+    //ADD SYSTEM MESSAGE AS LATEST MESSAGE, SO THAT USER WILL SEE THIS USER ON TOP. 
     _handleExtendConversation = () => {
 
       const { state, navigate } = this.props.navigation;
@@ -566,6 +581,9 @@ class Chat extends Component {
           let firebaseMatchesRef1 = firebase.database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
           let firebaseMatchesRef2 = firebase.database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
           
+          //save system message that blind date status has changed. 
+          let conversationsRef = firebase.database().ref('/conversations/'+conversationId+'/messages/');
+
           //86000000 - 1 day in ms
           let extendTimeBy = 86000000 * 7; //in ms
           let newExpirationDate = (new Date().getTime() + extendTimeBy);
@@ -586,6 +604,11 @@ class Chat extends Component {
             firebaseMatchesRef1.update({
               active: true,
               expiration_date: newExpirationDate,
+              last_message: 'Conversation Extended',
+              last_message_date: (new Date().getTime()*-1), 
+              //blur: this.state.blur,
+              unread_message: (this.state.removed == true) ? false : true //if conversation is removed dont set unread messages to true. 
+  
             });
 
             //update match to true status and set new expiration date
@@ -593,6 +616,18 @@ class Chat extends Component {
               active: true,
               expiration_date: newExpirationDate,
               notifyFcmToken: notifyFcmToken, //notify the person who has their converation
+              last_message: 'Conversation Extended',
+              last_message_date: (new Date().getTime()*-1), 
+            });
+
+            //push new system message that date has been managed. This will put conversation to top of messages. 
+            conversationsRef.push({
+              text: 'Conversation Extended', 
+              notify: false,
+              system: true,
+              user: this.state.userId, 
+              userTo: state.params.match_userid,
+              createdAt: firebase.database.ServerValue.TIMESTAMP
             });
 
           })
@@ -707,6 +742,8 @@ class Chat extends Component {
     let chatActive = this.state.chatActive;
     let matchActive = this.state.matchActive;
     let name = this.state.name;
+    let date = this.state.date;
+    console.log('date is: '+JSON.stringify(date));
     let birthday = this.state.birthday;
     let age = this.getAge(birthday);
     let gender = this.state.gender;
@@ -717,7 +754,41 @@ class Chat extends Component {
 
     let deviceWidth = Dimensions.get('window').width
     let deviceHeight = Dimensions.get('window').height
+    let datePrimaryButtonCopy = 'Go on Blind Date';
+    let flow = 'createNewProposal' ;
+
+    console.log('this.state.date.status: '+this.state.date.status);
+
+      //configuration for date button
+      switch (this.state.date.status) {
+        case 'pending': 
+          datePrimaryButtonCopy = (userId == this.state.date.waitingOnId) ? 'Blind Date requested' : 'Blind Date requested' ;
+          flow = (userId == this.state.date.waitingOnId) ? 'approveNewProposal' : 'waitingAcceptanceNewProposal' ;
+          break;
+        case 'pendingUpdate': 
+          datePrimaryButtonCopy = (userId == this.state.date.waitingOnId) ? 'Blind Date requested' : 'Blind Date requested' ;
+          flow = (userId == this.state.date.waitingOnId) ? 'approveUpdatedProposal' : 'waitingAcceptanceUpdatedProposal' ;
+          break;
+        case 'accepted': 
+          datePrimaryButtonCopy = 'Blind Date details';
+          //flow = (true) ? 'detailsHide' : 'detailsShow' ; //1642837974 //1642833434708
+          flow = (this.state.date.proposedTime < Date.now()+(86400000*1)) ? 'detailsHide' : 'detailsShow' ; //show details when 24 hours before proposedTime
+          break;
+        case 'declined':
+          datePrimaryButtonCopy = 'Go on Blind Date';
+          flow = 'createNewProposal' ;
+          break;
+        case 'none':
+          datePrimaryButtonCopy = 'Go on Blind Date';
+          flow = 'createNewProposal' ;
+          break;
+        default:
+          datePrimaryButtonCopy = 'Go on Blind Date';
+          flow = 'createNewProposal' ;
+      }
     
+
+
     return (
       <Container>
 
@@ -813,7 +884,7 @@ class Chat extends Component {
               {this.state.timeRemaining} 
             </Text> 
     
-            <Button transparent onPress={() =>
+            <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-end', }} onPress={() =>
             
             ActionSheet.show(
               {
@@ -871,10 +942,24 @@ class Chat extends Component {
                   shadowRadius: 4.65,
                 }}                       
                 
-                onPress={() => this.props.navigation.navigate('BlindDate')}
+                onPress={() => this.props.navigation.navigate('BlindDate', {
+                  //status: this.state.date.status, 
+                  flow: flow, 
+                  dateId: 'dateIdHere',
+                  //userId: this.state.userId, 
+                  matchName: this.props.navigation.getParam('name'), 
+                  userIdMatch: this.state.userIdMatch,
+                  dateTime: date.proposedTime,
+                  conversationId: this.props.navigation.getParam('match_id'),
+                  blur: this.state.blur,
+                  profile: this.state.profile
+                  //userIdMatchFcmToken: userIdMatchFcmToken
+                })
+              }
+                
 
                 >
-                <Text>Go on Blind Date</Text>
+                <Text>{datePrimaryButtonCopy}</Text>
               </Button>
           
 
@@ -959,14 +1044,14 @@ class Chat extends Component {
     //TURN THIS ON
     this.interval = setInterval(() => this._renderCountdownTimer(this.state.expirationDate), 1000);
    
-   
-   // this.interval = setInterval(() => this._renderCountdownTimer(), 100000);
-    
     //send blockOrReport function to nav as param, so that it can be referenced in the navigation. 
-    this.props.navigation.setParams({ block: this.blockOrReport });
-    this.props.navigation.setParams({ showProfile: this.showProfile });
-    this.props.navigation.setParams({ handleSneekPeek: this._handleSneekPeek });
-
+    this.props.navigation.setParams({ 
+      block: this.blockOrReport, 
+      showProfile: this.showProfile,
+      handleSneekPeek: this._handleSneekPeek,
+      blur: this.state.blur 
+    });
+    
     this.loadMessages((message) => {
       this.setState((previousState) => {
         return {

@@ -337,6 +337,8 @@ PODS:
     - React-Core
   - react-native-geolocation (2.0.2):
     - React
+  - react-native-maps (0.30.1):
+    - React-Core
   - react-native-slider (2.0.8):
     - React
   - react-native-splash-screen (3.2.0):
@@ -449,6 +451,7 @@ DEPENDENCIES:
   - react-native-fbsdk (from `../node_modules/react-native-fbsdk`)
   - react-native-fetch-blob (from `../node_modules/react-native-fetch-blob`)
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
+  - react-native-maps (from `../node_modules/react-native-maps`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -556,6 +559,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-fetch-blob"
   react-native-geolocation:
     :path: "../node_modules/@react-native-community/geolocation"
+  react-native-maps:
+    :path: "../node_modules/react-native-maps"
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
   react-native-splash-screen:
@@ -655,6 +660,7 @@ SPEC CHECKSUMS:
   react-native-fbsdk: b94a83971c496a35803f38b921aec6d637ba07b5
   react-native-fetch-blob: 0cbdf9764c75d9438c162427395f4bc35a857d5a
   react-native-geolocation: cbd9d6bd06bac411eed2671810f454d4908484a8
+  react-native-maps: d752b0dd0e1951d815b1336332835aab6b4a836f
   react-native-slider: b2f361499888302147205f17f6fffa921a7bda70
   react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
   React-RCTActionSheet: 600b4d10e3aea0913b5a92256d2719c0cdd26d76

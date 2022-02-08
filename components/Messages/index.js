@@ -46,7 +46,7 @@ class Messages extends Component {
   static navigationOptions = ({ navigation }) => {
     return {
       headerLeft: () => (
-        <Button transparent onPress={() => navigation.navigate('Swipes', {forceUpdate: false})}>
+        <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-start', }} onPress={() => navigation.navigate('Swipes', {forceUpdate: false})}>
           <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faUsers } />
         </Button>
       ),
@@ -107,6 +107,7 @@ class Messages extends Component {
     const { navigate } = this.props.navigation; //needed for navigation functions
     let object = x.toJSON(); //convert to JSON
     let blur = Number(object.blur);
+    //let blur = object.blur;
     let url = Object.values(object.images)[0].url;
     let images = object.images;
     let name = object.name;
@@ -131,11 +132,16 @@ class Messages extends Component {
     let bold = (unread_message == true) ? '900' : 'normal';
     let match_userid = object.match_userid;
     let expiredMatches = false;
-    
+
+    let notifyUser = object.date_waiting_on == userId ? true : false; //check if current user needs is being waited on
+    let dateStatus = (((object.date_status == 'pending') && notifyUser)  || ((object.date_status == 'pendingUpdate') && notifyUser) || object.date_status == 'accepted') ? true : false ; //dateStatus as true, if status is pending/pendingUpdate (and user needs is being waited on), or accepted
+    let dateExpired = ((object.proposed_time - (6 * 3600000)) < this.state.currentDate.getTime()) ? true : false; 
+
+    console.log('object is: '+JSON.stringify(object));
     if (type == 'active' && match_state == 'active'){
       
       return(
-        <ListItem key={match_id} onPress={() => navigate("Chat", {time_remaining: timeRemaining, expiration_date: expiration_date , match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur, reviews: reviews })}>        
+        <ListItem key={match_id} onPress={() => navigate("Chat", {profile: object, blur: blur, time_remaining: timeRemaining, expiration_date: expiration_date , match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, reviews: reviews })}>        
           <ProgressCircle
               matchStatus = {match_state}
               blur={blur}
@@ -148,18 +154,43 @@ class Messages extends Component {
           >
               <Thumbnail blurRadius={blur} round size={80} source={{uri: url, cache: 'force-cache'}} />
             </ProgressCircle>
-          <Body>
-            <Text>{name}</Text>
-            <Text note numberOfLines={1} style={{fontWeight: bold}}>
-              {last_message}
-            </Text>
+          <Body style={{flex: 1, padding: 5, flexDirection: 'row'}}>
+            <View style={{flex: 1}}>
+              <Text>{name}</Text>
+              <Text note numberOfLines={1} style={{fontWeight: bold}}>
+                {last_message}
+              </Text>
+            </View>
+
+            { (dateStatus && !dateExpired) &&
+            <View style={{
+              flex: 1, 
+              padding: 5,
+              borderRadius: 20, 
+              backgroundColor: primaryColor, 
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 3,
+                },
+                shadowOpacity: 0.29,
+                shadowRadius: 4.65,
+              }}>
+                <Text style={{color: 'white', fontSize: 16}}>Blind Date</Text>
+            </View>
+
+            }
+
+
           </Body>
         </ListItem>
         )
     }else if (type == 'expired' && match_state == 'expired'){
       
       return(
-        <ListItem key={i} onPress={() => navigate("Chat", {match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blurRadius: blur, reviews: reviews })}>            
+        <ListItem key={i} onPress={() => navigate("Chat", {match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blur: blur, reviews: reviews})}>            
           <ProgressCircle
               blur={blur}
               matchStatus = {match_state}
@@ -213,6 +244,7 @@ class Messages extends Component {
             let matchState = (timeRemaining > 0) ? 'active' : 'expired';
             let matchRemoved = match.val().removed;
             let matchStatus = match.val().status;
+            let matchBlur = match.val().blur;
             
 
             //remove matches that have been removed by match

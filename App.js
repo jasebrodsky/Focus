@@ -251,7 +251,7 @@ export default class App extends React.Component {
 
     return <DeepLinkContext.Provider value={this.state}>
               <Root><AppContainer />
-                <StatusBar hidden={true} />
+                
               </Root>
             </DeepLinkContext.Provider>;
 

@@ -42,6 +42,73 @@ exports.notifyOffWaitlist = functions.database.ref('/users/{userId}').onUpdate((
   }
 })
 
+//function to send notification after blindDate is created, accepted, proposed a new time.
+exports.notifyBlindDate = functions.database.ref('/dates/{dateId}').onWrite( async (change, context) => {
+  
+  //save variables for notification copy
+  let messageTitle = '';
+  let messageTxt = '';
+  let sendNotification = false; //flag to send notificaiton eventually. 
+
+  //if a new date has been created (didnt exist before), notify user of a new date
+  if (!change.before.exists()) {
+      messageTitle = 'New Blind Date request';
+      messageTxt = 'Open to find out who wants to meet you.';
+      sendNotification = true;
+      console.log('New Blind Date request');
+    }
+  else{ //date must have existed, notify that exisitng date has been updated 
+    
+    //when date status is pendingUpdateis AND the proposedTime has changed. 
+    if(change.after.val().status == 'pendingUpdate' && (change.before.val().proposedTime !== change.after.val().proposedTime) ){
+      messageTitle = 'Blind Date update';
+      messageTxt = 'A new time has been proposed for your Blind Date. Open to find out the details.';
+      sendNotification = true;
+      console.log('Blind Date update');
+      
+    //when date goes to acepted status from pending or pendingUpdate status
+    }else if( ((change.before.val().status == 'pending') || (change.before.val().status == 'pendingUpdate')) && (change.after.val().status == 'accepted') ){
+      messageTitle = 'Blind Date accepted';
+      messageTxt = 'Your Blind Date has been accepted. Open to find out the details.';
+      sendNotification = true;
+      console.log('Blind Date accepted');
+
+    //else
+    }else {
+      sendNotification = false; //don't send notificaiotn in any other scenario (declined for example)
+      console.log('else');
+    }
+  }
+
+    //save data of message
+    const fcmToken = change.after.val().fcmToken;
+    
+    //build media messages notification
+    const payload = {
+      notification: {
+          title: messageTitle,
+          body: messageTxt,
+          sound : "default"
+      },
+      data: {
+          VIEW: 'messages' //use date id from context here context.params.dateId, when building deeplink into BlindDate module. 
+      }
+    };
+
+    // Send a message to the device corresponding to the provided registration token.
+    if(sendNotification){
+      return admin.messaging().sendToDevice(fcmToken, payload)
+      .then((response) => {
+        console.log('Successfully sent message:', response);
+      })
+      .catch((error) => {
+        console.log('Error sending message:', error);
+      });
+    }
+
+  }
+)
+
 //function to send notification when conversation is extended.
 exports.notifyConversationExtended = functions.database.ref('/conversations/{conversationId}').onUpdate((change, context) => {
   
@@ -144,6 +211,7 @@ exports.notifyNewMessage = functions.database.ref('/conversations/{conversationI
   const toId = message['userTo'];
   const fromId = message.user._id;
   const messageTxt = message ['text'];
+  const notify = message ['notify'];
 
   //fetch fcmToken of reciepient in order to send push notification
   return admin.database().ref('/users/' + toId ).once('value').then((snapUser) => {
@@ -167,7 +235,7 @@ exports.notifyNewMessage = functions.database.ref('/conversations/{conversationI
     }
 
     //send message if user allows notifications for messages
-    if (sendNotificationMessage == true) {
+    if ((sendNotificationMessage == true) && (notify == true)) {
 
       return admin.messaging().sendToDevice(fcmToken, payload)
       .then((response) => {
