@@ -7,6 +7,50 @@ admin.initializeApp();
 
 
 
+
+// //delete users
+// exports.deleteUsers = functions.https.onRequest((req, res) => {
+  
+//   const listAllUsers = (nextPageToken) => {
+//     // List batch of users, 1000 at a time.
+//     admin
+//         .auth()
+//         .listUsers(1000, nextPageToken)
+//         .then(async (listUsersResult) => {
+//             await admin.auth().deleteUsers(listUsersResult.users.map((u) => u.uid));
+//             if (listUsersResult.pageToken) {
+//                 // List next batch of users.
+//                 listAllUsers(listUsersResult.pageToken);
+//             }
+//         })
+//         .catch((error) => {
+//             console.log('Error listing users:', error);
+//         });
+//     };
+//   listAllUsers();
+
+//   })
+
+// //add users
+// exports.addUser = functions.https.onRequest((req, res) => {
+  
+//     admin.auth()
+//     .createUser({
+//       uid: "FG7XgDBDXYZWX6RdzAayncklPwU2",
+//       email: "sandeepdeepak@gmail.com",
+//       emailVerified: false,
+//       }
+//     )
+//     .then((userRecord) => {
+//       // See the UserRecord reference doc for the contents of userRecord.
+//       console.log('Successfully created new user:', userRecord.uid);
+//     })
+//     .catch((error) => {
+//       console.log('Error creating new user:', error);
+//     });
+//   })
+
+
 //function to send notification when user is off waitlist.
 exports.notifyOffWaitlist = functions.database.ref('/users/{userId}').onUpdate((change, context) => {
   
@@ -66,10 +110,17 @@ exports.notifyBlindDate = functions.database.ref('/dates/{dateId}').onWrite( asy
       sendNotification = true;
       console.log('Blind Date update');
       
-    //when date goes to acepted status from pending or pendingUpdate status
-    }else if( ((change.before.val().status == 'pending') || (change.before.val().status == 'pendingUpdate')) && (change.after.val().status == 'accepted') ){
+    //when date goes to acepted status from pending or pendingUpdate status //UPDATE TO PENDING -> FULFILL
+    }else if( ((change.before.val().status == 'pending') || (change.before.val().status == 'pendingUpdate')) && (change.after.val().status == 'fulfill') ){
       messageTitle = 'Blind Date accepted';
       messageTxt = 'Your Blind Date has been accepted. Open to find out the details.';
+      sendNotification = true;
+      console.log('Blind Date ready to fulfill');
+
+    //else
+    }else if( (change.before.val().status == 'fulfill') && (change.after.val().status == 'accepted') ){
+      messageTitle = 'Blind Date details';
+      messageTxt = 'Your Blind Date details are ready. Open to see.';
       sendNotification = true;
       console.log('Blind Date accepted');
 
@@ -146,57 +197,56 @@ exports.notifyConversationExtended = functions.database.ref('/conversations/{con
 })
 
 
-//get referral codes
+
+//delete users
 exports.getCode = functions.https.onRequest((req, res) => {
-    const userid = req.query.userid;
-    const reason = req.query.reason;
-    const name_creator = req.query.name_creator;
-    const photo_creator = req.query.photo_creator;
-    const gender_creator = req.query.gender_creator;
-
-  
-    console.log('userid is: '+userid);
-    let number = '';
-    console.log('reason is: '+reason);
-
-    //query for last code in db 
-    admin.database().ref('/codes').limitToLast(1).once('value').then(codeSnap => {
-        
-        //convert codeSnap into it's data 
-        let codeObj = Object.values(codeSnap.toJSON());
-        //let codeId = Object.keys(codeSnap.toJSON())[0];
-        number = codeObj[0].number;
-        let newNumber = number+1;
-
-        var words = ['FOCUS','RESPECT','LOVE','CONNECT']
-        var word = words[Math.floor(Math.random()*words.length)];
-
-        //create newCode object
-        var newCode = {
-          //code_id: codeId,
-          created: new Date(),
-          created_by: userid,
-          expired: false,
-          number: newNumber,
-          redeemed_by: false,
-          reason: reason,
-          name_creator: name_creator,
-          photo_creator: photo_creator,
-          gender_creator: gender_creator,
-          sharable_code: word+"@"+newNumber
-        };
-
-        //push newCode into database
-        admin.database().ref('/codes').push(newCode).then(newCodeSnap => {
-          console.log('newCodeSnap.key is: '+newCodeSnap.key);
-          newCode.code_id = newCodeSnap.key;
-          return res.status(200).send(newCode);
-        })
-        .catch(error => console.log(error));
-    })  
-  })
+  const userid = req.query.userid;
+  const reason = req.query.reason;
+  const name_creator = req.query.name_creator;
+  const photo_creator = req.query.photo_creator;
+  const gender_creator = req.query.gender_creator;
 
 
+  console.log('userid is: '+userid);
+  let number = '';
+  console.log('reason is: '+reason);
+
+  //query for last code in db 
+  admin.database().ref('/codes').limitToLast(1).once('value').then(codeSnap => {
+      
+      //convert codeSnap into it's data 
+      let codeObj = Object.values(codeSnap.toJSON());
+      //let codeId = Object.keys(codeSnap.toJSON())[0];
+      number = codeObj[0].number;
+      let newNumber = number+1;
+
+      var words = ['FOCUS','RESPECT','LOVE','CONNECT']
+      var word = words[Math.floor(Math.random()*words.length)];
+
+      //create newCode object
+      var newCode = {
+        //code_id: codeId,
+        created: new Date(),
+        created_by: userid,
+        expired: false,
+        number: newNumber,
+        redeemed_by: false,
+        reason: reason,
+        name_creator: name_creator,
+        photo_creator: photo_creator,
+        gender_creator: gender_creator,
+        sharable_code: word+"@"+newNumber
+      };
+
+      //push newCode into database
+      admin.database().ref('/codes').push(newCode).then(newCodeSnap => {
+        console.log('newCodeSnap.key is: '+newCodeSnap.key);
+        newCode.code_id = newCodeSnap.key;
+        return res.status(200).send(newCode);
+      })
+      .catch(error => console.log(error));
+  })  
+})
 
 
 //function to send notification when message is recieved. 

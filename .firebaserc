@@ -1,5 +1,20 @@
 {
   "projects": {
     "default": "blurred-195721"
+  },
+  "targets": {
+    "blurred-195721": {
+      "hosting": {
+        "public": [
+          "RESOURCE_IDENTIFIER"
+        ],
+        "focus-landing-pages": [
+          "blurred-195721"
+        ],
+        "focus-web": [
+          "focus-web"
+        ]
+      }
+    }
   }
 }

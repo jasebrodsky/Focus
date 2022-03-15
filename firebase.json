@@ -3,12 +3,29 @@
     "predeploy": [],
     "source": "functions"
   },
-  "hosting": {
-    "public": "/landingPages",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ]
-  }
+  "hosting":[
+    {
+      "target": "focus-landing-pages",
+      "public": "web/focus-landing-pages/",
+      "ignore": [
+        "**/.*",
+        "**/node_modules/**"
+      ]
+    },
+    {
+      "target": "focus-web",
+      "public": "web/focus-web/build",
+      "ignore": [
+        "**/.*",
+        "**/node_modules/**"
+      ]
+    }
+
+  ] 
+  
+  
+
+
+
+
 }

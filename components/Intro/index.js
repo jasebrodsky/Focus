@@ -90,15 +90,17 @@ class Intro extends Component {
 
         {
           key: '1',
-          title: 'Welcome to Focus',
-          text: "where blind dating is re-imagined." ,
+          // title: 'Welcome to Focus',
+          title: 'Go on Blind Dates.',
+          // text: "where blind dating is re-imagined." ,
           icon: faDoorOpen,
           colors: [primaryColor, secondaryColor],
         },
         {
           key: '2',
-          title: 'Better conversations',
-          text: 'as photos re-focus while chatting.', //'With each message, photos will re-focus.',
+          title: "Only people you're already attracted to.",
+          // title: 'Better conversations',
+          // text: 'as photos re-focus while chatting.', //'With each message, photos will re-focus.',
           icon: faComments,
           image: require('./assets/banner-chat.jpg'),
           imageStyle: styles.image,
@@ -107,8 +109,9 @@ class Intro extends Component {
         },
         {
           key: '3',
-          title:  'Because love is blind', //'Only gentlemen', 'Invite a friend',
-          text:  "and connections are made with you not your photos.", //'Spread the word.',
+          title: "We'll coordinate it.",
+          // title:  'Because love is blind', //'Only gentlemen', 'Invite a friend',
+          // text:  "and connections are made with you not your photos.", //'Spread the word.',
           icon:   faHeart, //faBolt, //faUserLock, //faUnlockAlt, //faRestroom //faShield
           colors: [primaryColor, secondaryColor],
           }
@@ -313,7 +316,7 @@ class Intro extends Component {
         
 
 
-        <FontAwesomeIcon blurRadius={100} size={ 100 } style={{
+        {/* <FontAwesomeIcon blurRadius={100} size={ 100 } style={{
           color: 'white', 
           //opacity:0.2,
           backgroundColor: 'transparent', 
@@ -323,7 +326,7 @@ class Intro extends Component {
             height: 3,
           },
           shadowOpacity: 0.29,
-          shadowRadius: 4.65,}} icon={item.icon}/>
+          shadowRadius: 4.65,}} icon={item.icon}/> */}
         <View>
           <Text style={{ 
             shadowColor: "#000",

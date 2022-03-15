@@ -60,6 +60,7 @@ class Swipes extends Component {
       showChatCount: false,
       isEmpty: true,
       allSwiped: false,
+      newMatch: false,
       imageViewerVisible: false,
       profileViewerVisible: false,
       profileMaxHeight: "15%",
@@ -325,6 +326,9 @@ class Swipes extends Component {
   //function to call when a new match is intiated.
   pushNewMatch = (images, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match, prompts_match) => {
 
+    //set newMatch state to true, so empty state can reference a new match has been made.
+    this.setState({ newMatch: true });
+
     user_name = this.state.user_name;
     user_images = this.state.user_images;
     user_about = this.state.user_about;
@@ -344,6 +348,7 @@ class Swipes extends Component {
         blur: "40", //start blur at this amount
         messages: null,
         date: {
+          priceMax: 2,
           status: 'none',
         },
         participants: {
@@ -441,6 +446,8 @@ class Swipes extends Component {
           conversationsMatchesRef2.update({
             [match_id] : 'true'
         });
+
+
 
         // let Analytics = RNFirebase.analytics();
         RNFirebase.analytics().logEvent('matchEvent', {
@@ -692,7 +699,7 @@ class Swipes extends Component {
         />
           
           <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between'}}>
-            { (this.state.isEmpty  && !this.state.loading ) && 
+            { (this.state.isEmpty  && !this.state.loading && !this.state.newMatch ) && 
               
               <LinearGradient style={{
                 flex: 1,
@@ -728,11 +735,64 @@ class Swipes extends Component {
                         shadowOpacity: 0.29,
                         shadowRadius: 4.65, }} 
 
-                        //onPress={() => this.getMoreMatches(this.state.userId)} 
+                        //onPress={() =>  this.setState({ newMatch: true});} 
                         
                         onPress = {() => navigate("Refer", {flow: 'swipes', from: 'swipes' })}
                         >
                       <Text style={{color: 'white'}}>Get More</Text>
+                    </Button>
+                  </View>
+                </LinearGradient>}
+
+
+               
+               
+               
+               
+               
+               
+               
+               
+               
+               
+                { (this.state.isEmpty  && !this.state.loading && this.state.newMatch ) && //this.state.newMatch
+              
+              <LinearGradient style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                //backgroundColor: primaryColor, dimensions
+                }}
+                colors={['white', 'white']}
+                start={{ x: 0, y: 0.1 }}
+                end={{ x: 0.1, y: 1 }}
+                >
+                  <FontAwesomeIcon size={ 70 } style={{
+                  color: primaryColor, 
+                  backgroundColor: 'transparent', 
+                  shadowColor: "#000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 3,
+                  },
+                  shadowOpacity: 0.29,
+                  shadowRadius: 4.65,}} icon={ faComments }/>
+                  <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}>You've matched with someone here.</Text>
+                  <View style ={{marginTop: 20}}>
+                    <Button rounded 
+                      style={{ 
+                        backgroundColor: primaryColor, 
+                        borderRadius: 20,
+                        shadowColor: "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: 3,
+                        },
+                        shadowOpacity: 0.29,
+                        shadowRadius: 4.65, }}                         
+                        onPress = {() => navigate("Messages", {flow: 'swipes', from: 'swipes' })}
+                        >
+                      <Text style={{color: 'white'}}>View Matches</Text>
                     </Button>
                   </View>
                 </LinearGradient>}

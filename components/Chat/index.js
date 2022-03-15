@@ -769,6 +769,10 @@ class Chat extends Component {
           datePrimaryButtonCopy = (userId == this.state.date.waitingOnId) ? 'Blind Date requested' : 'Blind Date requested' ;
           flow = (userId == this.state.date.waitingOnId) ? 'approveUpdatedProposal' : 'waitingAcceptanceUpdatedProposal' ;
           break;
+        case 'fulfill': 
+          datePrimaryButtonCopy = 'Blind Date coordinating';
+          flow = 'proposalAccepted' ; //go to proposal Acccepted flow
+          break;
         case 'accepted': 
           datePrimaryButtonCopy = 'Blind Date details';
           //flow = (true) ? 'detailsHide' : 'detailsShow' ; //1642837974 //1642833434708
@@ -950,10 +954,19 @@ class Chat extends Component {
                   matchName: this.props.navigation.getParam('name'), 
                   userIdMatch: this.state.userIdMatch,
                   dateTime: date.proposedTime,
+                  proposedLat: date.proposedLat,
+                  proposedLong: date.proposedLong,
                   conversationId: this.props.navigation.getParam('match_id'),
                   blur: this.state.blur,
-                  profile: this.state.profile
+                  profile: this.state.profile,
                   //userIdMatchFcmToken: userIdMatchFcmToken
+                  confirmedTime: date.confirmedTime,
+                  confirmedLat: date.confirmedLat,
+                  confirmedLong: date.confirmedLong,
+                  location: date.location,
+                  placeAddress: date.placeAddress,
+                  placeName: date.placeName,
+                  priceMax: date.priceMax,
                 })
               }
                 
@@ -1005,6 +1018,7 @@ class Chat extends Component {
                 //backgroundColor: primaryColor, dimensions
                 }}
                 colors={[primaryColor, secondaryColor  ]}
+                // colors={[primaryColor, secondaryColor  ]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 2, y: 2 }}
                 >
