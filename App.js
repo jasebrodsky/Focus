@@ -2,9 +2,10 @@ import * as React from 'react';
 import 'react-native-gesture-handler';
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
-import { Button, View, Text, useEffect, Linking, StatusBar } from 'react-native';
+import { Button, View, Text, useEffect, Linking, StatusBar, PushNotificationIOS } from 'react-native';
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
+import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { Root } from "native-base";
 import DeepLinkContext from "./components/DeepLinkContext"
 import Login from "./components/login/";
@@ -27,11 +28,13 @@ import Registration from "./components/Registration";
 import Payments from "./components/Payments";
 import Refer from "./components/Refer";
 import Waitlist from "./components/Waitlist";
+import Intersitial from "./components/Intersitial";
 
 import codePush from "react-native-code-push";
 import SplashScreen from  "react-native-splash-screen";
 import dynamicLinks from '@react-native-firebase/dynamic-links';
 
+import Toast from 'react-native-toast-message';
 
 
 // const RootStack = createStackNavigator(
@@ -86,14 +89,11 @@ const MainStack = createStackNavigator(
     /* Same configuration as before */
 
     defaultNavigationOptions: {
-      animationEnabled: true,
-      headerStyle: {
-        backgroundColor: '#fff',
-      },      
-      headerTintColor: '#fff',
-      headerTitleStyle: {
-        fontWeight: 'bold',
+      headerStyle: { 
+        paddingTop: getStatusBarHeight()+15,
+        paddingBottom: getStatusBarHeight()/2,
       },
+      headerMode: 'screen',
       },
       headerTransitionPreset: 'fade-in-place',
       transitionConfig: () => {
@@ -140,7 +140,9 @@ const RootStack = createStackNavigator(
     Waitlist: {
       screen: Waitlist,
     },
-   
+    Intersitial: {
+      screen: Intersitial,
+    },
   },
   {
     mode: 'modal',
@@ -249,6 +251,7 @@ export default class App extends React.Component {
 
   render() {
 
+
     return <DeepLinkContext.Provider value={this.state}>
               <Root><AppContainer />
                 
@@ -256,5 +259,8 @@ export default class App extends React.Component {
             </DeepLinkContext.Provider>;
 
   }
+
+  
 }
+
 

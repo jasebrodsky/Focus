@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Dimensions, Animated, ScrollView, Share} from 'react-native';
+import {Dimensions, Animated, ScrollView, Share, StatusBar} from 'react-native';
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -7,6 +7,8 @@ import { faUsers, faComments,faInbox } from '@fortawesome/free-solid-svg-icons';
 import ProgressCircle from 'react-native-progress-circle';
 import LinearGradient from 'react-native-linear-gradient';
 import  SvgCssUri from 'react-native-svg-uri';
+import { renderNotification, handleNotification } from '../Utilities/utilities.js';
+
 
 import {
   Container,
@@ -46,12 +48,12 @@ class Messages extends Component {
   static navigationOptions = ({ navigation }) => {
     return {
       headerLeft: () => (
-        <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-start', }} onPress={() => navigation.navigate('Swipes', {forceUpdate: false})}>
-          <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faUsers } />
+        <Button transparent style={{left: 16, }} onPress={() => navigation.navigate('Swipes', {forceUpdate: false})}>
+          <FontAwesomeIcon size={ 32 } style={{color: primaryColor}} icon={ faUsers } />
         </Button>
       ),
       headerTitle: () => (
-          <FontAwesomeIcon size={ 40 } style={{ color: 'lightgrey'}} icon={ faComments } />
+          <FontAwesomeIcon size={ 32 } style={{ color: 'lightgrey'}} icon={ faComments } />
       )
     };
   };
@@ -190,7 +192,9 @@ class Messages extends Component {
     }else if (type == 'expired' && match_state == 'expired'){
       
       return(
-        <ListItem key={i} onPress={() => navigate("Chat", {match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, blur: blur, reviews: reviews})}>            
+        <ListItem key={match_id} onPress={() => navigate("Chat", {profile: object, blur: blur, time_remaining: timeRemaining, expiration_date: expiration_date , match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, reviews: reviews })}>        
+          
+          
           <ProgressCircle
               blur={blur}
               matchStatus = {match_state}
@@ -238,9 +242,9 @@ class Messages extends Component {
             
             //save variables to use in forEach loop
             let matchDate = match.val().match_date;
-            let expirationDdate = match.val().expiration_date;
+            let expirationDate = match.val().expiration_date;
             //let timeRemaining =  86000000 - (this.state.currentDate.getTime() - matchDate);
-            let timeRemaining =  expirationDdate - this.state.currentDate.getTime();
+            let timeRemaining =  expirationDate - this.state.currentDate.getTime();
             let matchState = (timeRemaining > 0) ? 'active' : 'expired';
             let matchRemoved = match.val().removed;
             let matchStatus = match.val().status;
@@ -322,9 +326,17 @@ class Messages extends Component {
     const height = dimensions.height;
     const width = dimensions.width
 
+    //get notifications 
+    handleNotification(userId, 'Messages', null);
+
+
     return (
       <Container>
-
+        <StatusBar 
+          hidden={'hidden'} 
+          barStyle={'dark-content'} 
+          animated={true}
+        />
 
         <View style={{  flex: 1, padding: 0 }}> 
 

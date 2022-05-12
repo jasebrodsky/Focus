@@ -44,6 +44,8 @@ class Refer extends Component {
 
   constructor(props){
     super(props)
+    const { state, navigate } = this.props.navigation;
+
 
     //set state to convos var
     this.state = {
@@ -51,7 +53,7 @@ class Refer extends Component {
       gender: '',
       userId: '',
       reason: '',
-      reasonRows: 8
+      reasonRows: 6
     }
 
   }
@@ -79,7 +81,7 @@ class Refer extends Component {
       //invite flow
       this.setState({ titleCopy: 'Invite Friend' }); 
       this.setState({ secondaryCopy: 'Both of you will skip \n to the front of the line.' }); 
-      this.setState({ reasonCopy: 'What are some unique qualities or stories making them who they are today?' }); 
+      this.setState({ reasonCopy: "What's something great about "+name+" that others should know?" }); 
       this.setState({ primaryCTA: 'Invite Friend'}); 
       this.setState({ secondaryCTA: 'Go Back' });
       this.setState({ errorCopy: 'Invitation reason needs to be at least 100 characters. ' });
@@ -87,7 +89,7 @@ class Refer extends Component {
       //refer flow
       this.setState({ titleCopy: 'Refer Friend' }); 
       this.setState({ secondaryCopy: 'Both of you will skip \n to the front of the line.' }); 
-      this.setState({ reasonCopy: 'What are some unique qualities or stories making them who they are today?' }); 
+      this.setState({ reasonCopy: "What's something great about "+name+" that others should know?" }); 
       this.setState({ primaryCTA: 'Refer Friend' }); 
       this.setState({ secondaryCTA: 'Go Back' }); 
       this.setState({ errorCopy: 'Referral reason needs to be at least 100 characters. ' });
@@ -95,7 +97,7 @@ class Refer extends Component {
     }else if (flow == 'endorse'){
       //endorse flow
       this.setState({ titleCopy: 'Endorse Friend' }); 
-      this.setState({ reasonCopy: 'What are some unique qualities or stories making them who they are today?' }); 
+      this.setState({ reasonCopy: "What's something great about "+name+" that others should know?" }); 
       this.setState({ secondaryCopy: 'Both of you will skip \n to the front of the line.' }); 
       this.setState({ primaryCTA: 'Endorse Friend' }); 
       this.setState({ secondaryCTA: 'Go Back' }); 
@@ -105,7 +107,7 @@ class Refer extends Component {
       //waitlist flow
       this.setState({ titleCopy: 'Refer Friend' }); 
       this.setState({ secondaryCopy: 'Both of you will skip \n to the front of the line.' }); 
-      this.setState({ reasonCopy: 'What are some unique qualities or stories making them who they are today?' }); 
+      this.setState({ reasonCopy: "What's something great about "+name+" that others should know?" }); 
       this.setState({ primaryCTA: 'Refer Friend' }); 
       this.setState({ secondaryCTA: 'Go Back' }); 
       this.setState({ errorCopy: 'Refer reason needs to be at least 100 characters. ' });
@@ -114,7 +116,23 @@ class Refer extends Component {
       //waitlist flow
       this.setState({ titleCopy: 'Refer Friend' }); 
       this.setState({ secondaryCopy: 'Get more matches immediately.' }); 
-      this.setState({ reasonCopy: 'What are some unique qualities or stories making them who they are today?' }); 
+      this.setState({ reasonCopy: "What's something great about "+name+" that others should know?" }); 
+      this.setState({ primaryCTA: 'Refer Friend' }); 
+      this.setState({ secondaryCTA: 'Go Back' }); 
+      this.setState({ errorCopy: 'Refer reason needs to be at least 100 characters. ' });
+    }else if (flow == 'extendConversation1'){
+      //waitlist flow
+      this.setState({ titleCopy: 'Refer Friend' }); 
+      this.setState({ secondaryCopy: 'Get more matches immediately.' }); 
+      this.setState({ reasonCopy: "What's something great about "+name+" that others should know?" }); 
+      this.setState({ primaryCTA: 'Refer Friend' }); 
+      this.setState({ secondaryCTA: 'Go Back' }); 
+      this.setState({ errorCopy: 'Refer reason needs to be at least 100 characters. ' });
+    }else if (flow == 'moreMatches'){
+      //waitlist flow
+      this.setState({ titleCopy: 'Refer Friend' }); 
+      this.setState({ secondaryCopy: 'Get more matches immediately.' }); 
+      this.setState({ reasonCopy: "What's something great about "+name+" that others should know?" }); 
       this.setState({ primaryCTA: 'Refer Friend' }); 
       this.setState({ secondaryCTA: 'Go Back' }); 
       this.setState({ errorCopy: 'Refer reason needs to be at least 100 characters. ' });
@@ -136,9 +154,9 @@ class Refer extends Component {
     }))
       
     
-    // RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    // RNfirebase.analytics().setUserId(userId);
-    // RNfirebase.analytics().setCurrentScreen('Intro', 'Intro');
+    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
+    RNfirebase.analytics().setUserId(userId);
+    RNfirebase.analytics().setCurrentScreen('Refer', 'Refer');
   
   }
 
@@ -151,6 +169,73 @@ class Refer extends Component {
 
     //goback
     this.props.navigation.goBack();
+    
+  }
+
+  //extend passed conversation
+  _handleExtendConversation = () => {
+
+      const { state, navigate } = this.props.navigation;
+        //pass in from nav match_userid, conversationId
+        //save userId into var
+      
+        //save refs to db for conversation and matches, to reflect new status
+        let firebaseRef = firebase.database().ref('/conversations/'+state.params.conversationId+'/');
+        let firebaseMatchesRef1 = firebase.database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
+        let firebaseMatchesRef2 = firebase.database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
+        
+        //save system message that blind date status has changed. 
+        let conversationsRef = firebase.database().ref('/conversations/'+state.params.conversationId+'/messages/');
+
+        //86000000 - 1 day in ms
+        let extendTimeBy = 86000000 * 7; //in ms
+        let newExpirationDate = (new Date().getTime() + extendTimeBy);
+
+        //query for fcmToken used for triggering notification in the cloud. 
+        firebase.database().ref('/users/'+state.params.match_userid+'/').once("value", profile =>{
+
+          let notifyFcmToken = profile.val().fcmToken;
+
+          //update the conversation with extended expiration
+          firebaseRef.update({
+            expiration_date: newExpirationDate,
+            active: true,
+            notifyFcmToken: notifyFcmToken,
+          });
+
+          //update match to true status and set new expiration date
+          firebaseMatchesRef1.update({
+            active: true,
+            expiration_date: newExpirationDate,
+            last_message: 'Conversation Extended',
+            last_message_date: (new Date().getTime()*-1), 
+            //blur: this.state.blur,
+            unread_message: true 
+          });
+
+          //update match to true status and set new expiration date
+          firebaseMatchesRef2.update({
+            active: true,
+            expiration_date: newExpirationDate,
+            notifyFcmToken: notifyFcmToken, //notify the person who has their converation
+            last_message: 'Conversation Extended',
+            last_message_date: (new Date().getTime()*-1), 
+            showNotification: true,
+            notificationType: 'conversationExtended',
+          });
+
+          //push new system message that date has been managed. This will put conversation to top of messages. 
+          conversationsRef.push({
+            text: 'Conversation Extended', 
+            notify: false,
+            system: true,
+            user: this.state.userId, 
+            userTo: state.params.match_userid,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+          });
+
+        })
+  
     
   }
 
@@ -173,6 +258,12 @@ class Refer extends Component {
       const link = dynamicLinks().buildShortLink({
         link: encodeURI('https://focusdating.co/refer/?type=refer&code='+code+'&user_id_creator='+this.state.userId+'&gender_creator='+this.state.gender+'&name_creator='+this.state.user_name+'&name_created='+this.state.name+'&reason='+this.state.reason),
         domainUriPrefix: 'https://focusdating.page.link',
+        social: {
+          title: "Download Focus",
+          descriptionText: "Go on Blind Dates only with people you're already attracted to",
+          //descriptionText: this.state.user_name + 'says: '+this.state.reason,
+          imageUrl: 'https://focusdating.co/images/banner_14.jpg'
+        },     
         ios: {
           bundleId: 'com.helm.focus',
           appStoreId: '1492965606',
@@ -189,19 +280,14 @@ class Refer extends Component {
         console.log(`got link: ${link}`);
 
         //set up share 
+        //let name = this.state.name;
         let name = this.state.name;
         let reason = this.state.reason;
         let reasonLength = reason.length;
 
         if(!name || reasonLength < 30){
-
-          if(!name){
-            Alert.alert("Sorry", "Please enter a name first.")
-          }else {
-            Alert.alert("Sorry", this.state.errorCopy+(30-reasonLength)+' characters remaining.')
-          }
     
-          alert('please enter name or reason over 10 char');
+          alert('please enter reason over 100 characters');
         }else{
 
         Share.share({
@@ -216,8 +302,18 @@ class Refer extends Component {
             
             //delete unsent code from db
             firebase.database().ref('codes/' + this.state.codeDelete).remove();
+          
+            //record in analytics the event that a share was cancelled  
+            RNfirebase.analytics().logEvent('referShareDismissed', {
+              reason: this.state.reason
+            });
           } 
           else {
+
+            //record in analytics the event that a share was cancelled  
+            RNfirebase.analytics().logEvent('referShareSent', {
+              reason: this.state.reason
+            });
           
             //update swipeCount in firebase, so that cloud function will return fresh batch of matches. 
             let userRef = firebase.database().ref('users/'+this.state.userId+'/');
@@ -226,17 +322,29 @@ class Refer extends Component {
             userRef.update({  
               swipe_count: 0,
               last_swipe_sesh_date: new Date().getTime(),
-              status: 'active',
+              status: 'active', //should users only become active via the waitlist admin flow? if so, comment out this line so status never changes here. 
+              referStatus: 'sentReferral',
+              referReason: this.state.reason,
             }).then(()=>{
               
               //check if coming from swipes
-              if ( this.props.navigation.getParam('from') == 'swipes' || 'waitlist') {
+              if ( this.props.navigation.getParam('from') == 'swipes' || this.props.navigation.getParam('from') == 'waitlist' ) {
 
-                //redirect to swipes and pass params if getMatches needs to be force updated. 
+                //redirect to messages and pass params freeExtend: true, so that . 
                 this.props.navigation.navigate("Swipes", {forceUpdate: true, swipeCount: 0});
                 console.log("successfully updated swipecount, getting more matches.");
-
-              }else{
+              
+              }else if ( this.props.navigation.getParam('from') == 'conversations' ) {
+                
+                alert('flow is conversations')
+                //if coming from conversations, extend the conversation and redirect back messages.           
+                this._handleExtendConversation()
+                                
+                //then redirect back messages
+                this.props.navigation.navigate("Messages");
+              }
+                        
+              else{
                 //goback
                 this.props.navigation.goBack();
               }
@@ -294,7 +402,7 @@ class Refer extends Component {
             colors={[primaryColor, secondaryColor]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1.5, y: 2.5 }}
-            style={{flex: 5, justifyContent: 'center', alignItems: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
+            style={{paddingTop: 20, flex: 3, justifyContent: 'center', alignItems: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
             
             
             <View style={{
@@ -304,14 +412,31 @@ class Refer extends Component {
               borderRadius: 30,
               padding: 40,
               justifyContent: 'center',
-              //alignItems: 'flex-start', 
-
               maxHeight: 160,
-              margin: 5, 
-
+              marginBottom: 10,
+              marginTop: 10, 
               }}>
-                <Text style={{ fontFamily:'Helvetica', textAlign: 'left', fontSize: 45, color: 'white'}}>Refer</Text>
-                <Text style={{ fontFamily:'Helvetica-Light', textAlign: 'left', fontSize: 30, color: 'white'}}>Friend</Text>
+
+                <Text 
+                  style={{ 
+                    color: 'white', 
+                    fontSize: 40, 
+                    fontFamily:'HelveticaNeue',
+                    shadowColor: "#000",
+                    shadowOffset: {
+                      width: 0,
+                      height: 3,
+                    },
+                    shadowOpacity: 0.29,
+                    shadowRadius: 4.65,}} >Refer
+                </Text>
+                <Text 
+                  style={{ 
+                    color: 'white', 
+                    fontFamily:'HelveticaNeue',
+                    fontSize: 30, 
+                    color: 'white'}}>Friend
+                </Text>
 
             </View>
           
@@ -319,19 +444,19 @@ class Refer extends Component {
           </LinearGradient>
 
 
-        <View 
+        {/* <View 
           style={{ 
             flex: 1,        
-            marginTop: 30,              
+            marginTop: 20,              
             borderRadius: 30,
             padding: 20,
             justifyContent: "center", 
             width: 300,
             maxHeight: 70, 
-            backgroundColor: '#1C1C24'
+            //backgroundColor: '#1C1C24'
            }}>
           
-            <InputGroup  borderType="underline" style={{ paddingLeft: 0, marginBottom: 15}} >
+            <InputGroup  borderType="underline" style={{ paddingLeft: 0, marginBottom: 0}} >
 
               <Input 
                 placeholder='Name'
@@ -346,19 +471,10 @@ class Refer extends Component {
                 />  
             </InputGroup>
 
-        </View>
+        </View> */}
 
 
-        <View style={{
-          flex: 1,
-          justifyContent: 'flex-end',
-          padding: 10,
-          //paddingLeft: 25,
-          maxHeight: 60,
-          width: 300,
-        }}>
-            <Text style={{fontSize:12, fontFamily:'Helvetica-Light', textAlign: 'center', color: 'white'}} >{((this.state.reason.length < 30) && this.state.reason)? charRemainingCopy2 : charRemainingCopy1 }</Text>
-        </View>
+
 
         <KeyboardAvoidingView 
           style={{ flex: 9, alignItems: 'center', }} 
@@ -372,6 +488,7 @@ class Refer extends Component {
             paddingLeft: 15,
             paddingRight: 15,
             paddingTop: 20,
+            marginTop: 40,
             //paddingBottom: 20,
             justifyContent: "flex-start", 
             width: 300, 
@@ -381,17 +498,30 @@ class Refer extends Component {
 
             <Form>
               <Textarea
-              style={{ fontSize: 18, color: 'white',}}
+              style={{fontSize: 24, fontFamily:'Helvetica-Light', color: 'white'}}
               placeholder={this.state.reasonCopy}
               placeholderTextColor="white"
               rowSpan={this.state.reasonRows} 
               onFocus={ () => this.setState({reasonRows:3})}
-              onBlur={ () => this.setState({reasonRows:8})}
+              onBlur={ () => this.setState({reasonRows:6})}
               onChangeText={(reason) => this.setState({reason})}
               value={this.state.reason}           
               />
             </Form>
+            
           </View>  
+
+
+          <View style={{
+          flex: 1,
+          justifyContent: 'flex-end',
+          padding: 10,
+          //paddingLeft: 25,
+          maxHeight: 60,
+          width: 300,
+        }}>
+            <Text style={{fontSize:16, fontFamily:'Helvetica-Light', textAlign: 'center', color: 'white'}} >{((this.state.reason.length < 30) && this.state.reason)? charRemainingCopy2 : charRemainingCopy1 }</Text>
+        </View>
 
 
           <View style={{ flex: 6, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 0}}>
@@ -410,7 +540,8 @@ class Refer extends Component {
             <Button 
               bordered 
               style={{
-                width: 200,
+                width: 300,
+                justifyContent: 'center',
                 marginTop: 0, 
                 borderColor: 'white', 
                 backgroundColor: 'white', 
@@ -422,8 +553,11 @@ class Refer extends Component {
                 },
                 shadowOpacity: 0.29,
                 shadowRadius: 4.65, }} 
-              onPress={() => {this._buildLinkAndShare();}}>
-                <Text style={{color: primaryColor, width: 200, textAlign:'center'}}>{this.state.primaryCTA}</Text>
+              onPress={() => this._buildLinkAndShare()}
+              //onPress={() => this._handleExtendConversation()}
+
+              >
+                <Text style={{color: primaryColor, textAlign:'center'}}>{this.state.primaryCTA}</Text>
             </Button>
 
             <Button transparent full onPress={() => {this._onCancel();}} >

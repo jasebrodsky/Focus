@@ -14,6 +14,8 @@ import * as firebase from "firebase";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCog, faUsers, faPlus, faArrowAltCircleLeft } from '@fortawesome/free-solid-svg-icons';
 import SplashScreen from 'react-native-splash-screen';
+import { renderNotification, handleNotification } from '../Utilities/utilities.js';
+
 
 import {
   ActionSheet,
@@ -132,11 +134,11 @@ class Dashboard extends Component {
         <View></View>
       ),
       headerTitle: () => (
-        <FontAwesomeIcon size={ 40 } style={{ color: 'lightgrey'}} icon={ faCog } />
+        <FontAwesomeIcon size={ 32 } style={{ color: 'lightgrey'}} icon={ faCog } />
         ),
       headerRight: () => (
         <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-end', }} onPress={navigation.getParam('validate')}>
-          <FontAwesomeIcon size={ 28 } style={{ right: 16, color: primaryColor}} icon={ faUsers } />
+          <FontAwesomeIcon size={ 32 } style={{ right: 16, color: primaryColor}} icon={ faUsers } />
         </Button>
       ),
 
@@ -184,6 +186,10 @@ class Dashboard extends Component {
     })
 
     this.getLocation();
+
+    //get notifications 
+    handleNotification(userId, 'Dashboard', null);
+
 
   }  
 
@@ -380,6 +386,11 @@ class Dashboard extends Component {
   //update forceUpdate in state, so that swipes will be forced to updated when re-rendering. Needed for data 
   forceUpdate = () => {
     this.setState({ forceUpdate: true});
+    
+    RNfirebase.analytics().setUserProperty('min_age', this.state.profile.min_age.toString())
+    RNfirebase.analytics().setUserProperty('max_age', this.state.profile.max_age.toString())
+    RNfirebase.analytics().setUserProperty('max_distance', this.state.profile.max_distance.toString())
+
   }
   
 
@@ -1376,8 +1387,11 @@ class Dashboard extends Component {
         
     return (
       <Container>
-        <StatusBar hidden={false} />
-
+          <StatusBar 
+            hidden={'hidden'} 
+            barStyle={'dark-content'} 
+            animated={true}
+          />
         <BlurOverlay
           radius={14}
           downsampling={2}
@@ -1712,7 +1726,7 @@ class Dashboard extends Component {
             justifyContent: 'center',
             //backgroundColor: primaryColor, dimensions
             }}
-            colors={['black', 'black']}
+            colors={['#13131A', '#13131A']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1.5, y: 1.5 }}
             >
@@ -2000,8 +2014,8 @@ class Dashboard extends Component {
                   value={this.state.profile.min_age}
                   onSlidingComplete={(val) => 
                     firebaseRef.update({min_age: (val)},
-                    this.forceUpdate() //make swipes force update
-                  )}
+                    this.forceUpdate(), //make swipes force update
+                    )}
                   onValueChange={(val) => 
                    this.setState({profile: { ...this.state.profile, min_age: (val)}})
                  }
@@ -2045,7 +2059,12 @@ class Dashboard extends Component {
                   minimumTrackTintColor={primaryColor}
                   maximumTrackTintColor={primaryColor}
                   value={this.getMiles(this.state.profile.max_distance)}
-                  onSlidingComplete={(val) => firebaseRef.update({max_distance: this.getMeters(val)})}
+                  
+                  onSlidingComplete={(val) => 
+                    firebaseRef.update({max_distance: this.getMeters(val)},
+                    this.forceUpdate() //make swipes force update
+                  )}
+                  
                   onValueChange={(val) => 
                    this.setState({profile: { ...this.state.profile, max_distance: this.getMeters(val)}})
                  }
@@ -2122,7 +2141,10 @@ class Dashboard extends Component {
                 <Text>Other...</Text>
               </ListItem>
 
-               <Item fixedLabel onPress = {() => navigate("Refer", {flow: 'refer' })}>
+               <Item fixedLabel onPress = {() => navigate("Intersitial", { flow: 'refer'})}>
+
+            
+
                 <Label>Refer Friend</Label>
                 <Input disabled />
               </Item> 

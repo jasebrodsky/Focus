@@ -161,10 +161,9 @@ class Payments extends Component {
         });  
     }))
       
-    
-    // RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    // RNfirebase.analytics().setUserId(userId);
-    // RNfirebase.analytics().setCurrentScreen('Intro', 'Intro');
+    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
+    RNfirebase.analytics().setUserId(userId);
+    RNfirebase.analytics().setCurrentScreen('Payments', 'Payments');
   
   }
   
@@ -228,6 +227,11 @@ class Payments extends Component {
 
     //record in analytics that user was subscribed  
     RNfirebase.analytics().setUserProperty('subscribed', 'true');
+
+    //record in analytics the event that user subscribed event
+    RNfirebase.analytics().logEvent('userSubscribed', {
+      productId: productId
+    });
   }
 
 
@@ -441,7 +445,7 @@ class Payments extends Component {
                                         }}>
                                           <Text style={{ fontFamily: 'Helvetica-Bold', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[1]['subscriptionPeriodNumberIOS']+' '+productArray[1]['subscriptionPeriodUnitIOS'].toLowerCase()} </Text>
                                           <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[1]['localizedPrice']} </Text>
-                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{'$'+Math.round(100*productArray[1]['price'])/100 +'/'+ productArray[1]['subscriptionPeriodUnitIOS'].toLowerCase()}</Text>
+                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{'$'+Math.floor(((productArray[1]['price'] / productArray[1]['subscriptionPeriodNumberIOS']) * 100))/100+'/'+ productArray[1]['subscriptionPeriodUnitIOS'].toLowerCase()}</Text>
                                       </TouchableOpacity>
                                      
                                       <TouchableOpacity 
@@ -455,8 +459,9 @@ class Payments extends Component {
                                         borderColor: 'black',
                                         }}>
                                           <Text style={{ fontFamily: 'Helvetica-Bold', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[2]['subscriptionPeriodNumberIOS']+' '+productArray[2]['subscriptionPeriodUnitIOS'].toLowerCase()} </Text>
-                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[2]['localizedPrice']} </Text>
-                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{'$'+Math.round(100*productArray[2]['price'])/100 +'/'+ productArray[2]['subscriptionPeriodUnitIOS'].toLowerCase()}</Text>
+                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[2]['localizedPrice']} </Text>                                         
+                                          <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{'$'+Math.floor(((productArray[2]['price'] / productArray[2]['subscriptionPeriodNumberIOS']) * 100))/100+'/'+ productArray[2]['subscriptionPeriodUnitIOS'].toLowerCase()}</Text>
+
                                       </TouchableOpacity>
 
                                 </View>

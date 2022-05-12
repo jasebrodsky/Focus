@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Dimensions, StatusBar, Animated, ActivityIndicator, Image, ImageBackground, TouchableOpacity, Modal,ScrollView,Share } from 'react-native'
+import { Dimensions, StatusBar, SafeAreaView, Animated, ActivityIndicator, Image, ImageBackground, TouchableOpacity, Modal,ScrollView,Share } from 'react-native'
 import RNFirebase from "react-native-firebase";
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import * as firebase from "firebase";
@@ -14,20 +14,26 @@ import {
   Card,
   CardItem,
   Container,
+  Content,
   Button,
-  Text,
   Body,
+  Toast,
   View,
   Thumbnail,
   ListItem,
   List,
   Left,
   Right,
+  Title, 
+  Text,
   H1,
   H2,
   H3,
   Icon,
 } from "native-base";
+
+import { renderNotification, handleNotification } from '../Utilities/utilities.js';
+
 
 const primaryColor = "#a83a59";
 const secondaryColor = "#c60dd9";
@@ -74,17 +80,18 @@ class Swipes extends Component {
 
   //configure navigation
   static navigationOptions = ({ navigation }) => {
-    return {
+
+    return {      
       headerLeft: () => (
-        <Button transparent style={{width: 100, flex: 1,}} onPress={() => navigation.navigate({routeName: 'Dashboard', transitionStyle: 'inverted'}) }>              
-          <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faCog } />
+        <Button transparent style={{left: 16, }} onPress={() => navigation.navigate({routeName: 'Dashboard', transitionStyle: 'inverted'}) }>              
+          <FontAwesomeIcon size={ 30 } style={{ color: primaryColor}} icon={ faCog } />
        </Button>
       ),
-      headerTitle: () => (<FontAwesomeIcon size={ 40 } style={{fontSize: 32, color: 'lightgrey'}} icon={ faUsers } />
+      headerTitle: () => (<FontAwesomeIcon size={ 32 } style={{fontSize: 28,  color: 'lightgrey'}} icon={ faUsers } />
       ),
       headerRight: () => (
         <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-end', }} onPress={() => navigation.navigate('Messages')} >
-          <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faComments } />
+          <FontAwesomeIcon size={ 30 } style={{right: 16, color: primaryColor}} icon={ faComments } />
           { navigation.getParam('showChatCount') &&
             <Badge style={{ position: 'absolute', right: 4 }}>
               <Text>{navigation.getParam('unreadChatCount')}</Text>
@@ -128,6 +135,9 @@ class Swipes extends Component {
 
     //get unread chat count
     this.getUnreadChatCount(userId);
+
+    //get notifications 
+    handleNotification(userId, 'Swipes', null);
 
     //query for logged in users information needed and set state with it.     
     firebase.database().ref('/users/' + userId).on('value', ((snapshot) => {
@@ -173,6 +183,7 @@ class Swipes extends Component {
       }).start(() => this.runAnimation());
     }
 
+
     getUnreadChatCount = (userId) => {
 
         firebase.database().ref('/matches/' + userId).orderByChild('unread_message').equalTo(true).on('value', ((chatSnapshot) => {
@@ -211,7 +222,7 @@ class Swipes extends Component {
   showInstructions = (showInstructionsSwipes) => {
     //alert(this.state.showInstructionsSwipes);
     if (showInstructionsSwipes) {
-      openOverlay();
+      //openOverlay(); //TURNED OFF INSTRUCTIONS OVERLAY
     };
   } 
 
@@ -416,6 +427,8 @@ class Swipes extends Component {
           //set new match object
           matchesRef2.set({
             blur: "40", //start blur at this amount
+            showNotification: true,
+            notificationType: 'newMatch',
             images: user_images, //pass images in here
             last_message: "You got a new match!",
             last_message_date: (new Date().getTime()*-1), 
@@ -663,6 +676,9 @@ class Swipes extends Component {
   }
 
   render () {
+
+    //alert(getStatusBarHeight());
+
     //logo config
     const logo = require("../../images/focus-logo-old.svg");
     const rotation = this.state.rotation.interpolate({
@@ -682,397 +698,404 @@ class Swipes extends Component {
     let cardIndex = this.state.cardIndex;
  
     return (
-      <Container style={{}} >
-        <StatusBar hidden={false} />
+      <SafeAreaView style={{flex: 1, }}>
 
-        <BlurOverlay
-          radius={14}
-          downsampling={2}
-          brightness={-200}
-          onPress={() => {
-              closeOverlay();
-              userRef.update({showInstructionsSwipes: false})
-          }}
-          customStyles={{alignItems: 'center', justifyContent: 'center'}}
-          blurStyle="dark"
-          children={this.renderBlurChilds()}
-        />
-          
-          <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between'}}>
-            { (this.state.isEmpty  && !this.state.loading && !this.state.newMatch ) && 
-              
-              <LinearGradient style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                //backgroundColor: primaryColor, dimensions
-                }}
-                colors={['white', 'white']}
-                start={{ x: 0, y: 0.1 }}
-                end={{ x: 0.1, y: 1 }}
-                >
-                  <FontAwesomeIcon size={ 70 } style={{
-                  color: primaryColor, 
-                  backgroundColor: 'transparent', 
-                  shadowColor: "#000",
-                  shadowOffset: {
-                    width: 0,
-                    height: 3,
-                  },
-                  shadowOpacity: 0.29,
-                  shadowRadius: 4.65,}} icon={ faUserClock }/>
-                  <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}> No more matches today. </Text>
-                  <View style ={{marginTop: 20}}>
-                    <Button rounded 
-                      style={{ 
-                        backgroundColor: primaryColor, 
-                        borderRadius: 20,
-                        shadowColor: "#000",
-                        shadowOffset: {
-                          width: 0,
-                          height: 3,
-                        },
-                        shadowOpacity: 0.29,
-                        shadowRadius: 4.65, }} 
-
-                        //onPress={() =>  this.setState({ newMatch: true});} 
-                        
-                        onPress = {() => navigate("Refer", {flow: 'swipes', from: 'swipes' })}
-                        >
-                      <Text style={{color: 'white'}}>Get More</Text>
-                    </Button>
-                  </View>
-                </LinearGradient>}
-
-
-               
-               
-               
-               
-               
-               
-               
-               
-               
-               
-                { (this.state.isEmpty  && !this.state.loading && this.state.newMatch ) && //this.state.newMatch
-              
-              <LinearGradient style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                //backgroundColor: primaryColor, dimensions
-                }}
-                colors={['white', 'white']}
-                start={{ x: 0, y: 0.1 }}
-                end={{ x: 0.1, y: 1 }}
-                >
-                  <FontAwesomeIcon size={ 70 } style={{
-                  color: primaryColor, 
-                  backgroundColor: 'transparent', 
-                  shadowColor: "#000",
-                  shadowOffset: {
-                    width: 0,
-                    height: 3,
-                  },
-                  shadowOpacity: 0.29,
-                  shadowRadius: 4.65,}} icon={ faComments }/>
-                  <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}>You've matched with someone here.</Text>
-                  <View style ={{marginTop: 20}}>
-                    <Button rounded 
-                      style={{ 
-                        backgroundColor: primaryColor, 
-                        borderRadius: 20,
-                        shadowColor: "#000",
-                        shadowOffset: {
-                          width: 0,
-                          height: 3,
-                        },
-                        shadowOpacity: 0.29,
-                        shadowRadius: 4.65, }}                         
-                        onPress = {() => navigate("Messages", {flow: 'swipes', from: 'swipes' })}
-                        >
-                      <Text style={{color: 'white'}}>View Matches</Text>
-                    </Button>
-                  </View>
-                </LinearGradient>}
-            { (this.state.loading) &&
-            <LinearGradient style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              }}
-              colors={['white', 'white']}
-              //colors={[primaryColor, secondaryColor]}
-              start={{ x: 0, y: 0.1 }}
-              end={{ x: 0.1, y: 1 }}
-              >  
-                <Animated.View  style={{
-                    flex: 1, 
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    transform: [{rotate: rotation}]
-                  }}>
-                      <SvgCssUri 
-                        width="60" 
-                        height="60"   
-                        fill= {primaryColor}
-                        fillOpacity="0"
-                        strokeWidth="0"
-                        source={logo}
-                        style={{          
+      
+        <Container style={{flex: 1, }} >
+          <StatusBar 
+            hidden={'hidden'} 
+            barStyle={'dark-content'} 
+            animated={true}
+          />
+          <BlurOverlay
+            radius={14}
+            downsampling={2}
+            brightness={-200}
+            onPress={() => {
+                closeOverlay();
+                userRef.update({showInstructionsSwipes: false})
+            }}
+            customStyles={{alignItems: 'center', justifyContent: 'center'}}
+            blurStyle="dark"
+            children={this.renderBlurChilds()}
+          />
+            
+            <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between'}}>
+              { (this.state.isEmpty  && !this.state.loading && !this.state.newMatch ) && 
+                
+                <LinearGradient style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  //backgroundColor: primaryColor, dimensions
+                  }}
+                  colors={['white', 'white']}
+                  start={{ x: 0, y: 0.1 }}
+                  end={{ x: 0.1, y: 1 }}
+                  >
+                    <FontAwesomeIcon size={ 70 } style={{
+                    color: primaryColor, 
+                    backgroundColor: 'transparent', 
+                    shadowColor: "#000",
+                    shadowOffset: {
+                      width: 0,
+                      height: 3,
+                    },
+                    shadowOpacity: 0.29,
+                    shadowRadius: 4.65,}} icon={ faUserClock }/>
+                    <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}> No more matches.</Text>
+                    <View style ={{marginTop: 20}}>
+                      <Button rounded 
+                        style={{ 
+                          backgroundColor: primaryColor, 
+                          borderRadius: 20,
                           shadowColor: "#000",
                           shadowOffset: {
-                          width: 0,
+                            width: 0,
                             height: 3,
                           },
-                        shadowOpacity: 0.8,
-                        shadowRadius: 8.65,}}
-                      />
-                  </Animated.View>
-                </LinearGradient>       
-            }
-            
-            {/* only show swiper if loading is false - loading finished  */}
-            { ((!this.state.isEmpty || !this.state.allSwiped ) && !this.state.loading ) && 
-            
-            <LinearGradient style={{
-              flex: 1,
-              alignItems: 'flex-start',
-              justifyContent: 'center',
-              //backgroundColor: primaryColor, dimensions
-              }}
-              colors={['white', 'white']}
-              start={{ x: 0, y: 1 }}
-              end={{ x: 1, y: 1 }}
-              >
+                          shadowOpacity: 0.29,
+                          shadowRadius: 4.65, }} 
+
+                          //onPress={() =>  this.setState({ newMatch: true});} 
+                          
+                          onPress={() => navigate("Intersitial", { flow: 'moreMatches', from: 'swipes'})}
+                          >
+                        <Text style={{color: 'white'}}>Get More</Text>
+                      </Button>
+                    </View>
+                  </LinearGradient>}
 
 
-            <View style={{
-              //backgroundColor: 'black',
-              height: 70,
-              width: deviceWidth,
-              flex: 1,
-            }}>
-              <View style={{flex: 1, backgroundColor: 'black', alignContent: 'center', justifyContent: 'center'}}>
-                <Text style={{
-                  textAlign: 'center',
-                  color: 'white', 
-                  fontFamily:'Helvetica',
-                  fontSize: 40
-                  }}>Blind <Text style={{fontSize: 40, fontFamily:'Helvetica', color: primaryColor}}>Date</Text> With?</Text>
-              </View>
-            </View>
-
-
-            <View style={{ position: 'relative', bottom: 40, flex: 10, justifyContent: 'flex-start',}}>
-              <Swiper
-                cards={this.state.profiles}
-                ref = {swiper => {this.swiper = swiper}}
-                verticalSwipe = {false}
-                //onTapCard={() => this.setState({ profileViewerVisible: true, matchAbout: this.state.profiles[cardIndex].about, matchReviews: this.state.profiles[cardIndex].reviews, matchEducation: this.state.profiles[cardIndex].education, matchBirthday: this.state.profiles[cardIndex].birthday, matchWork: this.state.profiles[cardIndex].work, matchGender: this.state.profiles[cardIndex].gender, matchCityState: this.state.profiles[cardIndex].city_state, matchEducation: this.state.profiles[cardIndex].education,  matchImages: Object.values(this.state.profiles[cardIndex].images) })} 
-                onTapCard={() =>  this.props.navigation.navigate("Profile", {profile: this.state.profiles[cardIndex], from: 'Swipes'})} 
-
-                cardIndex={this.state.cardIndex}
-                backgroundColor={'white'}
-                stackSeparation={11}
-                stackSize={6}
-                animateCardOpacity = {true}
-                //shake to go back. 
-                onSwiped={(index) => console.log('onSwiped at index: '+index)}
-                onSwipedAll={(index) => this.setState({ allSwiped: true, isEmpty: true })}
-                onSwipedRight={(index) => this.onSwiped(index,'right',true)}//this.state.profile[]cardIndex.potential_match 
-                onSwipedLeft={(index) => this.onSwiped(index,'left',false)} 
-                overlayLabels={{
-                  bottom: {
-                    title: 'swip up',
-                    style: {
-                      label: {
-                        backgroundColor: 'black',
-                        borderColor: 'black',
-                        color: 'white',
-                        borderWidth: 1
-                      },
-                      wrapper: {
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }
-                    }
-                  },
-                  left: {
-                    title: 'NOPE',
-                    style: {
-                      label: {
-                        backgroundColor: primaryColor,
-                        borderColor: primaryColor,
-                        color: 'white',
-                        borderWidth: 1
-                      },
-                      wrapper: {
-                        flexDirection: 'column',
-                        alignItems: 'flex-end',
-                        justifyContent: 'flex-start',
-                        marginTop: 30,
-                        marginLeft: -30
-                      }
-                    }
-                  },
-                  right: {
-                    title: 'YEAH',
-                    style: {
-                      label: {
-                        backgroundColor: primaryColor,
-                        borderColor: primaryColor,
-                        color: 'white',
-                        borderWidth: 1,
-                      },
-                      wrapper: {
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        justifyContent: 'flex-start',
-                        marginTop: 30,
-                        marginLeft: 30
-                      }
-                    }
-                  },
-                  top: {
-                    title: 'SUPER LIKE',
-                    style: {
-                      label: {
-                        backgroundColor: 'black',
-                        borderColor: 'black',
-                        color: 'white',
-                        borderWidth: 1
-                      },
-                      wrapper: {
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }
-                    }
-                  }
-                }}                
-                renderCard={(card) => {
-                  
-                  return (
-                  <Card style={{ elevation: 30, }}>
-                    <CardItem cardBody>
-                      <View style={{
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                                                
-                      }}>
-                        <ImageBackground
-                          resizeMode="cover"
-                          style={{ width: '100%', height: height-320 }}
-                          source={{uri: Object.values(card.images)[0].url}}
-                        /> 
-                      </View>
-                    </CardItem>                  
-                    <CardItem style={{backgroundColor: 'black'}}>
-                        <Body >
-                          <Text style={{fontSize: 20, fontFamily:'HelveticaNeue-Bold', textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday)} | {card.gender}</Text>
-                          <Text style={{color: 'white', fontSize: 15, fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.city_state} </Text>
-                          <Text style={{color: 'white', fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.education} </Text>
-                          <Text style={{color: 'white', fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.work} </Text>
-                          {/* <Text style={{marginTop: 10}} numberOfLines={1} note>{card.about} </Text>                            */}
-                        </Body>
-                    </CardItem>            
-                  </Card>)
-                }}
->
-            </Swiper>
-            </View> 
-            </LinearGradient>        
-            }
-
-          <Modal 
-            visible={this.state.profileViewerVisible} 
-            animationType="slide">
-            
-            {(this.state.profileViewerVisible && !this.state.imageViewerVisible) && 
-              <ScrollView 
-                style={{
-                  flex: 1,
-                  backgroundColor: 'lightgrey'
-                }} 
                 
-                contentContainerStyle={{
-                  backgroundColor: 'white',
-                  flexGrow: 1,
-                  paddingTop: 40,
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                  { (this.state.isEmpty  && !this.state.loading && this.state.newMatch ) && //this.state.newMatch
+                
+                <LinearGradient style={{
+                  flex: 1,
                   alignItems: 'center',
-                  
-                }}>
-                  <View style={{ 
-                    position: 'absolute',
-                    zIndex: 2,
-                    left: 5,
-                    top: 40,}}>                  
-                    <Button  
-                      transparent 
-                      style={{  
-                        width: 90, 
-                        height: 90, 
-                        justifyContent: 'center',
-                        shadowColor: "#000",
-                        shadowOffset: {
-                          width: 0,
-                          height: 3,
+                  justifyContent: 'center',
+                  //backgroundColor: primaryColor, dimensions
+                  }}
+                  colors={['white', 'white']}
+                  start={{ x: 0, y: 0.1 }}
+                  end={{ x: 0.1, y: 1 }}
+                  >
+                    <FontAwesomeIcon size={ 70 } style={{
+                    color: primaryColor, 
+                    backgroundColor: 'transparent', 
+                    shadowColor: "#000",
+                    shadowOffset: {
+                      width: 0,
+                      height: 3,
+                    },
+                    shadowOpacity: 0.29,
+                    shadowRadius: 4.65,}} icon={ faComments }/>
+                    <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}>You've matched with someone here.</Text>
+                    <View style ={{marginTop: 20}}>
+                      <Button rounded 
+                        style={{ 
+                          backgroundColor: primaryColor, 
+                          borderRadius: 20,
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 3,
+                          },
+                          shadowOpacity: 0.29,
+                          shadowRadius: 4.65, }}                         
+                          onPress = {() => navigate("Messages", {flow: 'swipes', from: 'swipes' })}
+                          >
+                        <Text style={{color: 'white'}}>View Matches</Text>
+                      </Button>
+                    </View>
+                  </LinearGradient>}
+              { (this.state.loading) &&
+              <LinearGradient style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                }}
+                colors={['white', 'white']}
+                //colors={[primaryColor, secondaryColor]}
+                start={{ x: 0, y: 0.1 }}
+                end={{ x: 0.1, y: 1 }}
+                >  
+                  <Animated.View  style={{
+                      flex: 1, 
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      transform: [{rotate: rotation}]
+                    }}>
+                        <SvgCssUri 
+                          width="60" 
+                          height="60"   
+                          fill= {primaryColor}
+                          fillOpacity="0"
+                          strokeWidth="0"
+                          source={logo}
+                          style={{          
+                            shadowColor: "#000",
+                            shadowOffset: {
+                            width: 0,
+                              height: 3,
+                            },
+                          shadowOpacity: 0.8,
+                          shadowRadius: 8.65,}}
+                        />
+                    </Animated.View>
+                  </LinearGradient>       
+              }
+              
+              {/* only show swiper if loading is false - loading finished  */}
+              { ((!this.state.isEmpty || !this.state.allSwiped ) && !this.state.loading ) && 
+              
+              <LinearGradient style={{
+                flex: 1,
+                alignItems: 'flex-start',
+                justifyContent: 'center',
+                //backgroundColor: primaryColor, dimensions
+                }}
+                colors={['white', 'white']}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 1, y: 1 }}
+                >
+
+
+              <View style={{
+                //backgroundColor: 'black',
+                height: 70,
+                width: deviceWidth,
+                flex: 1,
+              }}>
+                <View style={{flex: 1, backgroundColor: '#13131A', alignContent: 'center', justifyContent: 'center'}}>
+                  <Text style={{
+                    textAlign: 'center',
+                    color: 'white', 
+                    fontFamily:'Helvetica',
+                    fontSize: 40
+                    }}>Blind <Text style={{fontSize: 40, fontFamily:'Helvetica', color: primaryColor}}>Date</Text> With?</Text>
+                </View>
+              </View>
+
+
+              <View style={{ position: 'relative', bottom: 40, flex: 10, justifyContent: 'flex-start',}}>
+                <Swiper
+                  cards={this.state.profiles}
+                  ref = {swiper => {this.swiper = swiper}}
+                  verticalSwipe = {false}
+                  //onTapCard={() => this.setState({ profileViewerVisible: true, matchAbout: this.state.profiles[cardIndex].about, matchReviews: this.state.profiles[cardIndex].reviews, matchEducation: this.state.profiles[cardIndex].education, matchBirthday: this.state.profiles[cardIndex].birthday, matchWork: this.state.profiles[cardIndex].work, matchGender: this.state.profiles[cardIndex].gender, matchCityState: this.state.profiles[cardIndex].city_state, matchEducation: this.state.profiles[cardIndex].education,  matchImages: Object.values(this.state.profiles[cardIndex].images) })} 
+                  onTapCard={() =>  this.props.navigation.navigate("Profile", {profile: this.state.profiles[cardIndex], from: 'Swipes'})} 
+
+                  cardIndex={this.state.cardIndex}
+                  backgroundColor={'white'}
+                  stackSeparation={11}
+                  stackSize={6}
+                  animateCardOpacity = {true}
+                  //shake to go back. 
+                  onSwiped={(index) => console.log('onSwiped at index: '+index)}
+                  onSwipedAll={(index) => this.setState({ allSwiped: true, isEmpty: true })}
+                  onSwipedRight={(index) => this.onSwiped(index,'right',true)}//this.state.profile[]cardIndex.potential_match 
+                  onSwipedLeft={(index) => this.onSwiped(index,'left',false)} 
+                  overlayLabels={{
+                    bottom: {
+                      title: 'swip up',
+                      style: {
+                        label: {
+                          backgroundColor: '#13131A',
+                          borderColor: 'black',
+                          color: 'white',
+                          borderWidth: 1
                         },
-                        shadowOpacity: 0.29,
-                        shadowRadius: 4.65, }}
-                      onPress = {() => this.setState({ profileViewerVisible: false})}>
-                        <FontAwesomeIcon size={ 50 }     
-                          style={{color: primaryColor}} 
-                          icon={ faArrowAltCircleLeft } />
-                    </Button>                  
-                  </View>
-
-                  <TouchableOpacity activeOpacity={1.0} onPress = {() => this.setState({ imageViewerVisible: true})}>
-                    <Image style={{}} 
-                      source={{
-                        uri: this.state.matchImages[0].url,
-                        width: deviceWidth,
-                        height: deviceHeight-200
-                      }} 
-                    />
-
-                  </TouchableOpacity>
-                  <View style={{flex: 1, alignSelf: 'flex-start'}}>
-                    <TouchableOpacity>
-                      <Card transparent style={{padding: 10}}>   
-                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.calculateAge(this.state.matchBirthday)}, {this.state.matchGender}</H3>
-                        <Text numberOfLines={1} style={{}} >{this.state.matchWork} </Text>
-                        <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.matchEducation} </Text>
-                        <Text note style={{marginTop: 10}}>{this.state.matchAbout}</Text>
-                      </Card>
-                      <View style={{width: deviceWidth}}>
-                        {this._renderReview(this.state.matchReviews)}
-
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                </ScrollView>
+                        wrapper: {
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }
+                      }
+                    },
+                    left: {
+                      title: 'NOPE',
+                      style: {
+                        label: {
+                          backgroundColor: primaryColor,
+                          borderColor: primaryColor,
+                          color: 'white',
+                          borderWidth: 1
+                        },
+                        wrapper: {
+                          flexDirection: 'column',
+                          alignItems: 'flex-end',
+                          justifyContent: 'flex-start',
+                          marginTop: 30,
+                          marginLeft: -30
+                        }
+                      }
+                    },
+                    right: {
+                      title: 'YEAH',
+                      style: {
+                        label: {
+                          backgroundColor: primaryColor,
+                          borderColor: primaryColor,
+                          color: 'white',
+                          borderWidth: 1,
+                        },
+                        wrapper: {
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          justifyContent: 'flex-start',
+                          marginTop: 30,
+                          marginLeft: 30
+                        }
+                      }
+                    },
+                    top: {
+                      title: 'SUPER LIKE',
+                      style: {
+                        label: {
+                          backgroundColor: 'black',
+                          borderColor: 'black',
+                          color: 'white',
+                          borderWidth: 1
+                        },
+                        wrapper: {
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }
+                      }
+                    }
+                  }}                
+                  renderCard={(card) => {
+                    
+                    return (
+                    <Card style={{ elevation: 30, }}>
+                      <CardItem cardBody>
+                        <View style={{
+                          flex: 1,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                                                  
+                        }}>
+                          <ImageBackground
+                            resizeMode="cover"
+                            style={{ width: '100%', height: height-320 }}
+                            source={{uri: Object.values(card.images)[0].url}}
+                          /> 
+                        </View>
+                      </CardItem>                  
+                      <CardItem style={{backgroundColor: '#13131A'}}>
+                          <Body >
+                            <Text style={{fontSize: 20, fontFamily:'HelveticaNeue-Bold', textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday)} | {card.gender}</Text>
+                            <Text style={{color: 'white', fontSize: 15, fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.city_state} </Text>
+                            <Text style={{color: 'white', fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.education} </Text>
+                            <Text style={{color: 'white', fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.work} </Text>
+                            {/* <Text style={{marginTop: 10}} numberOfLines={1} note>{card.about} </Text>                            */}
+                          </Body>
+                      </CardItem>            
+                    </Card>)
+                  }}
+  >
+              </Swiper>
+              </View> 
+              </LinearGradient>        
               }
 
-              {this.state.imageViewerVisible && 
-                <ImageViewer 
-                  index = {this.state.imageIndex}
-                  imageUrls={this.state.matchImages}
-                  onChange = {(index) => this.setState({ imageIndex: index})}
-                  onSwipeDown = {() => this.setState({ imageViewerVisible: false, imageIndex: this.state.imageIndex})}
-                  onClick = {() => this.setState({ imageViewerVisible: false, imageIndex: 0})}
-                />  
+            <Modal 
+              visible={this.state.profileViewerVisible} 
+              animationType="slide">
+              
+              {(this.state.profileViewerVisible && !this.state.imageViewerVisible) && 
+                <ScrollView 
+                  style={{
+                    flex: 1,
+                    backgroundColor: 'lightgrey'
+                  }} 
+                  
+                  contentContainerStyle={{
+                    backgroundColor: 'white',
+                    flexGrow: 1,
+                    paddingTop: 40,
+                    alignItems: 'center',
+                    
+                  }}>
+                    <View style={{ 
+                      position: 'absolute',
+                      zIndex: 2,
+                      left: 5,
+                      top: 40,}}>                  
+                      <Button  
+                        transparent 
+                        style={{  
+                          width: 90, 
+                          height: 90, 
+                          justifyContent: 'center',
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 3,
+                          },
+                          shadowOpacity: 0.29,
+                          shadowRadius: 4.65, }}
+                        onPress = {() => this.setState({ profileViewerVisible: false})}>
+                          <FontAwesomeIcon size={ 50 }     
+                            style={{color: primaryColor}} 
+                            icon={ faArrowAltCircleLeft } />
+                      </Button>                  
+                    </View>
+
+                    <TouchableOpacity activeOpacity={1.0} onPress = {() => this.setState({ imageViewerVisible: true})}>
+                      <Image style={{}} 
+                        source={{
+                          uri: this.state.matchImages[0].url,
+                          width: deviceWidth,
+                          height: deviceHeight-200
+                        }} 
+                      />
+
+                    </TouchableOpacity>
+                    <View style={{flex: 1, alignSelf: 'flex-start'}}>
+                      <TouchableOpacity>
+                        <Card transparent style={{padding: 10}}>   
+                          <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{this.calculateAge(this.state.matchBirthday)}, {this.state.matchGender}</H3>
+                          <Text numberOfLines={1} style={{}} >{this.state.matchWork} </Text>
+                          <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.matchEducation} </Text>
+                          <Text note style={{marginTop: 10}}>{this.state.matchAbout}</Text>
+                        </Card>
+                        <View style={{width: deviceWidth}}>
+                          {this._renderReview(this.state.matchReviews)}
+
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </ScrollView>
+                }
+
+                {this.state.imageViewerVisible && 
+                  <ImageViewer 
+                    index = {this.state.imageIndex}
+                    imageUrls={this.state.matchImages}
+                    onChange = {(index) => this.setState({ imageIndex: index})}
+                    onSwipeDown = {() => this.setState({ imageViewerVisible: false, imageIndex: this.state.imageIndex})}
+                    onClick = {() => this.setState({ imageViewerVisible: false, imageIndex: 0})}
+                  />  
 
 
-               }   
-            </Modal> 
-        </View>
+                }   
+              </Modal> 
+          </View>
 
-      </Container>
+        </Container>
+      </SafeAreaView>
     )
   }
 }

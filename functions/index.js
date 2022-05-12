@@ -212,8 +212,15 @@ exports.getCode = functions.https.onRequest((req, res) => {
   console.log('reason is: '+reason);
 
   //query for last code in db 
-  admin.database().ref('/codes').limitToLast(1).once('value').then(codeSnap => {
-      
+  admin.database().ref('/codes').orderByChild('created').limitToLast(1).once('value').then(codeSnap => {
+                                                
+
+    //query for last valid code, order by created date, limit to one. 
+    // .val().number to get the last codes number
+    // iterate the +1
+    // save new code witih newNumber
+
+
       //convert codeSnap into it's data 
       let codeObj = Object.values(codeSnap.toJSON());
       //let codeId = Object.keys(codeSnap.toJSON())[0];
@@ -226,7 +233,7 @@ exports.getCode = functions.https.onRequest((req, res) => {
       //create newCode object
       var newCode = {
         //code_id: codeId,
-        created: new Date(),
+        created: new Date().getTime(),
         created_by: userid,
         expired: false,
         number: newNumber,

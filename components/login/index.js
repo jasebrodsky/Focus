@@ -1,6 +1,6 @@
 import React, { Component, useEffect } from "react";
 import PropTypes from 'prop-types';
-import { Keyboard, TouchableWithoutFeedback, LayoutAnimation, Image, Alert, Animated, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { Keyboard, TouchableWithoutFeedback, LayoutAnimation, Image, Alert, Dimensions, Animated, StyleSheet, TextInput, StatusBar } from "react-native";
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
 import Geocoder from 'react-native-geocoding';
@@ -63,6 +63,11 @@ class Login extends Component {
   };
 
   componentDidMount() {
+
+    //run analytics
+    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
+    RNfirebase.analytics().setCurrentScreen('Login', 'Login');
+
   
     //Hide Splash screen on app load.
     setTimeout(() => {
@@ -298,6 +303,9 @@ forgotPassword = (email) => {
 
 redirectUser = async (userId) => {
 
+  //setUserIid to analytics
+  RNfirebase.analytics().setUserId(userId);
+
   //get subscriptions for updating firebase with
   //let subscribed = await this.haveSubscription(userId);
 
@@ -339,18 +347,28 @@ redirectUser = async (userId) => {
 
       //compute if profile is complete
       let profileComplete = ( educationValidated && first_nameValidated && workValidated && birthdayValidated && interestedValidated);
-  
+    
 
-      if(status == 'waitlist'){
+      if(status == 'waitlist'|| status == 'onboard'){
           //show intro slides, with deeplink params if present
           this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
       }
       else if(status == 'active'|| 'paused'){
         
         // if settings are valid - send to swipes. if not send to settings. 
-        (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('ManageAboutMe');
+        (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Intro');
 
       }
+
+      //update analytics
+      RNfirebase.analytics().setUserProperty('status', this.state.profile.status);           
+      RNfirebase.analytics().setUserProperty('city_state', this.state.profile.city_state);           
+      RNfirebase.analytics().setUserProperty('intialUser', this.state.profile.intialUser);           
+      RNfirebase.analytics().setUserProperty('latitude', this.state.profile.latitude); 
+      RNfirebase.analytics().setUserProperty('longitude', this.state.profile.longitude); 
+      RNfirebase.analytics().setUserProperty('max_age', this.state.profile.max_age); 
+      RNfirebase.analytics().setUserProperty('min_age', this.state.profile.min_age); 
+
 
       
 
@@ -409,8 +427,10 @@ handleLogin = () => {
       
       //query exisitng user in order to check where to redirect them to - intro, swipes, or setings. 
       .then((data) => this.redirectUser(data.user.uid))
+
       //alert any errors from firebase
       .catch(error => alert(error))
+
 }
 
 handleSignUp = () => {
@@ -451,7 +471,7 @@ handleSignUp = () => {
         about: '',
         work: '',
         education: '',
-        status: 'waitlist',
+        status: 'onboard',
         min_age: 18,
         max_age: 60,
         max_distance: 160934.4,
@@ -628,7 +648,7 @@ onLoginOrRegister = () => {
                     about: '',
                     work: '',
                     education: '',
-                    status: 'active',
+                    status: 'onboard',
                     code_accepted: (fb_result.gender == 'female') ? true : false, //if new user is female set code accepted to true, check this before letting user (men) in next time. 
                     min_age: 18,
                     max_age: 60,
@@ -693,6 +713,8 @@ onLoginOrRegister = () => {
       outputRange: [0, 1]
     });
 
+    let deviceWidth = Dimensions.get('window').width
+
   
     return (
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} >
@@ -713,6 +735,11 @@ onLoginOrRegister = () => {
                       justifyContent: 'center', 
                       alignItems: 'center', 
                     }}>
+                    <StatusBar 
+                      hidden={'hidden'} 
+                      barStyle={'dark-content'} 
+                      animated={true}
+                    />
 
 
                     {(this.state.slideUp) && 
@@ -772,7 +799,7 @@ onLoginOrRegister = () => {
                   
               {(this.state.slideUp) &&
               
-              <View style={{flex: 4, flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+              <View style={{flex: 3, flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
 
                     <Animated.View style={{ 
                       //backgroundColor: 'lightgrey', 
@@ -805,7 +832,7 @@ onLoginOrRegister = () => {
 
 
                   <View style={{
-                    flex: 3,
+                    flex: 4,
                     //backgroundColor: 'yellow',
                     flexDirection: 'column',
                     justifyContent: 'center',
@@ -827,26 +854,32 @@ onLoginOrRegister = () => {
 
 
 
-                      
-                    <TextInput
-                        style={styles.inputBox}
-                        value={this.state.email}
-                        onChangeText={email => this.setState({ email })}
-                        placeholder='Email'
-                        autoCapitalize='none'
-                        placeholderTextColor='white'
-                        color='white'
-                        keyboardType='email-address'
-                    />
-                    <TextInput
-                        style={styles.inputBox}
-                        value={this.state.password}
-                        onChangeText={password => this.setState({ password })}
-                        placeholder='Password'
-                        secureTextEntry={true}
-                        placeholderTextColor='white'
-                        color='white'
-                    />
+                    <View style={{backgroundColor: '#222223', paddingBottom: 5, width: deviceWidth, flex: 1, flexDirection: "column" , justifyContent: 'center', alignItems: 'center' }}>
+
+                      <TextInput
+                          style={styles.inputBox}
+                          value={this.state.email}
+                          onChangeText={email => this.setState({ email })}
+                          placeholder='Email'
+                          textContentType='username'
+                          autoCapitalize='none'
+                          placeholderTextColor='white'
+                          color='white'
+                          keyboardType='email-address'
+                      />
+                      <TextInput
+                          style={styles.inputBox}
+                          value={this.state.password}
+                          onChangeText={password => this.setState({ password })}
+                          placeholder='Password'
+                          secureTextEntry={true}
+                          textContentType= {this.state.createAccount ? 'newPassword' : 'password' }
+                          placeholderTextColor='white'
+                          color='white'
+                      />
+
+                    </View>
+
                     
                     {/* if create account is clicked, show gender dropdown in form */}
                     {/* {(this.state.createAccount) &&
@@ -1017,7 +1050,7 @@ const styles = StyleSheet.create({
   },
   inputBox: {
       width: 250,
-      margin: 10,
+      margin: 15,
       padding: 15,
       fontSize: 16,
       borderColor: '#d3d3d3',

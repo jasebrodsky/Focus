@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, StyleSheet, Alert, Share, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet, Alert, Share, TouchableOpacity, StatusBar } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faRestroom, faHeart,  faCog, faCommentDots, faCoffee, faDoorOpen, faLockAlt,  faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faBolt,  faEye, faUserLock } from '@fortawesome/free-solid-svg-icons';
+import { faRestroom, faHeart,  faCog, faCommentDots, faCoffee, faDoorOpen, faLockAlt,  faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faBolt,  faEye, faUserLock, faUtensils, faCheckDouble } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
 import RNfirebase from 'react-native-firebase';
 import AppIntroSlider from 'react-native-app-intro-slider';
@@ -93,7 +93,7 @@ class Intro extends Component {
           // title: 'Welcome to Focus',
           title: 'Go on Blind Dates.',
           // text: "where blind dating is re-imagined." ,
-          icon: faDoorOpen,
+          icon: faUtensils,
           colors: [primaryColor, secondaryColor],
         },
         {
@@ -101,7 +101,7 @@ class Intro extends Component {
           title: "Only people you're already attracted to.",
           // title: 'Better conversations',
           // text: 'as photos re-focus while chatting.', //'With each message, photos will re-focus.',
-          icon: faComments,
+          icon: faHeartbeat,
           image: require('./assets/banner-chat.jpg'),
           imageStyle: styles.image,
           backgroundColor: primaryColor,
@@ -112,7 +112,7 @@ class Intro extends Component {
           title: "We'll coordinate it.",
           // title:  'Because love is blind', //'Only gentlemen', 'Invite a friend',
           // text:  "and connections are made with you not your photos.", //'Spread the word.',
-          icon:   faHeart, //faBolt, //faUserLock, //faUnlockAlt, //faRestroom //faShield
+          icon:   faCheckDouble, //faBolt, //faUserLock, //faUnlockAlt, //faRestroom //faShield
           colors: [primaryColor, secondaryColor],
           }
         ],
@@ -149,7 +149,7 @@ class Intro extends Component {
         key: '1',
         title: 'Welcome to Focus',
         text: "Focus on less." ,
-        icon: faDoorOpen,
+        icon: faUtensils,
         image: require('./assets/banner-welcome.jpg'),
         imageStyle: styles.image,
         backgroundColor: primaryColor,
@@ -224,7 +224,6 @@ class Intro extends Component {
   
   componentDidMount() {
     
-
     //check if deeplink exists of type refer, if so, run inviteFlow, which updates UX based off invite link
     
     //update state with gender passed from navigation
@@ -232,10 +231,9 @@ class Intro extends Component {
     //   gender: this.props.navigation.getParam('gender'), //get from login screen
     // });
 
-    
-      // RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-      // RNfirebase.analytics().setUserId(this.state.userId);
-      // RNfirebase.analytics().setCurrentScreen('Intro', 'Intro');
+      RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
+      RNfirebase.analytics().setUserId(this.state.userId);
+      RNfirebase.analytics().setCurrentScreen('Intro', 'Intro');
   }
 
 
@@ -316,8 +314,9 @@ class Intro extends Component {
         
 
 
-        {/* <FontAwesomeIcon blurRadius={100} size={ 100 } style={{
+        <FontAwesomeIcon blurRadius={100} size={ 150 } style={{
           color: 'white', 
+          marginBottom: 20,
           //opacity:0.2,
           backgroundColor: 'transparent', 
           shadowColor: "#000",
@@ -326,21 +325,24 @@ class Intro extends Component {
             height: 3,
           },
           shadowOpacity: 0.29,
-          shadowRadius: 4.65,}} icon={item.icon}/> */}
+          shadowRadius: 4.65,}} icon={item.icon}/>
         <View>
           <Text style={{ 
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 3,
-            },
-            shadowOpacity: 0.29,
-            shadowRadius: 4.65, 
-            fontSize: 32,
-            color: 'white',
+            // shadowColor: "#000",
+            // shadowOffset: {
+            //   width: 0,
+            //   height: 3,
+            // },
+            // shadowOpacity: 0.29,
+            // shadowRadius: 4.65, 
+            fontSize: 55,
+            lineHeight: 70,
+            fontFamily:'Helvetica',
+            color: '#222222',
             backgroundColor: 'transparent',
-            textAlign: 'center',
-            marginBottom: 20}}>
+            textAlign: 'left',
+            marginBottom: 20,
+            padding: 30}}>
             {item.title}
           </Text>
           
@@ -376,7 +378,7 @@ class Intro extends Component {
           rounded
           //onPress={() => this.slider.goToSlide(this.slider.i , true)}
           style={{
-            width: 200, 
+            width: 300, 
             height: 40,
             borderRadius: 20,
             backgroundColor: btnColor,  
@@ -410,7 +412,7 @@ _renderNextButton  =  ()  => {
           rounded
           //onPress={() => this.slider.goToSlide(this.slider.i , true)}
           style={{
-            width: 200, 
+            width: 300, 
             height: 40,
             borderRadius: 20,
             backgroundColor: btnColor,  
@@ -507,6 +509,11 @@ _renderNextButton  =  ()  => {
     }
 
       <View style={{flex: 7}}>
+        <StatusBar 
+            hidden={'hidden'} 
+            barStyle={'dark-content'} 
+            animated={true}
+          />
         <AppIntroSlider 
           
           slides={this.state.slides} 

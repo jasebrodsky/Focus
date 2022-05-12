@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, ScrollView, TouchableOpacity, Image, ImageBackground, StyleSheet, Dimensions } from 'react-native';
+import { Alert, ScrollView, TouchableOpacity, Image, ImageBackground, StyleSheet, Dimensions, StatusBar } from 'react-native';
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
 import { Modal } from 'react-native';
@@ -35,6 +35,7 @@ import { GiftedChat } from 'react-native-gifted-chat';
 import TimerMachine from 'react-timer-machine';
 import moment from "moment";
 import momentDurationFormatSetup from "moment-duration-format";
+import { renderNotification, handleNotification } from '../Utilities/utilities.js';
 
 
 const primaryColor = "#a83a59";
@@ -96,13 +97,14 @@ class Chat extends Component {
     return {
       headerLeft: () => (
         <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-start', }} onPress={() => navigation.goBack()}>
-          <FontAwesomeIcon size={ 28 } style={{left: 16, color: primaryColor}} icon={ faArrowLeft } />
+          <FontAwesomeIcon size={ 32 } style={{left: 16, color: primaryColor}} icon={ faArrowLeft } />
        </Button>
       ),
       headerTitle: (props) => (
         <Button 
           transparent 
           style={{flexDirection: 'row', alignItems: 'center'}}
+
           onPress = {() =>  navigation.navigate("Profile", {
             profile: navigation.getParam('profile'), 
             blur: navigation.getParam('blur'), 
@@ -120,8 +122,8 @@ class Chat extends Component {
                 },
                 shadowOpacity: 0.8,
                 shadowRadius: 4.65,
-                width: 30, 
-                height: 30,  
+                width: 32, 
+                height: 32,  
                 overflow: "hidden", 
                 borderRadius: 150, 
                 borderWidth: 0.5, 
@@ -135,7 +137,7 @@ class Chat extends Component {
       
       headerRight: () => (
         <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-end' }} onPress={navigation.getParam('handleSneekPeek')}>
-          <FontAwesomeIcon size={ 28 } style={{right: 16, color: primaryColor}} icon={ faEye } />
+          <FontAwesomeIcon size={ 32 } style={{right: 16, color: primaryColor}} icon={ faEye } />
        </Button>
       ),
     };
@@ -338,6 +340,8 @@ class Chat extends Component {
       //update the last message and read status of match's match obj
         firebaseMatchesRef1.update({
           last_message: message[i].text,
+          showNotification: true,
+          notificationType: 'newChat',
           last_message_date: (new Date().getTime()*-1), 
           blur: this.state.blur,
           unread_message: (this.state.removed == true) ? false : true //if conversation is removed dont set unread messages to true. 
@@ -560,7 +564,16 @@ class Chat extends Component {
         }else{
 
           //match must be active, alert user what button will do after expiration. 
-          alert("Send a message to focus their photos. After this conversation expires, you'll be able use this button to focus their photos.");
+          //alert("Send a message to focus their photos. After this conversation expires, you'll be able use this button to focus their photos.");
+
+          Alert.alert(
+            'Reveal',
+            "Sending messages will reveal their photos. After expiration, this button will reveal who they were. ",
+            [
+              {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+            ],
+            { cancelable: false }
+          )  
 
           //navigate to payments component, since user is not subscribed.
           //navigate("Payments", { flow: 'peek'});
@@ -618,6 +631,8 @@ class Chat extends Component {
               notifyFcmToken: notifyFcmToken, //notify the person who has their converation
               last_message: 'Conversation Extended',
               last_message_date: (new Date().getTime()*-1), 
+              showNotification: true,
+              notificationType: 'conversationExtended',
             });
 
             //push new system message that date has been managed. This will put conversation to top of messages. 
@@ -639,7 +654,18 @@ class Chat extends Component {
 
       }else{
         //navigate to payments component, since user is not subscribed.
-         navigate("Payments", { flow: 'peek'});
+         //navigate("Payments", { flow: 'peek'});
+         navigate("Intersitial", { 
+           flow: 'extendConversation1',
+           from: 'conversations',
+           match_userid: state.params.match_userid,
+           conversationId: conversationId,
+          })
+
+         //USE THE BELOW TO REMOVE THE REFER OPTION. 
+         //navigate("Intersitial", { flow: 'extendConversation2'})
+
+
 
       }
 
@@ -757,6 +783,12 @@ class Chat extends Component {
     let datePrimaryButtonCopy = 'Go on Blind Date';
     let flow = 'createNewProposal' ;
 
+
+    //get notifications 
+    //handleNotification(userId, 'Chat', 'e6GZxn9yZrX2rRFZVKtrhqo11qD2');
+    handleNotification(userId, 'Chat', state.params.match_userid);
+
+
     console.log('this.state.date.status: '+this.state.date.status);
 
       //configuration for date button
@@ -795,7 +827,11 @@ class Chat extends Component {
 
     return (
       <Container>
-
+          <StatusBar 
+            hidden={'hidden'} 
+            barStyle={'dark-content'} 
+            animated={true}
+          />
         <Modal 
           visible={this.state.profileViewerVisible} 
           //transparent={false}
@@ -946,28 +982,46 @@ class Chat extends Component {
                   shadowRadius: 4.65,
                 }}                       
                 
-                onPress={() => this.props.navigation.navigate('BlindDate', {
-                  //status: this.state.date.status, 
-                  flow: flow, 
-                  dateId: 'dateIdHere',
-                  //userId: this.state.userId, 
-                  matchName: this.props.navigation.getParam('name'), 
-                  userIdMatch: this.state.userIdMatch,
-                  dateTime: date.proposedTime,
-                  proposedLat: date.proposedLat,
-                  proposedLong: date.proposedLong,
-                  conversationId: this.props.navigation.getParam('match_id'),
-                  blur: this.state.blur,
-                  profile: this.state.profile,
-                  //userIdMatchFcmToken: userIdMatchFcmToken
-                  confirmedTime: date.confirmedTime,
-                  confirmedLat: date.confirmedLat,
-                  confirmedLong: date.confirmedLong,
-                  location: date.location,
-                  placeAddress: date.placeAddress,
-                  placeName: date.placeName,
-                  priceMax: date.priceMax,
-                })
+                onPress={() => 
+                  
+                  { 
+                    //if match is active go to blindDate module, if it's expired alert that chat needs to be extended first
+                    if(matchActive){
+                      this.props.navigation.navigate('BlindDate', {
+                        //status: this.state.date.status, 
+                        flow: flow, 
+                        dateId: 'dateIdHere',
+                        //userId: this.state.userId, 
+                        matchName: this.props.navigation.getParam('name'), 
+                        userIdMatch: this.state.userIdMatch,
+                        dateTime: date.proposedTime,
+                        proposedLat: date.proposedLat,
+                        proposedLong: date.proposedLong,
+                        conversationId: this.props.navigation.getParam('match_id'),
+                        blur: this.state.blur,
+                        profile: this.state.profile,
+                        //userIdMatchFcmToken: userIdMatchFcmToken
+                        confirmedTime: date.confirmedTime,
+                        confirmedLat: date.confirmedLat,
+                        confirmedLong: date.confirmedLong,
+                        location: date.location,
+                        placeAddress: date.placeAddress,
+                        placeName: date.placeName,
+                        priceMax: date.priceMax,
+                      })}else{
+                        Alert.alert(
+                          "Conversation expired",
+                          "You'll need to extend the Conversation in order to go on a Blind Date.",
+                          [
+                            {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                          ],
+                          { cancelable: false }
+                        )  
+                      }
+                    }
+
+
+                
               }
                 
 
