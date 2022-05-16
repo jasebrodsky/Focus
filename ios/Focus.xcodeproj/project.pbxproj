@@ -11,14 +11,11 @@
 		13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		151D2FD21593481CB10259AA /* Feather.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8AE9215DFBD940A0AAE20899 /* Feather.ttf */; };
 		2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* FocusTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* FocusTests.m */; };
-		303EA96FB0B64A45AE57C93E /* EvilIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C6D79CCB72E44B23A48D88C2 /* EvilIcons.ttf */; };
 		38F4368B315760F793320A27 /* libPods-Focus.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AC41519D6CAF33EE8A3A3BAF /* libPods-Focus.a */; };
-		49AD638EB50742FCAC327796 /* Octicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 13C57095D8C448E9A2CED8F0 /* Octicons.ttf */; };
 		4A6ABC2DFDAB4B1298A49643 /* Roboto_medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9EDD041E59C243E69B1D5EFD /* Roboto_medium.ttf */; };
 		4DC2289BDDA1B1C8C12A71C8 /* libPods-Focus-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1BDBD28ACB41782BA99A75FD /* libPods-Focus-tvOSTests.a */; };
 		5A2615B123B6BB20009EDCE5 /* images in Resources */ = {isa = PBXBuildFile; fileRef = 5A2615B023B6BB20009EDCE5 /* images */; };
@@ -36,21 +33,8 @@
 		5AC564BF26AE8777004E5BEE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5AC564BE26AE8777004E5BEE /* LaunchScreen.storyboard */; };
 		5ACAEC6123B48ADE0051F25E /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5ACAEC6023B48ADE0051F25E /* JavaScriptCore.framework */; };
 		5ACAEC6223B48AEB0051F25E /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5ACAEC6023B48ADE0051F25E /* JavaScriptCore.framework */; };
-		5F36FE435E01497893BEA02C /* Foundation.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0C449E26CFFF40A7A6816620 /* Foundation.ttf */; };
 		62E0563AF23791D8045512CB /* libPods-Focus-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6018B32562E749194C19CC70 /* libPods-Focus-tvOS.a */; };
-		6AA652A02E514E92A899ED16 /* Entypo.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3C866FCD01F3484393EEF525 /* Entypo.ttf */; };
 		71EF0A916D3B4FEF8A3602B6 /* rubicon-icon-font.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B5A5BDE6052D4D89B0AC263F /* rubicon-icon-font.ttf */; };
-		7311559D95524285A38C82C6 /* Fontisto.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 790FB8AAE1F24A6BB6BC77E4 /* Fontisto.ttf */; };
-		9B63457C995C45448A6B18F3 /* MaterialIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 96BC37CD81C74AA0B88016A5 /* MaterialIcons.ttf */; };
-		9F4CF942900F487B8CB79092 /* Zocial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 06959BB04F7443858E972989 /* Zocial.ttf */; };
-		A9C10F0DD17A4EA19A79DCDC /* AntDesign.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A1303B48FEF34A74A0037A9C /* AntDesign.ttf */; };
-		AEB49FC3A7A84C45A4BEFE63 /* MaterialCommunityIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8D1585A52AA9490BADA41962 /* MaterialCommunityIcons.ttf */; };
-		BA786B61E7814E4F98408D20 /* FontAwesome5_Brands.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5FF0A8B828F04C10BE0A2840 /* FontAwesome5_Brands.ttf */; };
-		BC1C1E56DCC3489195206728 /* FontAwesome5_Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 93C2627B66FF4408A7FBAFDA /* FontAwesome5_Regular.ttf */; };
-		C1E67E6F26A54A46AE9E6398 /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8F181ECE9BDB4104AF4D8246 /* SimpleLineIcons.ttf */; };
-		CF12D3F05B9C493D95389AE9 /* FontAwesome5_Solid.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8A8F9A69BF0340738F88533D /* FontAwesome5_Solid.ttf */; };
-		DB3A3329679140C19B92CCF1 /* FontAwesome.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3CF866DFE320430B824916C6 /* FontAwesome.ttf */; };
-		E307B7D13FB845E1A9212F7D /* Ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 24F9067D368246B8A0ECFD29 /* Ionicons.ttf */; };
 		E9623F6FFA2845F5B90A82BC /* Roboto.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E2D32CEC2D964498861D5F00 /* Roboto.ttf */; };
 /* End PBXBuildFile section */
 
@@ -70,7 +54,7 @@
 		00E356F21AD99517003FC87E /* FocusTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FocusTests.m; sourceTree = "<group>"; };
 		06959BB04F7443858E972989 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/native-base/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
 		0C449E26CFFF40A7A6816620 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/native-base/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* Focus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Focus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07F961A680F5B00A75B9A /* Focus Dating.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Focus Dating.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Focus/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Focus/AppDelegate.m; sourceTree = "<group>"; };
 		13B07FB21A68108700A75B9A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
@@ -269,7 +253,7 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* Focus.app */,
+				13B07F961A680F5B00A75B9A /* Focus Dating.app */,
 				2D02E47B1E0B4A5D006451C7 /* Focus-tvOS.app */,
 				2D02E4901E0B4A5D006451C7 /* Focus-tvOSTests.xctest */,
 			);
@@ -294,9 +278,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		13B07F861A680F5B00A75B9A /* Focus */ = {
+		13B07F861A680F5B00A75B9A /* Focus Dating */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Focus" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Focus Dating" */;
 			buildPhases = (
 				692FB4CA92B3D4C4BE700E44 /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
@@ -310,9 +294,9 @@
 			);
 			dependencies = (
 			);
-			name = Focus;
+			name = "Focus Dating";
 			productName = Focus;
-			productReference = 13B07F961A680F5B00A75B9A /* Focus.app */;
+			productReference = 13B07F961A680F5B00A75B9A /* Focus Dating.app */;
 			productType = "com.apple.product-type.application";
 		};
 		2D02E47A1E0B4A5D006451C7 /* Focus-tvOS */ = {
@@ -396,7 +380,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* Focus */,
+				13B07F861A680F5B00A75B9A /* Focus Dating */,
 				2D02E47A1E0B4A5D006451C7 /* Focus-tvOS */,
 				2D02E48F1E0B4A5D006451C7 /* Focus-tvOSTests */,
 			);
@@ -411,28 +395,12 @@
 				5A2615B123B6BB20009EDCE5 /* images in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
-				A9C10F0DD17A4EA19A79DCDC /* AntDesign.ttf in Resources */,
-				6AA652A02E514E92A899ED16 /* Entypo.ttf in Resources */,
 				5A2E1D4C23DCCF56002C463A /* AppCenter-Config.plist in Resources */,
-				303EA96FB0B64A45AE57C93E /* EvilIcons.ttf in Resources */,
-				151D2FD21593481CB10259AA /* Feather.ttf in Resources */,
-				DB3A3329679140C19B92CCF1 /* FontAwesome.ttf in Resources */,
-				BA786B61E7814E4F98408D20 /* FontAwesome5_Brands.ttf in Resources */,
-				BC1C1E56DCC3489195206728 /* FontAwesome5_Regular.ttf in Resources */,
-				CF12D3F05B9C493D95389AE9 /* FontAwesome5_Solid.ttf in Resources */,
-				7311559D95524285A38C82C6 /* Fontisto.ttf in Resources */,
 				5AC564BF26AE8777004E5BEE /* LaunchScreen.storyboard in Resources */,
-				5F36FE435E01497893BEA02C /* Foundation.ttf in Resources */,
-				E307B7D13FB845E1A9212F7D /* Ionicons.ttf in Resources */,
-				AEB49FC3A7A84C45A4BEFE63 /* MaterialCommunityIcons.ttf in Resources */,
-				9B63457C995C45448A6B18F3 /* MaterialIcons.ttf in Resources */,
-				49AD638EB50742FCAC327796 /* Octicons.ttf in Resources */,
 				4A6ABC2DFDAB4B1298A49643 /* Roboto_medium.ttf in Resources */,
 				E9623F6FFA2845F5B90A82BC /* Roboto.ttf in Resources */,
 				71EF0A916D3B4FEF8A3602B6 /* rubicon-icon-font.ttf in Resources */,
 				5A67DBE823B685A400EDBC47 /* GoogleService-Info.plist in Resources */,
-				C1E67E6F26A54A46AE9E6398 /* SimpleLineIcons.ttf in Resources */,
-				9F4CF942900F487B8CB79092 /* Zocial.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -676,7 +644,7 @@
 /* Begin PBXTargetDependency section */
 		5AB7EAE823B51EA800DA7014 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* Focus */;
+			target = 13B07F861A680F5B00A75B9A /* Focus Dating */;
 			targetProxy = 5AB7EAE723B51EA800DA7014 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -704,16 +672,16 @@
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = F583Y3M9CR;
 				INFOPLIST_FILE = Focus/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.59;
+				MARKETING_VERSION = 1.60;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
 					"-ObjC",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.helm.focus;
-				PRODUCT_NAME = Focus;
+				PRODUCT_NAME = "Focus Dating";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -727,16 +695,16 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = F583Y3M9CR;
 				INFOPLIST_FILE = Focus/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.59;
+				MARKETING_VERSION = 1.60;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
 					"-ObjC",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.helm.focus;
-				PRODUCT_NAME = Focus;
+				PRODUCT_NAME = "Focus Dating";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
@@ -884,6 +852,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				"EXCLUDED_ARCHS[sdk=*]" = arm64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"/Users/$(USER)/Documents/FacebookSDK",
 					"$(inherited)",
@@ -905,7 +874,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.3;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -957,8 +926,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -967,7 +937,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Focus" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Focus Dating" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
