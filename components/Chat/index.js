@@ -1079,7 +1079,7 @@ class Chat extends Component {
                 justifyContent: 'center',
                 //backgroundColor: primaryColor, dimensions
                 }}
-                colors={[primaryColor, secondaryColor  ]}
+                colors={[primaryColor, primaryColor  ]}
                 // colors={[primaryColor, secondaryColor  ]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 2, y: 2 }}

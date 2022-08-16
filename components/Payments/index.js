@@ -341,7 +341,7 @@ class Payments extends Component {
 
                 {/* top section */}
                 <LinearGradient 
-                    colors={[ primaryColor, secondaryColor,   ]}
+                    colors={[ primaryColor, primaryColor ]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 2, y: 2 }}
                     style={{flex: 3, alignItems: 'center', justifyContent: 'center', width: deviceWidth, backgroundColor: primaryColor}}>

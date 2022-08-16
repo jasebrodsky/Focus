@@ -399,7 +399,7 @@ class Refer extends Component {
           enabled>
 
           <LinearGradient 
-            colors={[primaryColor, secondaryColor]}
+            colors={[primaryColor, primaryColor]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1.5, y: 2.5 }}
             style={{paddingTop: 20, flex: 3, justifyContent: 'center', alignItems: 'center', width: deviceWidth, backgroundColor: primaryColor}}>

@@ -725,7 +725,7 @@ onLoginOrRegister = () => {
                 justifyContent: 'center',
                 backgroundColor: primaryColor, 
                 }}
-                colors={[primaryColor, secondaryColor]}
+                colors={[primaryColor, primaryColor]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0.1, y: 2.5 }}
                 >

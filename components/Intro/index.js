@@ -375,7 +375,7 @@ class Intro extends Component {
         top: 20,
         alignItems: 'center',
         }}
-        colors={[primaryColor, secondaryColor]}
+        colors={[primaryColor, primaryColor]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 2.5 }}
         >
@@ -424,7 +424,7 @@ _renderNextButton  =  ()  => {
         top: 20,
         alignItems: 'center',
         }}
-        colors={[primaryColor, secondaryColor]}
+        colors={[primaryColor, primaryColor]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 2.5 }}
         >    
