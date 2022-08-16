@@ -1,5 +1,5 @@
 import React, { Component, useState, useEffect } from 'react';
-import { StyleSheet, Alert, Dimensions, Platform, TouchableOpacity } from 'react-native';
+import { StyleSheet, Alert, Dimensions, Platform, TouchableOpacity, ScrollView } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
@@ -250,19 +250,23 @@ class Payments extends Component {
   _renderItem({item,index}){
     return (
       <View style={{
-        flex: 3,
+        flex: 4,
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'space-around',
         borderRadius: 0,
+        margin: 0,
         marginLeft: 0,
         marginRight: 0, }}>
           
-          <View style={{flex:1, color: 'white', margin: 70}}>           
+          <View style={{flex:4, color: 'white', justifyContent: 'flex-end'}}>           
            <FontAwesomeIcon 
-              size={ 90 } 
+              size={ 70 } 
               icon={item.icon}
               style={{
+                //marginBottom: 10,
+                marginBottom: 10,
+                paddingTop: 10,
                 color: 'white', 
                 backgroundColor: 'transparent', 
                 shadowColor: "#000",
@@ -274,8 +278,8 @@ class Payments extends Component {
                 shadowRadius: 4.65,}} 
             />
             </View>
-          <Text style={{flex:1, fontFamily: 'Helvetica-Light',  fontSize: 27, textAlign: 'center', color: 'white', marginTop: 7, marginBottom: 7 }}>{item.title}</Text>
-          <Text style={{flex:1, fontFamily: 'Helvetica-Light',  fontSize: 17, textAlign: 'center', color: 'white',}}>{item.text}</Text>
+          <Text style={{flex:1, fontFamily: 'Helvetica-Light',  fontSize: 25, textAlign: 'center', color: 'white', marginTop: 0, }}>{item.title}</Text>
+          <Text style={{flex:1, fontFamily: 'Helvetica-Light',  fontSize: 15, textAlign: 'center', color: 'white',}}>{item.text}</Text>
       </View>
 
     )
@@ -340,39 +344,60 @@ class Payments extends Component {
                     colors={[ primaryColor, secondaryColor,   ]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 2, y: 2 }}
-                    style={{flex: 11, alignItems: 'center', justifyContent: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
+                    style={{flex: 3, alignItems: 'center', justifyContent: 'center', width: deviceWidth, backgroundColor: primaryColor}}>
                     {/* static header */}
                     <View style={{
                       flex: 1, 
                       width: deviceWidth-80,
-                      backgroundColor: '#1C1C24',
+                      //backgroundColor: '#1C1C24',
                       borderRadius: 30,
                       padding: 40,
                       justifyContent: 'center', 
                       marginLeft: 40,
                       marginRight: 40,
-                      marginTop: 40, }}>
+                      marginTop: 20, }}>
 
-                        <Text style={{ fontFamily:'Helvetica', textAlign: 'left', fontSize: 45, color: 'white'}}>Get Focus</Text>
-                        <Text style={{ fontFamily:'Helvetica-Light', textAlign: 'left', fontSize: 30, color: 'white'}}>Unlimited</Text>
+                        <Text 
+                          style={{ 
+                            color: 'white', 
+                            fontSize: 40,
+                            fontWeight: '700', 
+                            fontFamily:'HelveticaNeue',
+                            shadowColor: "#000",
+                            shadowOffset: {
+                              width: 0,
+                              height: 3,
+                            },
+                            shadowOpacity: 0.29,
+                            shadowRadius: 4.65,
+                          }}>Get Focus
+                        </Text>
+                        <Text 
+                          style={{ 
+                            fontFamily:'HelveticaNeue',
+                            textAlign: 'left', 
+                            fontSize: 40, 
+                            color: 'white'
+                          }}>Unlimited
+                        </Text>
 
                     </View>
-                    
+                    </LinearGradient>
 
-
+                      
                         {/* slider of features */}
                         <View style={{
-                          flex: 5, 
+                          flex: 6, 
                           width: deviceWidth-80,
-                          backgroundColor: '#1C1C24',
+                          backgroundColor: 'black',
                           borderRadius: 30,
-                          paddingTop: 0,
+                          marginTop: 40,
                           alignItems: 'center',
                           justifyContent: 'center', 
                           margin: 25
                           }}>
 
-                        <View style={{ flex: 6, flexDirection:'column', justifyContent: 'center', alignItems: 'center'  }}>
+                        <View style={{ flex: 5, flexDirection:'column', justifyContent: 'center', alignItems: 'center'  }}>
                           <Carousel
                             layout={"default"}
                             loop={true}
@@ -477,22 +502,22 @@ class Payments extends Component {
 
 
 
-                </LinearGradient>
+                
 
 
 
                 {/* footer with buttons and compliance text */}
 
-                <View style={{ flex: 3, justifyContent: 'center', alignItems: 'center', }}>
+                <View style={{ flex: 3, paddingBottom: 20, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', }}>
                     <Button 
                       style={{
-                        marginTop: 20, 
-                        width: 200,
+                        marginTop: 10, 
+                        width: deviceWidth-80,
                         backgroundColor: 'white', 
                         borderRadius: 20,
                          }} 
                       onPress={() => {this._onSubscribe(this.state.selectedProductId)}}>
-                        <Text style={{color: primaryColor, width: 200, textAlign:'center'}}>Continue</Text>
+                        <Text style={{color: primaryColor, width: deviceWidth-80, textAlign:'center'}}>Continue</Text>
                     </Button>  
 
                     <Button transparent full onPress={() => {this.props.navigation.goBack()}} >
@@ -500,10 +525,10 @@ class Payments extends Component {
                     </Button>
 
                     {/* compliance text */}
-                    <View style={{ flex: 2, justifyContent: 'center', padding: 10 }}>                   
-                        <Text style={{fontWeight: 'bold', fontSize: 11, color: 'white', textAlign:'center'}}>Recurring Billing. Cancel anytime. </Text>
-                        <Text style={{padding: 5, fontSize: 9, color: 'white', textAlign:'center'}}>If you choose to purhcase a subscription, payment will be charged to your iTunes account, and your account will be charged within 24-hours prior to the end of the current period. Auto-renewal may be turned off at any time by going to your iTunes & App Store Account Settings after purchase. </Text>  
-                    </View>
+                    <ScrollView contentContainerStyle={{ flex: 4, flexDirection: 'column', justifyContent: 'flex-end', paddingLeft: 20, paddingRight: 20  }}>                   
+                        <Text style={{fontWeight: 'bold', fontSize: 12, color: 'white', textAlign:'center'}}>Recurring Billing. Cancel anytime. </Text>
+                        <Text style={{padding: 0, fontSize: 8, color: 'white', textAlign:'center'}}>If you purhcase a subscription, payment will be charged to your iTunes account and your account will be charged within 24-hours prior to the end of the current period. Auto-renewal may be turned off in your App Store Account Settings after purchase.</Text>  
+                    </ScrollView>
 
                 </View>
 

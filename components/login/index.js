@@ -727,7 +727,7 @@ onLoginOrRegister = () => {
                 }}
                 colors={[primaryColor, secondaryColor]}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 0.1, y: 1 }}
+                end={{ x: 0.1, y: 2.5 }}
                 >
                   <View style={{
                       flex: 1, 

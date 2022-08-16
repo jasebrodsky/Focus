@@ -4,6 +4,7 @@ import RNfirebase from 'react-native-firebase';
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import DatePicker from 'react-native-datepicker';
 import ImagePicker from 'react-native-image-crop-picker';
+import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import Slider from '@react-native-community/slider';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import LinearGradient from 'react-native-linear-gradient';
@@ -73,13 +74,14 @@ var PHOTO_OPTIONS = [
 var GENDER_OPTIONS = [
   'Male',
   'Female',
+  'Nonbinary',
   'Cancel',
 ];
 
 var GENDER_MATCH_OPTIONS = [
   'Male',
   'Female',
-  'Both',
+  'Everyone',
   'Cancel',
 ];
 var DESTRUCTIVE_INDEX = 2;
@@ -990,7 +992,7 @@ class Dashboard extends Component {
 
 		//update gender variable with selected gender
 		let gender = this.state.profile.gender.toLowerCase(); //can be male or female
-		let interested = this.state.profile.interested.toLowerCase() //can be either male,female, both, select. Will remain same. 
+		let interested = this.state.profile.interested.toLowerCase() //can be either male,female, everyone, select. Will remain same. 
     let gender_pref = '';
 
     // console.log('type is: '+type);
@@ -1011,7 +1013,7 @@ class Dashboard extends Component {
           case 'female':
             gender_pref = 'male_straight';
             break;
-          case 'both':
+          case 'everyone':
             gender_pref = 'male_bi';
             break;
           case 'Select':
@@ -1027,7 +1029,7 @@ class Dashboard extends Component {
           case 'male':
             gender_pref = 'female_straight';
             break;
-          case 'both':
+          case 'everyone':
             gender_pref = 'female_bi';
             break;
           case 'Select':
@@ -1035,6 +1037,27 @@ class Dashboard extends Component {
             break;
         }
       }
+
+      //console.log('running for case type = gender');
+      if (gender == 'nonbinary') {
+        //console.log('running for case gender = male');
+        //switch cases for what gender_pref will be when user is male
+        switch(interested) {
+          case 'male':
+            gender_pref = 'nonbinary_into_male';
+            break;
+          case 'female':
+            gender_pref = 'nonbinary_into_female';
+            break;
+          case 'everyone':
+            gender_pref = 'nonbinary_bi';
+            break;
+          case 'Select':
+            gender_pref = 'select';
+            break;
+        }
+      }
+
     }else if (type == 'interested') {
 
       // else run below when input used is interested in
@@ -1046,6 +1069,9 @@ class Dashboard extends Component {
             break;
           case 'female':
             gender_pref = 'female_straight';
+            break;
+          case 'nonbinary':
+            gender_pref = 'nonbinary_into_male';
             break;
           case 'Select':
             gender_pref = '';
@@ -1060,11 +1086,14 @@ class Dashboard extends Component {
           case 'male':
             gender_pref = 'male_straight';
             break;
+          case 'nonbinary':
+            gender_pref = 'nonbinary_into_female';
+            break;
           case 'Select':
             gender_pref = '';
             break;
         }
-      }else if (interested == 'both') {
+      }else if (interested == 'everyone') {
         gender_pref = gender+'_bi'; //can be male_bi or female_bi
       }else if (interested == 'select') {
         gender_pref = '';   
@@ -1746,7 +1775,7 @@ class Dashboard extends Component {
                     (buttonIndex) => {
                       if ((buttonIndex) === 0) {
                         //open view profile modall
-                        this.props.navigation.navigate("Profile", {profile: this.state.profile, from: 'Dashboard'}); 
+                        this.props.navigation.navigate("Profile", {profile: this.state.profile, from: 'Dashboard', flow: 'view'}); 
                         }
           
                       if ((buttonIndex) === 1) {
@@ -1976,17 +2005,18 @@ class Dashboard extends Component {
                 </View>
               </Item>
             
-              {/* <Item fixedLabel>
+              <Item fixedLabel>
                 <Label>Age Range</Label>
-                  <MultiSlider 
-                    min={21}
-                    max={50}
-                    values={[30,45]} 
-                    unselectedStyle = {{backgroundColor: 'lightgrey'}} 
+                <MultiSlider 
+                    min={18}
+                    max={70}
+                    values={[this.state.profile.min_age,this.state.profile.max_age]} 
+                    unselectedStyle = {{backgroundColor: primaryColor}} 
+                    selectedStyle = {{backgroundColor: primaryColor}} 
                     sliderLength={160} 
-                    markerStyle={{ height:30, width: 30, borderRadius: 15, backgroundColor:'white', borderWidth: 0.5, borderColor: 'grey'}} 
-                    trackStyle={{ borderRadius: 7, height: 2 }} 
-                    containerStyle={{ width: 170, top: 12, right:40}}
+                    markerStyle={{ height:30, width: 30, borderRadius: 15, backgroundColor:'white', borderColor: 'white', borderWidth: 1}} 
+                    trackStyle={{ borderRadius: 7, height: 4 }} 
+                    containerStyle={{ width: 200, justifyContent: 'center', alignItems: 'flex-start'}}                                                         
                     onValuesChange={(val) => 
                         this.setState(prevState => ({
                             profile: {
@@ -1995,14 +2025,19 @@ class Dashboard extends Component {
                             }
                         }))              
                     }
-                    onValuesChangeFinish={(val) => firebaseRef.update({min_age: val[0], max_age: val[1]})}
+                                  
+                    onValuesChangeFinish={(val) =>
+                      firebaseRef.update({min_age: val[0], max_age: val[1]}).then(()=>{
+                        this.forceUpdate();
+                      })}                                                     
                   />
-                <Text style={{ right:20}}>
-                    {this.state.profile.min_age} - {this.state.profile.max_age == 50 ? '50+' : this.state.profile.max_age+' '}
-                </Text>
-              </Item> */}
+                  <Text style={{ right:20}}>
+                    {this.state.profile.min_age} - {this.state.profile.max_age == 70 ? '70+' : this.state.profile.max_age+' '}
+                  </Text>
 
-              <Item fixedLabel>
+              </Item>
+
+              {/* <Item fixedLabel>
                 <Label>Min Age</Label>
                 <Slider
                   style={{ width: 168, right:40 }}
@@ -2046,7 +2081,7 @@ class Dashboard extends Component {
                 <Text style={{ right:20}}>
                     {this.state.profile.max_age}
                 </Text>
-              </Item>
+              </Item> */}
 
 
               <Item fixedLabel>
@@ -2101,6 +2136,7 @@ class Dashboard extends Component {
               <Switch 
                 value={this.state.profile.notifications_message}
                 onValueChange={this.onPressHandle1}
+                trackColor={{true: primaryColor,}}
                />
             </Right>
           </ListItem>
@@ -2117,6 +2153,7 @@ class Dashboard extends Component {
               <Switch 
                 value={this.state.profile.notifications_match}
                 onValueChange={this.onPressHandle2}
+                trackColor={{true: primaryColor,}}
                />
             </Right>
           </ListItem>
@@ -2132,6 +2169,7 @@ class Dashboard extends Component {
               <Switch 
                 value={this.state.profile.notifications_daily_match}
                 onValueChange={this.onPressHandle3}
+                trackColor={{true: primaryColor,}}
                />
             </Right>
           </ListItem>
@@ -2149,7 +2187,7 @@ class Dashboard extends Component {
                 <Input disabled />
               </Item> 
 
-              <Item fixedLabel onPress = {() => this.linkOut('https://focusdating.co/contact.html')} >
+              <Item fixedLabel onPress = {() => this.linkOut('https://focusdating.co')} >
                 <Label>Help/Support</Label>
                 <Input disabled />
               </Item>

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, StyleSheet, Alert, Share, TouchableOpacity, StatusBar } from 'react-native';
+import { ActivityIndicator, StyleSheet, Alert, Share, TouchableOpacity, StatusBar, Dimensions } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faRestroom, faHeart,  faCog, faCommentDots, faCoffee, faDoorOpen, faLockAlt,  faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faBolt,  faEye, faUserLock, faUtensils, faCheckDouble } from '@fortawesome/free-solid-svg-icons';
@@ -92,14 +92,15 @@ class Intro extends Component {
           key: '1',
           // title: 'Welcome to Focus',
           title: 'Go on Blind Dates.',
+          subtext: 'Expirence a different way of dating.',
           // text: "where blind dating is re-imagined." ,
           icon: faUtensils,
-          colors: [primaryColor, secondaryColor],
+          colors: ['#13131A', '#13131A'],
         },
         {
           key: '2',
-          title: "Only people you're already attracted to.",
-          // title: 'Better conversations',
+          subtext: "Only people you've swiped right on.",
+          title: 'With your type.',
           // text: 'as photos re-focus while chatting.', //'With each message, photos will re-focus.',
           icon: faHeartbeat,
           image: require('./assets/banner-chat.jpg'),
@@ -110,7 +111,7 @@ class Intro extends Component {
         {
           key: '3',
           title: "We'll coordinate it.",
-          // title:  'Because love is blind', //'Only gentlemen', 'Invite a friend',
+          subtext:  "When you're both ready, we’ll book the reservations.", //'Only gentlemen', 'Invite a friend',
           // text:  "and connections are made with you not your photos.", //'Spread the word.',
           icon:   faCheckDouble, //faBolt, //faUserLock, //faUnlockAlt, //faRestroom //faShield
           colors: [primaryColor, secondaryColor],
@@ -125,6 +126,7 @@ class Intro extends Component {
       text: "Blind dating re-imagined." ,
       icon: faDoorOpen,
       colors: [primaryColor, secondaryColor],
+      
     },
     {
       key: '2',
@@ -245,18 +247,11 @@ class Intro extends Component {
     //save analytics in let
     let Analytics = RNfirebase.analytics();
 
-    //check if code is also expired
+    //check if code is not expired
       if(this.context.deepLinkParams.expired == false){
-        //handle that code is not expired yet. 
+
         //linkReview in the background. 
-        console.log('running link review now, since link is not expired');
         linkReview(this.context.reviewObj, this.state.userId);
-
-        //if user is a male and invited by a female, update slides that invite link has been applied. 
-        // if(this.context.deepLinkParams.gender_creator == 'female' && this.state.gender == 'male'){
-        //     console.log('you may pass since you are a man invited by a female');
-        // }
-
 
       }else{
         //link is expired
@@ -269,10 +264,9 @@ class Intro extends Component {
     const { navigate } = this.props.navigation;
       
     //go to Registration flow
+
     //navigate("ManageAboutMe");
-    this.props.navigation.navigate("ManageAboutMe", {step: 0, userId: this.state.userId}); 
-
-
+    this.props.navigation.navigate("ManageAboutMeModal", {step: 0, userId: this.state.userId}); 
 
     //if user canJoin redirect to Registration. 
     //if (this.context.deepLinkParams.gender_creator == 'female' || this.state.gender == 'female'){
@@ -307,14 +301,14 @@ class Intro extends Component {
       justifyContent: 'center',
       //backgroundColor: primaryColor, dimensions
       }}
-      colors={item.colors}
+      colors={['#13131A', '#13131A']}
       start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+      end={{ x: 1, y: 2 }}
       >
         
 
 
-        <FontAwesomeIcon blurRadius={100} size={ 150 } style={{
+        {/* <FontAwesomeIcon blurRadius={100} size={ 150 } style={{
           color: 'white', 
           marginBottom: 20,
           //opacity:0.2,
@@ -325,36 +319,34 @@ class Intro extends Component {
             height: 3,
           },
           shadowOpacity: 0.29,
-          shadowRadius: 4.65,}} icon={item.icon}/>
-        <View>
-          <Text style={{ 
-            // shadowColor: "#000",
-            // shadowOffset: {
-            //   width: 0,
-            //   height: 3,
-            // },
-            // shadowOpacity: 0.29,
-            // shadowRadius: 4.65, 
-            fontSize: 55,
-            lineHeight: 70,
-            fontFamily:'Helvetica',
-            color: '#222222',
-            backgroundColor: 'transparent',
-            textAlign: 'left',
-            marginBottom: 20,
-            padding: 30}}>
+          shadowRadius: 4.65,}} icon={item.icon}/> */}
+        <View style={{
+            padding: 50,
+            flex: 1,
+            justifyContent: 'center'
+
+        }}>
+          <Text style={{
+            marginBottom: 50,
+            color: 'white', 
+            fontSize: 50,}}>
             {item.title}
           </Text>
           
-          <Text style={{  
-            color: 'white',
-            backgroundColor: 'transparent',
-            textAlign: 'center',
-            fontSize: 16,
-            paddingHorizontal: 16,
-            marginBottom: 50}}>
-            {item.text}
+          <Text style={{
+           // flex: 1,
+            fontSize: 24, 
+            fontFamily:'Helvetica-Light', 
+            lineHeight: 45, 
+            color: 'white'}}>
+            {item.subtext}
           </Text>
+          
+          <View style={{
+            height: 250
+          }}>
+
+          </View>
         </View>
 
       </LinearGradient>
@@ -369,10 +361,25 @@ class Intro extends Component {
     //done label will be enter if off waitlist, else 'invite fried'.
     //let doneLabel = (this.context.deepLinkParams.expired == false ) ? 'Enter' : 'Invite Friend'; //'Invite and continue' was language when showing invtie flow here.  
     let doneLabel = 'Continue';
+    let deviceWidth = Dimensions.get('window').width
+
 
     return (
 
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 25}}>
+      <LinearGradient style={{
+        alignSelf: 'center',
+        padding: 70,
+        marginTop: 15,
+        width: deviceWidth,
+        position: 'relative',
+        top: 20,
+        alignItems: 'center',
+        }}
+        colors={[primaryColor, secondaryColor]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 2.5 }}
+        >
+
         <View 
           bordered 
           rounded
@@ -395,7 +402,7 @@ class Intro extends Component {
           }}>
           <Text style={{color: btnTextColor}}>{doneLabel}</Text>
         </View>
-      </View>
+      </LinearGradient>
 
 
     );
@@ -403,10 +410,26 @@ class Intro extends Component {
 
 
 _renderNextButton  =  ()  => {
+
+    let deviceWidth = Dimensions.get('window').width
     
     return (
 
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 25}}>
+      <LinearGradient style={{
+        alignSelf: 'center',
+        padding: 70,
+        marginTop: 15,
+        width: deviceWidth,
+        position: 'relative',
+        top: 20,
+        alignItems: 'center',
+        }}
+        colors={[primaryColor, secondaryColor]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 2.5 }}
+        >    
+       
+       
         <View 
           bordered 
           rounded
@@ -429,7 +452,7 @@ _renderNextButton  =  ()  => {
           }}>
           <Text style={{color: btnTextColor}}>Next</Text>
         </View>
-      </View>
+      </LinearGradient>   
       
     );
  };
@@ -438,30 +461,13 @@ _renderNextButton  =  ()  => {
 
     render() {
       const { navigate } = this.props.navigation;
-      //set up intial slides, based off gender
-      //let slides = (this.state.gender == 'male') ? this.state.slidesMale : this.state.slidesFemale; 
-
+      
       //if refer link is used
       if(this.context.deepLinkParams.type == 'refer'){
 
         if(this.context.deepLinkParams.expired == false){
           //run invite flow if link is not expired
           this._inviteFlow();
-
-        //   slides = this.state.slidesOffWaitlist;
-
-        //   // //show slides for invited men who can join since invited by women.
-        //   // if (this.state.gender == 'male' && this.context.deepLinkParams.gender_creator == 'female'){
-        //   //   slides = this.state.slidesMaleInvited;
-        //   // }
-        //   // //show slides for men who are not yet invited by a female. 
-        //   // else if (this.state.gender == 'male' && this.context.deepLinkParams.gender_creator !== 'female'){
-        //   //   slides = this.state.slidesMale;
-        //   // }    
-        //   // //show slides for females who can always join.
-        //   // else if (this.state.gender == 'female'){
-        //   //   slides = this.state.slidesFemale;
-        //   // }
 
         }else{
           //link has been used, ask for another one. 
@@ -470,8 +476,6 @@ _renderNextButton  =  ()  => {
 
       }
 
-
-    //console.log('this.context is on render'+JSON.stringify(this.context));
     return <View style={{flex: 1, flexDirection: 'column',}}>
 
     {this.context.deepLinkParams.type == 'refer' && 
@@ -484,22 +488,26 @@ _renderNextButton  =  ()  => {
         paddingBottom: 20,
         borderBottomWidth :0.2,
         borderBottomColor: '#000',
-        backgroundColor: 'black',
+        backgroundColor: 'white',
         flexDirection: 'row', 
         }}>
 
         <View style={{flex: 1, justifyContent: 'flex-end'}}>
           <Thumbnail round size={80} source={{uri: this.context.deepLinkParams.image_creator}} />
         </View>
-        <View style={{flex: 4, justifyContent: 'flex-end', }}>
+        <View style={{flex: 4, justifyContent: 'center', marginTop: 50 }}>
          
         {this.context.deepLinkParams.expired == false &&
-          <Text style={{paddingLeft: 5, color: 'white'}} >
-          Congratulations {this.context.deepLinkParams.name_created}. You’ve been referred to Focus by {this.context.name_creator}. See what they said about you after creating your profile.
+          // <Text style={{paddingLeft: 5, color: 'black'}} >
+          // Congratulations {this.context.deepLinkParams.name_created}. You’ve been referred to Focus by {this.context.name_creator}. See what {this.context.name_creator} said about you after creating your profile.
+          // </Text>
+          <Text style={{paddingLeft: 5, color: 'black'}} >
+          See what {this.context.name_creator} said about you after creating your profile.
           </Text>
+         
         }
         {this.context.deepLinkParams.expired == true &&
-          <Text style={{paddingLeft: 5, color: 'white'}} >
+          <Text style={{paddingLeft: 5, color: 'black'}} >
           This link has already been used. Please ask your friend for another one.
           </Text>
         }
@@ -526,10 +534,12 @@ _renderNextButton  =  ()  => {
           ref={(ref) => (this.slider = ref)}
           activeDotStyle={{backgroundColor: primaryColor}}
           dotStyle ={{backgroundColor: 'white'}}
-          
           onDone={this._onDone}
+          style={{padding: 0}}
         />
       </View>
+
+
     </View> ;
 
      

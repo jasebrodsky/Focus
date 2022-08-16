@@ -532,6 +532,12 @@ exports.getMatches = functions.https.onRequest((req, res) => {
               var query_start = 'female_bi';
               var query_end = 'female_straight';
               break;
+
+            case (gender_pref == 'nonbinary_into_male'): //handle non-binary genders
+              var query_start = 'male_bi';
+              var query_end = 'male_bi';
+              break;
+
             case (gender_pref == 'male_gay'):
               var query_start = 'male_bi';
               var query_end = 'male_gay';
@@ -540,6 +546,12 @@ exports.getMatches = functions.https.onRequest((req, res) => {
               var query_start = 'female_bi';
               var query_end = 'female_gay';
               break;
+
+            case (gender_pref == 'nonbinary_into_female'): //handle non-binary genders
+                var query_start = 'female_bi';
+                var query_end = 'female_bi';
+                break;
+
             case (gender_pref == 'male_bi'):
               var query_start = 'female_bi';
               var query_end = 'male_straight';
@@ -548,7 +560,14 @@ exports.getMatches = functions.https.onRequest((req, res) => {
               var query_start = 'female_bi';
               var query_end = 'male_straight';
               break;
-            default:
+            
+            case (gender_pref == 'nonbinary_bi'): //handle non-binary genders
+              var query_start = 'female_bi';
+              var query_end = 'non_binary_bi';
+              break;
+
+           
+                default:
               console.log('Sorry, we are out of ' + expr + '.');
           }
 

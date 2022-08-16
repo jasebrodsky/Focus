@@ -799,7 +799,7 @@ class Swipes extends Component {
                     },
                     shadowOpacity: 0.29,
                     shadowRadius: 4.65,}} icon={ faComments }/>
-                    <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}>You've matched with someone here.</Text>
+                    <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}>You have new matches.</Text>
                     <View style ={{marginTop: 20}}>
                       <Button rounded 
                         style={{ 
@@ -977,6 +977,9 @@ class Swipes extends Component {
                   }}                
                   renderCard={(card) => {
                     
+                    let genderOnProfile = card.genderOnProfile ? ' | '+card.gender : null ;
+
+
                     return (
                     <Card style={{ elevation: 30, }}>
                       <CardItem cardBody>
@@ -995,7 +998,9 @@ class Swipes extends Component {
                       </CardItem>                  
                       <CardItem style={{backgroundColor: '#13131A'}}>
                           <Body >
-                            <Text style={{fontSize: 20, fontFamily:'HelveticaNeue-Bold', textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday)} | {card.gender}</Text>
+                            <Text style={{fontSize: 20, fontFamily:'HelveticaNeue-Bold', textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday) + genderOnProfile} </Text>
+
+
                             <Text style={{color: 'white', fontSize: 15, fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.city_state} </Text>
                             <Text style={{color: 'white', fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.education} </Text>
                             <Text style={{color: 'white', fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.work} </Text>

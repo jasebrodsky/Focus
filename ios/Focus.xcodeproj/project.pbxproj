@@ -674,7 +674,7 @@
 				INFOPLIST_FILE = Focus/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.60;
+				MARKETING_VERSION = 1.64;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -697,7 +697,7 @@
 				INFOPLIST_FILE = Focus/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.60;
+				MARKETING_VERSION = 1.64;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",

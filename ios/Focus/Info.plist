@@ -116,15 +116,15 @@
 		</dict>
 	</dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Focus needs Location access to provide relevant matches in your location.</string>
+	<string>Allow location access to provide relevant matches in your location.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Focus needs Location access to provide relevant matches in your location.</string>
+	<string>Allow location access to provide relevant matches in your location.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Focus needs Location access to provide relevant matches in your location.</string>
+	<string>Allow location access to provide relevant matches in your location.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Select photos from your phone</string>
+	<string>Allow photo access to browse your photos and add them to your profile.</string>
 	<key>NSPhotoLibraryUsageDescription key</key>
-	<string>Focus needs Photo access to pick photos from your phone.</string>
+	<string>Allow photo access to browse your photos and add them to your profile.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>

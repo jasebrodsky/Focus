@@ -112,24 +112,26 @@ class Chat extends Component {
             from: 'Chat',
           })}
           >
-            <Thumbnail 
-              blurRadius={navigation.getParam('blur')}
-              style={{
-                shadowColor: "#000",
-                shadowOffset: {
-                  width: 0,
-                  height: 3,
-                },
-                shadowOpacity: 0.8,
-                shadowRadius: 4.65,
-                width: 32, 
-                height: 32,  
-                overflow: "hidden", 
-                borderRadius: 150, 
-                borderWidth: 0.5, 
-                borderColor: 'black' }} 
-              source={{uri: navigation.getParam('images')["0"].url, cache: 'force-cache'}} 
-            />
+            { navigation.getParam('blur') &&
+              <Thumbnail 
+                blurRadius={  parseInt(navigation.getParam('blur'), 10)  }
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 3,
+                  },
+                  shadowOpacity: 0.8,
+                  shadowRadius: 4.65,
+                  width: 32, 
+                  height: 32,  
+                  overflow: "hidden", 
+                  borderRadius: 150, 
+                  borderWidth: 0.5, 
+                  borderColor: 'black' }} 
+                source={{uri: navigation.getParam('images')["0"].url, cache: 'force-cache'}} 
+              />
+             }
           <Title>{navigation.getParam('name')}</Title>
         </Button>
 
@@ -264,7 +266,7 @@ class Chat extends Component {
 
         //loop through array and create an object now including it's blur radious. Push that object to imagesarray arrary.
         imageArray.forEach(function(item) {
-          imageObj = {'url':item.url, cache: 'force-cache', 'props':{'blurRadius': +blur, source: {uri: item.url, cache: 'force-cache'}}};
+          imageObj = {'url':item.url, cache: 'force-cache', 'props':{'blurRadius': +parseInt(blur,10), source: {uri: item.url, cache: 'force-cache'}}};
           imagesArray.push(imageObj);
         })
 
@@ -302,6 +304,8 @@ class Chat extends Component {
 
       })
   }
+
+
 
   //send msg to db
   onSend(message) {
@@ -512,24 +516,24 @@ class Chat extends Component {
       );
     }
 
-    //handle scroll of profile by growing/shrinking container when user scrolls and expects that. 
-    _handleScroll = (event: Object) => {
+    // //handle scroll of profile by growing/shrinking container when user scrolls and expects that. 
+    // _handleScroll = (event: Object) => {
 
-      var currentOffset = event.nativeEvent.contentOffset.y;
-      var direction = currentOffset > this.offset ? 'down' : 'up';
-      this.offset = currentOffset;
-      if((direction == 'down') && (currentOffset > 0) && (this.state.profileMaxHeight == '15%')){
+    //   var currentOffset = event.nativeEvent.contentOffset.y;
+    //   var direction = currentOffset > this.offset ? 'down' : 'up';
+    //   this.offset = currentOffset;
+    //   if((direction == 'down') && (currentOffset > 0) && (this.state.profileMaxHeight == '15%')){
       
-        //grow up to 15%
-        this.setState({ profileMaxHeight: '40%'});
+    //     //grow up to 15%
+    //     this.setState({ profileMaxHeight: '40%'});
 
-      }else if ((direction == 'up') && (currentOffset < 0) && ((this.state.profileMaxHeight == '40%')) ){
+    //   }else if ((direction == 'up') && (currentOffset < 0) && ((this.state.profileMaxHeight == '40%')) ){
         
-        //shrink down to 15%
-        this.setState({ profileMaxHeight: '15%'});
+    //     //shrink down to 15%
+    //     this.setState({ profileMaxHeight: '15%'});
            
-      }
-    }
+    //   }
+    // }
     
     //deblur to a specific amount at a certain time. 
     deBlur = (blur, time) =>{
@@ -877,14 +881,16 @@ class Chat extends Component {
                   </View>
 
                   <TouchableOpacity activeOpacity={1.0} onPress = {() => this.setState({ imageViewerVisible: true})}>
+                  {this.state.blur &&
                     <Image style={{}} 
-                      blurRadius={Number(this.state.blur)}
+                      blurRadius={parseInt(this.state.blur, 10)}
                       source={{
                         uri: this.state.image,
                         width: deviceWidth,
                         height: deviceHeight-200
                       }} 
                     />
+                    }
 
                   </TouchableOpacity>
                   <View style={{flex: 1, flexDirection: 'row', alignSelf: 'flex-start'}}>
@@ -966,10 +972,10 @@ class Chat extends Component {
             <Button 
                 rounded
                 style={{
-                  marginLeft: deviceWidth/4,
+                  marginLeft: deviceWidth/5,
                   zIndex: 1,
-                  width: 200,
-                  margin: 10,
+                  width: deviceWidth-180,
+                  margin: 15,
                   justifyContent: 'center',
                   backgroundColor: primaryColor,
                   borderRadius: 50,
@@ -1031,10 +1037,11 @@ class Chat extends Component {
           
 
             
-          
-              <Image source={{uri: image, cache: 'force-cache'}} position="absolute" resizeMode="cover" blurRadius={Number(this.state.blur)}  
-              style={[styles.backgroundImage, {height:height, width: width}]}
-              />
+              {this.state.blur &&
+                <Image source={{uri: image, cache: 'force-cache'}} position="absolute" resizeMode="cover" blurRadius={parseInt(this.state.blur, 10)}  
+                style={[styles.backgroundImage, {height:height, width: width}]}
+                />
+              }
 
         </View>
         
@@ -1043,7 +1050,8 @@ class Chat extends Component {
           messages={this.state.messages}
           renderInputToolbar={!matchActive ? () => null : undefined}
           minInputToolbarHeight = {matchActive == false ? 0 : undefined}
-          bottomOffset={33}
+          bottomOffset={33}      
+          isAnimated
           onSend={
             (message) => {
               this.onSend(message);
@@ -1077,13 +1085,14 @@ class Chat extends Component {
                 end={{ x: 2, y: 2 }}
                 >
           
-          <View style = {{flex: 1, justifyContent: 'center',}}>
-            <Text style={{color: 'white'}}>This conversation has expired</Text>
+          <View style = {{flex: 1, justifyContent: 'space-around',}}>
+            <Text style={{color: 'white'}}>Conversation expired.</Text>
           </View>
       
           <View style={{flex: 1}}>
             <Button 
               style={{ 
+                width: deviceWidth-80,
                 justifyContent: 'center',
                 backgroundColor: btnColor,
                 borderRadius: 20,

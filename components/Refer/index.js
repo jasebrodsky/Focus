@@ -260,7 +260,7 @@ class Refer extends Component {
         domainUriPrefix: 'https://focusdating.page.link',
         social: {
           title: "Download Focus",
-          descriptionText: "Go on Blind Dates only with people you're already attracted to",
+          descriptionText: "Go on Blind Dates. With your type. We'll coodinate it.",
           //descriptionText: this.state.user_name + 'says: '+this.state.reason,
           imageUrl: 'https://focusdating.co/images/banner_14.jpg'
         },     
@@ -285,9 +285,9 @@ class Refer extends Component {
         let reason = this.state.reason;
         let reasonLength = reason.length;
 
-        if(!name || reasonLength < 30){
+        if(!name || reasonLength < 15){
     
-          alert('please enter reason over 100 characters');
+          alert('please enter reason over 15 characters');
         }else{
 
         Share.share({
@@ -375,7 +375,7 @@ class Refer extends Component {
 
     //count character remaining deviceWdith
     let charRemainingCopy1 = 'This will be shown on their profile.';
-    let charRemainingCopy2 = 'This will be shown on their profile. \n'+ (30 - this.state.reason.length)+' charaters remaining';
+    let charRemainingCopy2 = (15 - this.state.reason.length)+' charaters remaining';
 
     let deviceWidth = Dimensions.get('window').width
             
@@ -406,11 +406,12 @@ class Refer extends Component {
             
             
             <View style={{
-              flex:1, 
+              flex:2, 
               minWidth: deviceWidth-80,
-              backgroundColor: '#1C1C24',
+              //backgroundColor: '#1C1C24',
               borderRadius: 30,
-              padding: 40,
+              paddingLeft: 40,
+              paddingRight: 40,
               justifyContent: 'center',
               maxHeight: 160,
               marginBottom: 10,
@@ -420,7 +421,8 @@ class Refer extends Component {
                 <Text 
                   style={{ 
                     color: 'white', 
-                    fontSize: 40, 
+                    fontSize: 40,
+                    fontWeight: '700', 
                     fontFamily:'HelveticaNeue',
                     shadowColor: "#000",
                     shadowOffset: {
@@ -428,7 +430,7 @@ class Refer extends Component {
                       height: 3,
                     },
                     shadowOpacity: 0.29,
-                    shadowRadius: 4.65,}} >Refer
+                    shadowRadius: 4.65,}} >Refer your
                 </Text>
                 <Text 
                   style={{ 
@@ -487,23 +489,30 @@ class Refer extends Component {
             borderRadius: 30,
             paddingLeft: 15,
             paddingRight: 15,
-            paddingTop: 20,
+            paddingTop: 5,
+            paddingBottom: 20,
             marginTop: 40,
             //paddingBottom: 20,
             justifyContent: "flex-start", 
             width: 300, 
             //maxHeight: 200,
-            backgroundColor: '#1C1C24' }}>
+            backgroundColor: '#1C1C24', 
+            borderStyle: 'dashed',
+            borderRadius: 30,
+            borderWidth: 2,
+            borderColor: 'white',
+            
+            }}>
           
 
             <Form>
               <Textarea
               style={{fontSize: 24, fontFamily:'Helvetica-Light', color: 'white'}}
               placeholder={this.state.reasonCopy}
-              placeholderTextColor="white"
+              placeholderTextColor="#585858"
               rowSpan={this.state.reasonRows} 
-              onFocus={ () => this.setState({reasonRows:3})}
-              onBlur={ () => this.setState({reasonRows:6})}
+              onFocus={ () => this.setState({reasonRows:4})}
+              onBlur={ () => this.setState({reasonRows:8})}
               onChangeText={(reason) => this.setState({reason})}
               value={this.state.reason}           
               />
@@ -514,13 +523,13 @@ class Refer extends Component {
 
           <View style={{
           flex: 1,
-          justifyContent: 'flex-end',
+          justifyContent: 'flex-start',
           padding: 10,
           //paddingLeft: 25,
           maxHeight: 60,
           width: 300,
         }}>
-            <Text style={{fontSize:16, fontFamily:'Helvetica-Light', textAlign: 'center', color: 'white'}} >{((this.state.reason.length < 30) && this.state.reason)? charRemainingCopy2 : charRemainingCopy1 }</Text>
+            <Text style={{fontSize:16, fontFamily:'Helvetica-Light', textAlign: 'center', color: 'white'}} >{((this.state.reason.length < 15) && this.state.reason)? charRemainingCopy2 : charRemainingCopy1 }</Text>
         </View>
 
 
@@ -534,7 +543,7 @@ class Refer extends Component {
               marginBottom: 10,
               width: 300,
             }}>
-                <Text style={{fontSize:12, fontFamily:'Helvetica-Light', lineHeight: 15, textAlign: 'center', color: 'white'}} >{((this.state.reason.length > 29) && this.state.reason)? 'Share this personal refer link\n generated when you click below.' : null }</Text>
+                <Text style={{fontSize:12, fontFamily:'Helvetica-Light', lineHeight: 15, textAlign: 'center', color: 'white'}} >{((this.state.reason.length > 14) && this.state.reason)? 'Personal refer link generated.' : null }</Text>
             </View>
             
             <Button 

@@ -8,6 +8,7 @@ import { createStackNavigator } from 'react-navigation-stack';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { Root } from "native-base";
 import DeepLinkContext from "./components/DeepLinkContext"
+import {linkReview} from "./components/DeepLinkContext/functions.js"
 import Login from "./components/login/";
 import Intro from "./components/Intro";
 import Messages from "./components/Messages";
@@ -124,7 +125,7 @@ const RootStack = createStackNavigator(
     }, 
     ManageAboutMeModal: {
       screen: ManageAboutMe,
-    },    
+    },   
     Profile: {
       screen: Profile,
     }, 
@@ -181,7 +182,8 @@ export default class App extends React.Component {
     dynamicLinks().getInitialLink(this.handleDynamicLink);
 
     // get deeplink while app is running
-     dynamicLinks().onLink(this.handleDynamicLink);
+    dynamicLinks().onLink(this.handleDynamicLink);
+    
 
   }
 
@@ -191,60 +193,87 @@ export default class App extends React.Component {
 
     // get query string of deeplink 
     let paramsString = decodeURI(link.url).substring((link.url).indexOf('?') + 1);
+    
     // convert to URLSearchParams obj
     let searchParams = new URLSearchParams(paramsString)
-    //save name and photo of friend who referred user, into state
-    let firebaseRef = firebase.database().ref('/users/' + searchParams.get('user_id_creator'));
-    //save data snapshot from firebaseRef
-    firebaseRef.on('value', (dataSnapshot) => {
-      //put search Params into obj
-      this.setState({
-        image_creator: dataSnapshot.val().images[0].url, //get from firebase query
-        name_creator: dataSnapshot.val().first_name, //get from firebase query
-      })
-    })
+    
+    // save flow
+    let type = searchParams.get('type');
 
-    //Check if code in deeplink is exists or not
-    firebase.database().ref("/codes").orderByChild("sharable_code").equalTo(searchParams.get('code').toUpperCase()).once("value",codeSnap => {
-      //check if code exists first
-      if (codeSnap.exists()){
-        // save link params 
-        let code = codeSnap.val();
-        let key = Object.keys(code);
-        let codeData = code[key];
+    // save currentUser (to use for linking a review to this user ...)
+    let currentUser = firebase.auth().currentUser;
 
-        //build review object to update db with. 
-        let reviewObj = {
-          name: this.state.name_creator, 
-          photo: this.state.image_creator, 
-          reason: searchParams.get('reason'), 
-          code_key: key[0],
-          type: 'review'
-        }
 
+    //if flow is refer. 
+    if ( type == 'refer' ) {
+      //save name and photo of friend who referred user, into state
+      let firebaseRef = firebase.database().ref('/users/' + searchParams.get('user_id_creator'));
+      //save data snapshot from firebaseRef
+      firebaseRef.on('value', (dataSnapshot) => {
         //put search Params into obj
-        let searchParamsObj = {
-          type: searchParams.get('type'), //get from link
-          user_id_creator: searchParams.get('user_id_creator'), //get from link
-          gender_creator: searchParams.get('gender_creator'), //get from link
-          image_creator: this.state.image_creator, //get from firebase query
-          name_creator: this.state.name_creator, //get from firebase query
-          name_created: searchParams.get('name_created'), //get from link
-          reason: searchParams.get('reason'), //get from link
-          expired: codeData.expired // get this from checkCode function
-        }
-        
-        //save searchParams to state, so that redirectUser() can reference, when sending params to next screens 
-        this.setState({ deepLinkParams: searchParamsObj, reviewObj: reviewObj });
-      
-      } else{
-        console.log('code does not exist');
-      }
-    })
+        this.setState({
+          image_creator: dataSnapshot.val().images[0].url, //get from firebase query
+          name_creator: dataSnapshot.val().first_name, //get from firebase query
+        })
+      })
+
+      //Check if code in deeplink is exists or not
+      firebase.database().ref("/codes").orderByChild("sharable_code").equalTo(searchParams.get('code').toUpperCase()).once("value",codeSnap => {
+        //check if code exists first
+        if (codeSnap.exists() ){
+          // save link params 
+          let code = codeSnap.val();
+          let key = Object.keys(code);
+          let codeData = code[key];
+
+          //put search Params into obj
+          let searchParamsObj = {
+            type: searchParams.get('type'), //get from link
+            user_id_creator: searchParams.get('user_id_creator'), //get from link
+            gender_creator: searchParams.get('gender_creator'), //get from link
+            image_creator: this.state.image_creator, //get from firebase query
+            name_creator: this.state.name_creator, //get from firebase query
+            name_created: searchParams.get('name_created'), //get from link
+            reason: searchParams.get('reason'), //get from link
+            expired: codeData.expired // get this from checkCode function
+          }
+
+          //build review object to update db with. 
+          let reviewObj = {
+            name: this.state.name_creator,
+            user_id_creator: searchParams.get('user_id_creator'),
+            photo: this.state.image_creator, 
+            reason: searchParams.get('reason'), 
+            code_key: key[0],
+            type: 'review'
+          }
+
+          //save searchParams to state, so that redirectUser() can reference, when sending params to next screens 
+          this.setState({ deepLinkParams: searchParamsObj, reviewObj: reviewObj });
+
+          //if invite is valid (not expired) and user is signed in, then link the current user and the review together - 
+          if(codeData.expired == false && currentUser){
   
-    //if link is type navigation and user is authenticated:
-    //save nextScreen into state as Chat, Messages, Swipes, ...
-    //Redirect if user is logged in, else login user then redirect afterwards
+              //linkReview so that review is associated with currentUser
+              linkReview(reviewObj, currentUser.uid);
+          }
+          
+        
+        } else{
+          console.log('code does not exist');
+        }
+
+        
+      })
+
+
+    }
+    
+    
+    //Other flows here, such as navigation flows. 
+      //if link is type navigation and user is authenticated:
+      //save nextScreen into state as Chat, Messages, Swipes, ...
+      //Redirect if user is logged in, else login user then redirect afterwards
         
   };
 
