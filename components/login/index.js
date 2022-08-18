@@ -1,6 +1,6 @@
 import React, { Component, useEffect } from "react";
 import PropTypes from 'prop-types';
-import { Keyboard, TouchableWithoutFeedback, LayoutAnimation, Image, Alert, Dimensions, Animated, StyleSheet, TextInput, StatusBar } from "react-native";
+import { Keyboard, TouchableWithoutFeedback, LayoutAnimation, Image, Alert, Dimensions, Animated, StyleSheet, TextInput, StatusBar, Linking } from "react-native";
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
 import Geocoder from 'react-native-geocoding';
@@ -550,6 +550,16 @@ handleDynamicLink = link => {
   // if (searchParams.get('type') == 'refer') {
     
 };
+//function to handle linking out to browser
+linkOut = (url) => {
+  Linking.canOpenURL(url).then(supported => {
+    if (supported) {
+      Linking.openURL(url);
+    } else {
+      console.log("Don't know how to open URI: " + url);
+    }
+  });
+};
 
 onLoginOrRegister = () => {
   
@@ -989,7 +999,42 @@ onLoginOrRegister = () => {
                   marginBottom: 45,
                   opacity: fadeInAnimation, 
                   justifyContent: 'flex-end', }}>
-                
+                  
+                  <View 
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      alignItems: 'flex-end',
+                      marginBottom: 10 
+                    }}
+                    
+                    
+                    >
+                  
+                    <Text         
+                    style={{
+                      color: 'white',
+                      fontSize: 10,
+                      //textAlign: 'center',
+                      //marginBottom: 20
+                      }}>By creating an account you’re agreeing to        
+                    </Text>
+                    <Text         
+                        onPress = {() => this.linkOut('https://focusdating.co/terms.html')}
+                        style={{
+                          color: 'white',
+                          textDecorationLine: 'underline',
+                          fontSize: 10,
+                          //alignSelf: 'flex-end',
+                          //textAlign: 'center',
+                          //marginBottom: 20,
+                          marginLeft: 3,
+                          }}>our terms.
+                        </Text>
+
+                  </View>
+                  
                   <Button 
                     onPress = {() => this.validateAccount()} 
                     bordered 
