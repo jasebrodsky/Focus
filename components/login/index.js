@@ -109,6 +109,8 @@ class Login extends Component {
         console.log('user not logged in');
       }
     });
+
+    
   }
 
 //function to get update users current location. 
@@ -130,22 +132,30 @@ getLocation = () => {
           //define placeholders for city state texts. 
           let cityText = '';
           let stateText = '';
+          
+          console.log('json is: x '+JSON.stringify(json));
 
           //find long_name where arraddress has type of locality and administrative_area_level_1
-          json.results[0].address_components.forEach((place) => {
-              
-            if( place.types.includes("locality") ){
-                console.log('city is: '+JSON.stringify(place.short_name));
-                cityText = place.short_name;
+          json.results[0].address_components.forEach((place) => {                               
+            if (place.types.includes("locality")) {
+              console.log('locality is: '+JSON.stringify(place.long_name));
+              cityText = place.short_name;
             }
-            else if( place.types.includes("administrative_area_level_1") ){
-                console.log('state is: '+JSON.stringify(place.short_name));
-                stateText = place.short_name;
-            }                            
+            if (place.types.includes('sublocality_level_1')) {
+              console.log('sublocality_level_1 is: '+JSON.stringify(place.long_name));
+              cityText = place.short_name;
+            }
+            if (place.types.includes('administrative_area_level_1')) {
+              //console.log('state is: '+JSON.stringify(place.short_name));
+              console.log('place is: ');
+              stateText = place.short_name;
+            }               
           })
 
           //contenate strings
           let city_state = cityText+', '+stateText;
+
+          
 
           //update firebase
           firebaseRefCurrentUser.update({ utc_offset_min: offsetInMin, city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude, });
@@ -1007,9 +1017,7 @@ onLoginOrRegister = () => {
                       justifyContent: 'center',
                       alignItems: 'flex-end',
                       marginBottom: 10 
-                    }}
-                    
-                    
+                    }}                   
                     >
                   
                     <Text         

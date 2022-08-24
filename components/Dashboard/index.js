@@ -319,7 +319,7 @@ class Dashboard extends Component {
 
   //function to get update users current location. 
   getLocation = () => {
-
+    
     //save ref to current user in db. 
     firebaseRefCurrentUser = firebase.database().ref('/users/' + userId);
 
@@ -335,18 +335,22 @@ class Dashboard extends Component {
                 //define placeholders for city state texts. 
                 let cityText = '';
                 let stateText = '';
-
+                
                 //find long_name where arraddress has type of locality and administrative_area_level_1
-                json.results[0].address_components.forEach((place) => {
-                    
-                  if( place.types.includes("locality") ){
-                      console.log('city is: '+JSON.stringify(place.short_name));
-                      cityText = place.short_name;
+                json.results[0].address_components.forEach((place) => {                               
+                  if (place.types.includes("locality")) {
+                    console.log('locality is: '+JSON.stringify(place.long_name));
+                    cityText = place.short_name;
                   }
-                  else if( place.types.includes("administrative_area_level_1") ){
-                      console.log('state is: '+JSON.stringify(place.short_name));
-                      stateText = place.short_name;
-                  }                            
+                  if (place.types.includes('sublocality_level_1')) {
+                    console.log('sublocality_level_1 is: '+JSON.stringify(place.long_name));
+                    cityText = place.short_name;
+                  }
+                  if (place.types.includes('administrative_area_level_1')) {
+                    //console.log('state is: '+JSON.stringify(place.short_name));
+                    console.log('place is: ');
+                    stateText = place.short_name;
+                  }               
                 })
 
                 //contenate strings

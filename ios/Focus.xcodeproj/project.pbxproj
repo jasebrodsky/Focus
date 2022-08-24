@@ -23,7 +23,7 @@
 		5A67DBE823B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
 		5A67DBEA23B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
 		5A67DBEB23B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
-		5A86B03F26D4336A002EFC7D /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A86B03E26D4336A002EFC7D /* StoreKit.framework */; };
+		5A7F936028B20D5500CEA954 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A7F935F28B20D5500CEA954 /* StoreKit.framework */; };
 		5AB7EB0523B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */; };
 		5AB7EB0623B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */; };
 		5AB7EB0A23B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5AB7EB0723B59A8B00DA7014 /* FBSDKLoginKit.framework */; };
@@ -75,7 +75,7 @@
 		5A2E1D4B23DCCF55002C463A /* AppCenter-Config.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "AppCenter-Config.plist"; sourceTree = "<group>"; };
 		5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../Other/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		5A67DBEC23B68C2000EDBC47 /* Focus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Focus.entitlements; path = Focus/Focus.entitlements; sourceTree = "<group>"; };
-		5A86B03E26D4336A002EFC7D /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		5A7F935F28B20D5500CEA954 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		5AB7EAFA23B5399F00DA7014 /* libFBSDKCoreKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libFBSDKCoreKit.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5AB7EB0023B595C000DA7014 /* libFBSDKShareKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libFBSDKShareKit.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKCoreKit.framework; path = ../../../Documents/FacebookSDK/FBSDKCoreKit.framework; sourceTree = "<group>"; };
@@ -114,7 +114,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				38F4368B315760F793320A27 /* libPods-Focus.a in Frameworks */,
-				5A86B03F26D4336A002EFC7D /* StoreKit.framework in Frameworks */,
+				5A7F936028B20D5500CEA954 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -209,7 +209,7 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				5A86B03E26D4336A002EFC7D /* StoreKit.framework */,
+				5A7F935F28B20D5500CEA954 /* StoreKit.framework */,
 				5AB7EB0023B595C000DA7014 /* libFBSDKShareKit.a */,
 				5AB7EAFA23B5399F00DA7014 /* libFBSDKCoreKit.a */,
 				5ACAEC5823B47B2A0051F25E /* libFBSDKLoginKit.a */,
@@ -674,7 +674,7 @@
 				INFOPLIST_FILE = Focus/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.64;
+				MARKETING_VERSION = 1.65;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -697,7 +697,7 @@
 				INFOPLIST_FILE = Focus/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.64;
+				MARKETING_VERSION = 1.65;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",

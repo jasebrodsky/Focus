@@ -5,7 +5,31 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
+// set up cors and axios for 3rd party api requests (yelp)
+const cors = require('cors')({origin: true});
+var axios = require('axios');
 
+//yelp functionality
+exports.yelpAutoSuggest = functions.https.onRequest( async (request, response) => {
+  
+  response.set("Access-Control-Allow-Origin", "*"); // you can also whitelist a specific domain like "http://127.0.0.1:4000"
+  response.set("Access-Control-Allow-Headers", "Content-Type");
+  
+  // enable cors 
+  cors(request, response, () => {
+    // request to yelp api
+     axios.get("https://api.yelp.com/v3/autocomplete?text=del&latitude=37.786882&longitude=-122.399972", {headers:{ Authorization: `bearer CKia7Mz51NpAHxvG-thuvuZk0RGPeGmyVyYVsYJEfAOI_nO2acc3NRZROLq-VgkXVD2RvqzVzKiMz3tdoVKc8NPhc8-5prI7VFZMWTtXpSKmp0J_HVsEyCS_1IrLYXYx`}})
+    .then(r => {
+      console.log("Cloud yelp resp", r);
+       response.send(r);
+    })
+    .catch( e => {
+      console.log( "Cloud yelp error: ", e);
+      response.sendStatus(500);
+    })
+  })
+
+})
 
 
 // //delete users
@@ -498,7 +522,42 @@ exports.getMatches = functions.https.onRequest((req, res) => {
         max_age = userPrefSnap.val().max_age == 50 ? 100 : userPrefSnap.val().max_age;
         min_age = userPrefSnap.val().min_age;
         swipe_count = userPrefSnap.val().swipe_count;
-  
+        // save empty array for excluded users
+        excluded_users_array = [123];
+               
+        //convert result from firebase into an array, if user has excludedUsers
+        if(userPrefSnap.val().excludedUsers){
+
+          Object.values(userPrefSnap.val().excludedUsers).forEach(excluded_user => {  
+            //make sure array is unique to users to exclude
+
+            if(userid == excluded_user.useridExcluded){
+
+              //push exluded user to array
+              excluded_users_array.push(excluded_user.useridExcluder)
+
+            }else if(userid == excluded_user.useridExcluder){
+                
+              //push exluded user to array
+                excluded_users_array.push(excluded_user.useridExcluded)
+            } else{
+
+              // do nothing
+              console.log('doing nothing since user is not excludedUsers array. ')
+            }
+          })
+        }
+        
+        
+        // // excluded users data from userPrefSnap
+        // excluded_users_data = userPrefSnap.val().excludedUsers;
+        // // for each excluded user, put the userid of both users into array
+        // excluded_users_data.map((excluded_user)=>{
+        //   excluded_users_array.push(excluded_user.useridExcluded);
+        //   excluded_users_array.push(excluded_user.useridExcluder);
+        // })
+
+
         //convert max and min ages into DOB. Put DOB into gender_pref when logging in. 
         // gender_pref = City_Gender_Pref_DOB
         // query_start = NYC_female_bi_23
@@ -707,9 +766,11 @@ exports.getMatches = functions.https.onRequest((req, res) => {
 
           console.log('matchObj.latitude is: '+matchObj.latitude);
           console.log('matchObj.longitude is: '+matchObj.longitude);
+          console.log('excluded_users_array is: '+excluded_users_array);
 
           //return matches after passing requirements
           return matchObj.status == 'active' && //only active profiles
+                 !excluded_users_array.includes(matchObj.userid) && //match user is is not in excluded user array
                  matchObj.intialUser == false && //remove incomplete profiles. 
                  matchObj.userid !== userid && //remove users own profile. 
                  matchObj.gender_pref !== genderPrefRemove && //remove same-sex straight profiles, if user is bi. 

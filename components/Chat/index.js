@@ -426,53 +426,153 @@ class Chat extends Component {
 
   }
 
-  //function to block or report a profile
-  blockOrReport = (type) => {
+  //trigger actionsheets and alerts for blocking and reporting and hiding flow. 
+  blockReportFlow = (from) => {
+  
+    //from = Swipes, Dashboard, ChatOrBlindDate
 
-    //create ref to set new match object with match_id associated with conversation_id generated above. 
-    let matchesRef1 = firebase.database().ref('matches/'+userId+'/'+this.state.userIdMatch+'/');
+    ActionSheet.show(
+      {
+        options: [
+          from == 'Swipes' ? 'Just hide':'Just unmatch',
+          from == 'Swipes' ? 'Hide and report':'Unmatch and report', 
+            "Cancel"
+        ],
+        title: 'Confirm',
+        cancelButtonIndex: 2,
+        destructiveButtonIndex: 2
+        
+      },
+      buttonIndex => {
 
-    //create ref to set new match object with match_id associated with conversation_id generated above. 
-    let matchesRef2 = firebase.database().ref('matches/'+this.state.userIdMatch+'/'+userId+'/');
+        //handle blocking profile
+        if ((buttonIndex) == 0){
 
-    //save fb ref for quering conversation data
-    let convoRef = firebase.database().ref('/conversations/'+conversationId+'/');
+          //block user
+          this.profileAction('unmatch');
+          console.log('this is block report flow: UNMATCHING');
 
-    //prepare for navigation  
-    const { navigate } = this.props.navigation;
+        
+          //handle block and report a user
+        }else if ((buttonIndex) == 1){
 
-    //add removed property to match
-    matchesRef1.update({removed: true});
+          Alert.alert(
+            'Report',
+            "We take reports seriously. We'll investigate this person and block them from interacting with you in the future.",
+            [
 
-    //add removed property to match
-    matchesRef2.update({removed: true});
+              {text: from == 'Swipes' ? 'Just hide':'Just unmatch', 
+                onPress: () =>  
+                  //if from swipes and not a match -> hide. If not coming from swipes and is a match -> unmatch.
+                from == 'Swipes' ? this.profileAction('hide') : this.profileAction('unmatch')
+              },    
+              
+              {text: from == 'Swipes' ? 'Report and hide':'Report and unmatch', 
+                onPress: () => 
+                //if from swipes and not a match -> report and hide. If not coming from swipes and is a match -> report and unmatch.
+                from == 'Swipes' ? this.profileAction('hideAndReport') : this.profileAction('unmatchAndReport')
+              },   
+              {text: 'Cancel', 
+              onPress: () => console.log('Cancel Pressed'), style: 'destructive'
+            },  
+            
+            ],
+            { cancelable: false }
+          )         
+        }
+      }
+    )
+  }
 
-    //add removed property to conversation as well. 
-    convoRef.update({removed: true});
+  excludeUsers = (useridExcluded, useridExcluder) => {
 
-    //record in analytics that user was successfully blocked
-    RNfirebase.analytics().logEvent('profileBlocked', {
-      userIdBlocking: userId,
-      userIdBlocked: this.state.userIdMatch
-    }); 
+    //save ref to users to exclude from eachother
+    let firebaseRefUseridExcluded = firebase.database().ref('/users/' + useridExcluded +'/excludedUsers');
+    let firebaseRefUseridExcluder = firebase.database().ref('/users/' + useridExcluder +'/excludedUsers');
 
-    //if type is report
-    if (type == 'report'){
-      console.log('profile reported');
+    //add excluded data to profile of the excluded user
+    firebaseRefUseridExcluded.push({
+        useridExcluder: useridExcluder, 
+        useridExcluded: useridExcluded, 
+        time: Date.now()
+    });
 
-      //add reported property to conversation as well. 
-      convoRef.update({reported: userId}); 
+    //add excluded data to profile of the excluder user
+    firebaseRefUseridExcluder.push({
+        useridExcluder: useridExcluder, 
+        useridExcluded: useridExcluded, 
+        time: Date.now()
+    });
 
-      //record in analytics that user was successfully reported
-      RNfirebase.analytics().logEvent('profileReported', {
-        userIdReporting: userId,
-        userIdReported: this.state.userIdMatch
-      }); 
+  }
+
+  //handle hiding, unmatching, reporting users. 
+  profileAction = (action) => {
+    //actions: hide, unmatch, hideAndReport, unmatchAndReport
+
+    //let userId = firebase.auth().currentUser.uid;
+    //hide (unmatched user)
+    if (action == 'hide' || action == 'hideAndReport') {
+      this.excludeUsers(this.state.userIdMatch, firebase.auth().currentUser.uid);
     }
 
-    //navigate to swipes. 
-    navigate("Swipes");
+    //unmatch user
+    if (action == 'unmatch' || action == 'unmatchAndReport') {
+      this.excludeUsers(this.state.userIdMatch, firebase.auth().currentUser.uid);
+      
+      // disable matches anddisable conversation
+      //create ref to set new match object with match_id associated with conversation_id generated above. 
+      let matchesRef1 = firebase.database().ref('matches/'+firebase.auth().currentUser.uid+'/'+this.state.userIdMatch+'/');
+
+      //create ref to set new match object with match_id associated with conversation_id generated above. 
+      let matchesRef2 = firebase.database().ref('matches/'+this.state.userIdMatch+'/'+firebase.auth().currentUser.uid+'/');
+
+      //save fb ref for quering conversation data
+      let convoRef = firebase.database().ref('/conversations/'+conversationId+'/');
+
+      //add removed property to match
+      matchesRef1.update({removed: true});
+
+      //add removed property to match
+      matchesRef2.update({removed: true});
+
+      //add removed property to conversation as well. 
+      convoRef.update({removed: true});
+    
+    }
+
+    //report user
+    if (action == 'hideAndReport' || action == 'unmatchAndReport') {
+      //first exclude users from eachother
+      this.excludeUsers(this.state.userIdMatch, firebase.auth().currentUser.uid);
+
+      //save ref to users to involved in report
+      let firebaseRefUseridReported = firebase.database().ref('/users/' + this.state.userIdMatch +'/report');
+      let firebaseRefUseridReporter = firebase.database().ref('/users/' + firebase.auth().currentUser.uid +'/report');
+
+      //push data report to profile of user who is being reported
+      firebaseRefUseridReported.push({
+          useridReporter: firebase.auth().currentUser.uid, 
+          useridReported: this.state.userIdMatch, 
+          //reason: '',
+          time: Date.now()
+      });
+      
+      //push data report to profile of user who is reporting
+      firebaseRefUseridReporter.push({
+        useridReporter: firebase.auth().currentUser.uid, 
+        useridReported: this.state.userIdMatch,
+        //reason: '', 
+        time: Date.now()
+    });
+    }
+
+    //go to swipes now and forceUpdate
+    this.props.navigation.navigate('Swipes', {forceUpdate: true});             
+
   }
+
+
 
 
   getAge(dateString) {
@@ -550,12 +650,17 @@ class Chat extends Component {
         //if match is expired, deblur photos when sneekpeek is clicked. 
         if (this.state.matchActive == false){
           //set blur to 0 if subscribed
-            this.deBlur(75,100)
-            this.deBlur(60,200)
-            this.deBlur(45,300)
-            this.deBlur(30,400)
-            this.deBlur(15,500)
-            this.deBlur(0,600)
+            //this.setState({blur:'0'});
+            this.deBlur('100',0)
+            this.deBlur('90',100)
+            this.deBlur('80',200)
+            this.deBlur('70',300)
+            this.deBlur('50',400)
+            this.deBlur('40',500)
+            this.deBlur('30',550)
+            this.deBlur('20',600)
+            this.deBlur('10',650)
+            this.deBlur('0',700)
 
           //update images in imageViewer to blurRadious of 0 as well. 
             let newImages = this.state.images.map(image => (
@@ -930,39 +1035,11 @@ class Chat extends Component {
               {this.state.timeRemaining} 
             </Text> 
     
-            <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-end', }} onPress={() =>
-            
-            ActionSheet.show(
-              {
-                options: BUTTONS,
-                cancelButtonIndex: CANCEL_INDEX,
-                destructiveButtonIndex: DESTRUCTIVE_INDEX
-                
-              },
-              buttonIndex => {
-
-                //handle blocking profile
-                if ((buttonIndex) == 0){
-
-                  //block user
-                  this.blockOrReport('block')
-                
-                  //handle block and report a user
-                }else if ((buttonIndex) == 1){
-
-                  Alert.alert(
-                    'Report & Block',
-                    'We take reports seriously and will investigate this person as well as block them from interacting with you in the future. If you just want to unmatch tap "unmatch" instead.',
-                    [
-                      {text: 'Unmatch', onPress: () => this.blockOrReport('block')},
-                      {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-                      {text: 'Report & Block', onPress: () => this.blockOrReport('report')},
-                    ],
-                    { cancelable: false }
-                  )         
-                }
-              }
-            )} >
+            <Button 
+              transparent 
+              style={{width: 100, flex: 1, justifyContent: 'flex-end', }} 
+              onPress = {() =>  this.blockReportFlow('Chat') } 
+            >
             <FontAwesomeIcon size={ 20 } style={{ color: 'lightgrey'}} icon={ faFlag } />
         </Button>
         </View>
