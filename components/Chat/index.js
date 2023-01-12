@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { Alert, ScrollView, TouchableOpacity, Image, ImageBackground, StyleSheet, Dimensions, StatusBar } from 'react-native';
+import { Alert, ScrollView, Animated, TouchableOpacity, Image, ImageBackground, StyleSheet, Dimensions, StatusBar } from 'react-native';
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
-import { Modal } from 'react-native';
+import { Modal, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 import LinearGradient from 'react-native-linear-gradient';
@@ -30,7 +30,6 @@ import {
   View,
   H3
 } from "native-base";
-
 import { GiftedChat } from 'react-native-gifted-chat';
 import TimerMachine from 'react-timer-machine';
 import moment from "moment";
@@ -60,17 +59,20 @@ class Chat extends Component {
       messages:[],
       date: {
         status: 'none',
-        waitingOnId: 'none'
+        waitingOnId: 'none',
+        reservationLastName: 'adsf',
       },
       block: true,
       blur: 30,
-      chatActive: true,
+      showModal: false,
       removed: false,
       timeLeft: null,
       matchDate: null,
       expirationDate: state.params.expiration_date,
       matchActive: true,
+      chatActive: true,
       name: null,
+      //seen: true,
       birthday: '',
       gender: '',
       city_state: '',
@@ -182,11 +184,14 @@ class Chat extends Component {
     let gender = state.params.gender;
     let profile = state.params.profile;
     let reviews = state.params.reviews;
+    let seen = state.params.seen;
     let city_state = state.params.city_state;
     let education = state.params.education;
     let work = state.params.work;
     let match_userid = state.params.match_userid; 
-    //let match_state = state.params.match_state;
+    let reservationFirstName = state.params.reservationFirstName;
+    let reservationLastName = state.params.reservationLastName;
+    let match_state = state.params.match_state;
     let time_remaining = state.params.time_remaining;
 
     //update state with subscribed, if user is susbscribed. listen on changes if subscribes changes in db.
@@ -194,7 +199,15 @@ class Chat extends Component {
       let subscribed = profile.val().subscribed;
       this.setState({'subscribed': subscribed })
     })
+
+
+    //update state with most recent match data, so that can render modal when date needs approval. 
+    firebase.database().ref('matches/'+userId+'/'+match_userid).on("value", matchSnap =>{
+      this.setState({showModal: !matchSnap.val().seen })
+    })
     
+
+
     //save fb ref for quering conversation data
     let firebaseRef = firebase.database().ref('/conversations/'+conversationId+'/');
 
@@ -268,7 +281,7 @@ class Chat extends Component {
         imageArray.forEach(function(item) {
           imageObj = {'url':item.url, cache: 'force-cache', 'props':{'blurRadius': +parseInt(blur,10), source: {uri: item.url, cache: 'force-cache'}}};
           imagesArray.push(imageObj);
-        })
+      })
 
         
           //setState with above elements
@@ -277,20 +290,24 @@ class Chat extends Component {
             about: about,
             birthday: birthday,
             gender: gender,
+            //seen: seen,
+            //showModal: !seen, //show modal true => when not seen yet. 
             city_state: city_state,
             education: education,
             date: date,
             work: work,
             reviews: reviews,
             name: participantName,
+            reservationFirstName: reservationFirstName,
+            reservationLastName: reservationLastName,
             userName: participantLoggedInUserName,
             blur: dataSnapshot.val().blur,
             chatActive: chatActive,
             //timeLeft: dataSnapshot.val().time_left, //should be conversation start date. js would subtract today's date from that = time_left
             matchDate: dataSnapshot.val().match_date,
             expirationDate: dataSnapshot.val().expiration_date,
-            matchActive: true,
-            //matchActive: match_state == 'active' ? true : false,
+            //matchActive: true,
+            matchActive: match_state == 'active' ? true : false,
             image: imagesArray[0].url,
             userId: userId,
             userIdMatch: participantUserId,
@@ -303,8 +320,8 @@ class Chat extends Component {
             Analytics.setUserId(userId);
 
       })
-  }
 
+  }
 
 
   //send msg to db
@@ -345,6 +362,7 @@ class Chat extends Component {
         firebaseMatchesRef1.update({
           last_message: message[i].text,
           showNotification: true,
+          showNotificationTime: (new Date().getTime()*-1), 
           notificationType: 'newChat',
           last_message_date: (new Date().getTime()*-1), 
           blur: this.state.blur,
@@ -394,6 +412,81 @@ class Chat extends Component {
 
   // }
 
+
+  handleNotification = (userId, screen, matchUseridExclude ) => {
+    
+    //this.setState({ matchUseridExclude: matchUseridExclude });
+
+    let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+
+    let listener = query.on('child_changed', (notifySnapshot) => {
+      
+      //first check if there's a notification to render by checking if showNotification is true on the child_changed event on the match, also check that notificaiton has happened since module mounted, so old notificaitons aren't served.  
+      if((notifySnapshot.val().showNotification == true) && (notifySnapshot.val().last_message_date*-1 < new Date().getTime())){
+        //render notification based off the notification type
+        switch (notifySnapshot.val().notificationType) {
+          case 'newMatch':
+            //don't notify of new match while on Swipes screen.
+            if(screen !== 'Swipes'){
+              renderNotification('New Match with '+notifySnapshot.val().name);
+            }
+            break;
+          case 'newChat':
+            
+            console.log('matchUseridExclude is: '+matchUseridExclude); //WHY IS matchUserId being set to null here? 
+            console.log('notifySnapshot.val().match_userid is: '+notifySnapshot.val().match_userid); //WHY IS matchUserId being set to null here? 
+
+            //don't notify of new chat while on chat screen and chatting with that user. Match to exclude is only sent on chat page.
+            if ((screen == 'Chat') && (matchUseridExclude == notifySnapshot.val().match_userid)){ //then check if person to exclude is not who you're talking to
+            //if ((screen == 'Chat')){ //then check if person to exclude is not who you're talking to
+    
+               //don't notify when chat is open with user
+
+                //alert('dont notify since need to exclude this user from sending you a notificaiton');
+                break;
+              }else{
+                //must not be on chat page, since match_user_exclude is not set
+                renderNotification('New Chat from '+notifySnapshot.val().name);
+                break;
+              }
+            
+          case 'newBlindDate':
+            renderNotification('New blind date requested.');
+            break;
+          case 'planned': //blind date accepted
+            renderNotification('Blind date ready!');
+            break;
+          case 'accepted': //blind date accepted
+            renderNotification('Blind date accepted!');
+            break;
+          case 'declined': //blind date declined
+            renderNotification('Blind date declined.');
+            break;                   
+          case 'pendingUpdate': //blind date updated
+            renderNotification('Blind date updated.');
+            break;
+          case 'pending': //blind date updated
+            renderNotification('Blind date updated.');
+            break;                 
+          case 'conversationExtended':
+            renderNotification(notifySnapshot.val().name+' has extended the conversation!');
+            break;
+          default:
+            console.log(`Sorry, no matching notification type`);
+        }
+
+        //turn off notificationShow bool so it doesn't show again. 
+        firebase.database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
+          'showNotification': false
+        }); 
+        
+        //save to state listner, so that it specific listener can be turned off when leaving 
+        this.setState({ listener: listener });
+
+      }
+    })
+
+  }
 
   //function to toggle profile show/hide
   toggleProfile = () => {
@@ -645,6 +738,8 @@ class Chat extends Component {
     //handle when sneakpeek is pushed. Unblur photos for n time or show payments modal if user is not subscribed. 
     _handleSneekPeek = () => {
 
+
+
         const { state, navigate } = this.props.navigation;
 
         //if match is expired, deblur photos when sneekpeek is clicked. 
@@ -670,14 +765,19 @@ class Chat extends Component {
           
           this.setState({images: newImages});
 
+          //Add event for sneak peek being used. 
+          RNfirebase.analytics().logEvent('sneakPeek', {
+            matchExpired: true,
+          });
+
         }else{
 
           //match must be active, alert user what button will do after expiration. 
           //alert("Send a message to focus their photos. After this conversation expires, you'll be able use this button to focus their photos.");
 
           Alert.alert(
-            'Reveal',
-            "Sending messages will reveal their photos. After expiration, this button will reveal who they were. ",
+            '',
+            "Sending messages will focus their photos. After expiration, this button will reveal who they were.",
             [
               {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
             ],
@@ -686,6 +786,11 @@ class Chat extends Component {
 
           //navigate to payments component, since user is not subscribed.
           //navigate("Payments", { flow: 'peek'});
+
+          //Add event for sneak peek being used. 
+          RNfirebase.analytics().logEvent('sneakPeek', {
+            matchExpired: true,
+          });
 
         }
     }
@@ -760,9 +865,20 @@ class Chat extends Component {
 
           //update local state so chat is active. listen to db if timeremaining is updated. This way the match can extend the conversation and the other person can send first chat. 
           this.setState({  matchActive: true, chatActive: true, expirationDate: newExpirationDate })
+          
+          //Add event extending conversation. 
+          RNfirebase.analytics().logEvent('extendConversation', {
+            subscribed: true,
+          });
 
       }else{
         //navigate to payments component, since user is not subscribed.
+
+          //Add event extending conversation. 
+          RNfirebase.analytics().logEvent('extendConversation', {
+            subscribed: false,
+          });
+
          //navigate("Payments", { flow: 'peek'});
          navigate("Intersitial", { 
            flow: 'extendConversation1',
@@ -847,7 +963,7 @@ class Chat extends Component {
 
       //update the unread of my's match obj
       firebaseMatchesRef1.update({
-        active: false
+        active: false,
       });
 
       //update the unread of my's match obj
@@ -868,7 +984,7 @@ class Chat extends Component {
     const { state, navigate } = this.props.navigation;
     console.log('match date is: '+ this.state.matchDate);
     console.log('chatActive is: '+ this.state.chatActive);
-    console.log('matchActive is: '+ this.state.matchActive);
+    console.log('seen is: '+ this.state.showModal);
   
     //console.log('time remaining is: '+ timeRemaining);
     let {height, width} = Dimensions.get('window');
@@ -876,6 +992,7 @@ class Chat extends Component {
     let about = this.state.about;
     let chatActive = this.state.chatActive;
     let matchActive = this.state.matchActive;
+    let blur = Number(this.state.blur);
     let name = this.state.name;
     let date = this.state.date;
     console.log('date is: '+JSON.stringify(date));
@@ -889,48 +1006,70 @@ class Chat extends Component {
 
     let deviceWidth = Dimensions.get('window').width
     let deviceHeight = Dimensions.get('window').height
-    let datePrimaryButtonCopy = 'Go on Blind Date';
+    let datePrimaryButtonCopy = 'Go on a blind date';
     let flow = 'createNewProposal' ;
+    let modalHeadline = 'Make the first move.';
+    let modalPrimaryCTA = 'Go on a blind date';
+    let modalSecondaryCTA = 'Chat first'
 
+    console.log('state.params.match_userid: '+state.params.match_userid);
 
-    //get notifications 
-    //handleNotification(userId, 'Chat', 'e6GZxn9yZrX2rRFZVKtrhqo11qD2');
-    handleNotification(userId, 'Chat', state.params.match_userid);
-
-
-    console.log('this.state.date.status: '+this.state.date.status);
-
+    //if date is in the passed (proposed or confirmed), go to flow createNewProposal
+    if( (this.state.date.proposedTime < new Date().getTime() && this.state.date.status !== 'accepted') || (this.state.date.confirmedTime < new Date().getTime() && this.state.date.status == 'accepted') ){
+      flow = 'createNewProposal' ;
+    }else{
       //configuration for date button
       switch (this.state.date.status) {
         case 'pending': 
-          datePrimaryButtonCopy = (userId == this.state.date.waitingOnId) ? 'Blind Date requested' : 'Blind Date requested' ;
+          datePrimaryButtonCopy = (userId == this.state.date.waitingOnId) ? 'Blind date requested' : 'Blind date requested' ;
           flow = (userId == this.state.date.waitingOnId) ? 'approveNewProposal' : 'waitingAcceptanceNewProposal' ;
+          type = this.state.date.type;
+          modalHeadline = 'Blind date requested.';
+          modalPrimaryCTA = 'Blind date details';
+          modalSecondaryCTA = 'Chat first'
           break;
         case 'pendingUpdate': 
-          datePrimaryButtonCopy = (userId == this.state.date.waitingOnId) ? 'Blind Date requested' : 'Blind Date requested' ;
+          datePrimaryButtonCopy = (userId == this.state.date.waitingOnId) ? 'Blind date requested' : 'Blind date requested' ;
           flow = (userId == this.state.date.waitingOnId) ? 'approveUpdatedProposal' : 'waitingAcceptanceUpdatedProposal' ;
+          type = this.state.date.type;
+          modalHeadline = 'Blind date requested.';
+          modalPrimaryCTA = 'Blind date details';
+          modalSecondaryCTA = 'Chat first'
           break;
         case 'fulfill': 
-          datePrimaryButtonCopy = 'Blind Date coordinating';
+          datePrimaryButtonCopy = 'Blind date coordinating';
           flow = 'proposalAccepted' ; //go to proposal Acccepted flow
+          type = this.state.date.type;
+          modalHeadline = "Personalizing your date now.";
+          modalPrimaryCTA = 'Blind date details';
+          modalSecondaryCTA = 'Chat first';
           break;
         case 'accepted': 
-          datePrimaryButtonCopy = 'Blind Date details';
+          datePrimaryButtonCopy = 'Blind date details';
           //flow = (true) ? 'detailsHide' : 'detailsShow' ; //1642837974 //1642833434708
           flow = (this.state.date.proposedTime < Date.now()+(86400000*1)) ? 'detailsHide' : 'detailsShow' ; //show details when 24 hours before proposedTime
+          type = this.state.date.type;
+          modalHeadline = "Blind date accepted.";
+          modalPrimaryCTA = 'Blind date details';
+          modalSecondaryCTA = 'Chat first';
           break;
         case 'declined':
-          datePrimaryButtonCopy = 'Go on Blind Date';
+          datePrimaryButtonCopy = 'Go on a blind date';
           flow = 'createNewProposal' ;
+          type = this.state.date.type;
           break;
         case 'none':
-          datePrimaryButtonCopy = 'Go on Blind Date';
+          datePrimaryButtonCopy = 'Go on a blind date';
           flow = 'createNewProposal' ;
+          type = this.state.date.type;
           break;
         default:
-          datePrimaryButtonCopy = 'Go on Blind Date';
+          datePrimaryButtonCopy = 'Go on a blind date';
           flow = 'createNewProposal' ;
+
       }
+    }
+
     
 
 
@@ -941,96 +1080,219 @@ class Chat extends Component {
             barStyle={'dark-content'} 
             animated={true}
           />
-        <Modal 
-          visible={this.state.profileViewerVisible} 
-          //transparent={false}
-          animationType="slide">
-            
-            {(this.state.profileViewerVisible && !this.state.imageViewerVisible) && 
-              <ScrollView 
-                style={{
-                  flex: 1,
-                  backgroundColor: 'lightgrey'
-                }} 
-                
-                contentContainerStyle={{
-                  backgroundColor: 'white',
-                  flexGrow: 1,
-                  paddingTop: 40,
-                  alignItems: 'center',
-                  paddingBottom: 50
-                }}>
-                  <View style={{ 
-                    position: 'absolute',
-                    zIndex: 2,
-                    left: 5,
-                    top: 40,}}>                  
-                    <Button  
-                      transparent 
-                      style={{  
-                        width: 90, 
-                        height: 90, 
-                        justifyContent: 'center',
+
+
+          {/* WHY RENDERING AFTER DECLINING A DATE? NOT seen in db is not changing, so why would this.state.showModal?*/}
+          
+            <Modal 
+            visible={this.state.showModal} 
+            transparent={true}
+            animationType="slide">
+                  
+              <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.9)'}}>
+               
+               
+               
+               <View style={{flex: 1, justifyContent: 'flex-end'}}>
+
+               
+                <TouchableOpacity
+
+                    onPress={() => 
+                                            
+                      { 
+                        this.setState({ showModal: false }); //dont see this modal again
+
+                        //update db to never see modal again. 
+                        firebase.database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/').update({
+                          seen: true
+                        });
+
+                        //navigate to profile module
+                        this.props.navigation.navigate("Profile", {
+                          profile: this.props.navigation.getParam('profile'), 
+                          blur: this.props.navigation.getParam('blur'), 
+                          conversationId: conversationId,  
+                          from: 'Chat', g
+                        });
+                      }
+                    }
+
+              
+                    style={{ 
+                      //width: deviceWidth-180,
+                      flex: 1,
+                      flexDirection: 'row',
+                      justifyContent: 'flex-end',
+                      alignItems: 'flex-end',
+                      flexDirection: 'row', 
+                      }}>
+
+                  <Thumbnail 
+                  blurRadius={  blur  }
+                  style={{
+                        marginRight: 10,
                         shadowColor: "#000",
                         shadowOffset: {
                           width: 0,
                           height: 3,
                         },
-                        shadowOpacity: 0.29,
-                        shadowRadius: 4.65, }}
-                      onPress = {() => this.setState({ profileViewerVisible: false})}>
-                        <FontAwesomeIcon size={ 50 }     
-                          style={{color: primaryColor}} 
-                          icon={ faArrowAltCircleLeft } />
-                    </Button>                  
-                  </View>
+                        shadowOpacity: 0.8,
+                        shadowRadius: 4.65,
+                        width: 45, 
+                        height: 45, 
+                        //overflow: "hidden", 
+                        borderRadius: 150, 
+                        borderWidth: 1, 
+                        borderColor: 'white' }} 
+                        source={{uri: this.state.image, cache: 'force-cache'}} 
 
-                  <TouchableOpacity activeOpacity={1.0} onPress = {() => this.setState({ imageViewerVisible: true})}>
-                  {this.state.blur &&
-                    <Image style={{}} 
-                      blurRadius={parseInt(this.state.blur, 10)}
-                      source={{
-                        uri: this.state.image,
-                        width: deviceWidth,
-                        height: deviceHeight-200
-                      }} 
+                        
                     />
-                    }
-
-                  </TouchableOpacity>
-                  <View style={{flex: 1, flexDirection: 'row', alignSelf: 'flex-start'}}>
-                    <View>
-                      <Card transparent style={{padding: 10}}>   
-                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{name}</H3>
-                        <H3 numberOfLines={1} style={{textTransform: 'capitalize', color: primaryColor}} >{age}, {gender}, {city_state}</H3>
-                        <Text numberOfLines={1} style={{}} >{work} </Text>
-                        <Text numberOfLines={1} style={{marginBottom: 10}} >{education} </Text>
-                        <Text note style={{marginTop: 10}}>{about}</Text>
-                      </Card>
-                      <View style={{flex: 1,padding:10}}>
-                        {this._renderReview(this.state.reviews)}
-
-                      </View>
+                    <View style={{}}>
+                      <Text style={{color: primaryColor, fontSize: 20, fontFamily: 'Helvetica' }}>{this.state.profile.name} | {age}</Text>
+                      <Text style={{color: 'white', fontSize: 20, fontFamily: 'Helvetica-Light' }}>{this.state.profile.city_state}</Text>
                     </View>
-                  </View>
-                </ScrollView>
-              }
 
+                  
+
+
+                </TouchableOpacity>
+              </View>
+               
+               
+               
+               <View style={{flex: 1, justifyContent: 'flex-start', alignItems: 'center'}}>
+
+
+              
+                  <Text style={{
+                    color: 'white',
+                    textAlign: 'center', 
+                    fontFamily: 'Helvetica-Light',
+                    fontSize: 32,
+                    //width: deviceWidth-130,
+                    margin: 15,
+                    }}>{modalHeadline}
+                  </Text>
+                  <Button 
+                        rounded
+                        onPress={() => 
+                        
+                          { 
+
+                            this.setState({ showModal: false }) //dont see this modal again
+
+                            //update db to never see modal again. 
+                            firebase.database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/').update({
+                              seen: true
+                            });
+
+                            //if match is active or date has been set up (in status fulfill or accepted) go to blindDate module, if it's expired alert that chat needs to be extended first
+                            if(matchActive || (this.state.date.status == 'fulfill' || this.state.date.status == 'accepted')){
+
+
+                              this.props.navigation.navigate('BlindDate', {
+                                //status: this.state.date.status, 
+                                flow: flow,
+                                //dateType: type, 
+                                dateId: conversationId, //dateId is the conversation id
+                                //userId: this.state.userId, 
+                                matchName: this.props.navigation.getParam('name'), 
+                                userIdMatch: this.state.userIdMatch,
+                                reservationFirstName: this.state.reservationFirstName,
+                                reservationLastName: this.state.reservationLastName,
+                                userCreator: date.userCreator,
+                                dateType: date.type,
+                                dateTime: date.proposedTime,
+                                proposedLat: date.proposedLat,
+                                proposedLong: date.proposedLong,
+                                conversationId: this.props.navigation.getParam('match_id'),
+                                blur: this.state.blur,
+                                profile: this.state.profile,
+                                //userIdMatchFcmToken: userIdMatchFcmToken
+                                confirmedTime: date.confirmedTime,
+                                
+                                confirmedLat: date.confirmedLat,
+                                confirmedLong: date.confirmedLong,
+                                location: date.location,
+                                placeAddress: date.placeAddress,
+                                placeUrl: date.url, 
+                                placeImage: date.imageUrl,
+                                placeName: date.placeName,
+                                priceMax: date.priceMax,
+                              })}else{
+                                Alert.alert(
+                                  "Conversation expired",
+                                  "You'll need to extend the Conversation in order to go on a blind date.",
+                                  [
+                                    {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                                  ],
+                                  { cancelable: false }
+                                )  
+                              }
+                            }
+
+
+                        
+                      }
+
+                        style={{
+                          //marginLeft: deviceWidth/5,
+                          width: deviceWidth-80,
+                          margin: 10,
+                          justifyContent: 'center',
+                          backgroundColor: primaryColor,
+                          borderRadius: 50,
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 3,
+                          },
+                          shadowOpacity: 0.29,
+                          shadowRadius: 4.65,
+                        }}>
+                        <Text style={{fontFamily:'Helvetica-Light'}}>{modalPrimaryCTA}</Text>
+                      </Button>
+                      <Button 
+                          rounded
+                          bordered
+                          onPress={() => { 
+                              this.setState({ showModal: false }) //dont see this modal again
+
+                              //update db to never see modal again. 
+                              firebase.database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/').update({
+                                seen: true
+                              });
+                          
+                          }}
+                          style={{
+                            //marginLeft: deviceWidth/5,
+                            width: deviceWidth-80,
+                            margin: 10,
+                            justifyContent: 'center',
+                            borderColor: primaryColor,
+                            borderRadius: 50,
+                            shadowColor: "#000",
+                            shadowOffset: {
+                              width: 0,
+                              height: 3,
+                            },
+                            shadowOpacity: 0.29,
+                            shadowRadius: 4.65,
+                          }}>
+                            <Text style={{fontFamily:'Helvetica-Light', color: primaryColor}}>{modalSecondaryCTA}</Text>
+                        </Button>
+                    </View>
+              </View>
+
+            </Modal> 
           
-              {this.state.imageViewerVisible && 
-                <ImageViewer 
-                  index = {this.state.imageIndex}
-                  imageUrls={this.state.images}
-                  onChange = {(index) => this.setState({ imageIndex: index})}
-                  onSwipeDown = {() => this.setState({ imageViewerVisible: false})}
-                  onClick = {() => this.setState({ imageViewerVisible: false})}
-                />  
-               }   
-          </Modal> 
+
         
                 
           <View style={{padding:0,  alignItems:'center', flexDirection:'row', justifyContent: 'space-around', paddingLeft: 15, paddingRight: 20}}>
-            <Text style={{marginRight: 10, fontWeight:'600', color: primaryColor}}>TIME REMAINING: </Text>
+            <Text style={{fontFamily:'Helvetica-Light', marginRight: 10,  fontWeight:'600', color: primaryColor}}>TIME REMAINING: </Text>
             <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', width:200}}>        
               {this.state.timeRemaining} 
             </Text> 
@@ -1044,14 +1306,14 @@ class Chat extends Component {
         </Button>
         </View>
 
-        <View>
+        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
           
             <Button 
                 rounded
                 style={{
-                  marginLeft: deviceWidth/5,
+                  //marginLeft: deviceWidth/5,
                   zIndex: 1,
-                  width: deviceWidth-180,
+                  width: deviceWidth-80,
                   margin: 15,
                   justifyContent: 'center',
                   backgroundColor: primaryColor,
@@ -1068,15 +1330,20 @@ class Chat extends Component {
                 onPress={() => 
                   
                   { 
-                    //if match is active go to blindDate module, if it's expired alert that chat needs to be extended first
-                    if(matchActive){
+                    //if match is active or date has been set up (in status fulfill or accepted) go to blindDate module, if it's expired alert that chat needs to be extended first
+                    if(matchActive || (this.state.date.status == 'fulfill' || this.state.date.status == 'accepted')){
                       this.props.navigation.navigate('BlindDate', {
                         //status: this.state.date.status, 
-                        flow: flow, 
-                        dateId: 'dateIdHere',
+                        flow: flow,
+                        //dateType: type, 
+                        dateId: conversationId, //dateId is the conversation id
                         //userId: this.state.userId, 
                         matchName: this.props.navigation.getParam('name'), 
                         userIdMatch: this.state.userIdMatch,
+                        reservationFirstName: this.state.reservationFirstName,
+                        reservationLastName: this.state.reservationLastName,
+                        userCreator: date.userCreator,
+                        dateType: date.type,
                         dateTime: date.proposedTime,
                         proposedLat: date.proposedLat,
                         proposedLong: date.proposedLong,
@@ -1085,16 +1352,19 @@ class Chat extends Component {
                         profile: this.state.profile,
                         //userIdMatchFcmToken: userIdMatchFcmToken
                         confirmedTime: date.confirmedTime,
+                        
                         confirmedLat: date.confirmedLat,
                         confirmedLong: date.confirmedLong,
                         location: date.location,
                         placeAddress: date.placeAddress,
+                        placeUrl: date.url, 
+                        placeImage: date.imageUrl,
                         placeName: date.placeName,
                         priceMax: date.priceMax,
                       })}else{
                         Alert.alert(
                           "Conversation expired",
-                          "You'll need to extend the Conversation in order to go on a Blind Date.",
+                          "You'll need to extend the Conversation in order to go on a blind date.",
                           [
                             {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
                           ],
@@ -1109,7 +1379,7 @@ class Chat extends Component {
                 
 
                 >
-                <Text>{datePrimaryButtonCopy}</Text>
+                <Text style={{fontFamily:'Helvetica-Light'}}>{datePrimaryButtonCopy}</Text>
               </Button>
           
 
@@ -1123,7 +1393,7 @@ class Chat extends Component {
         </View>
         
           
-        <GiftedChat
+        {/* <GiftedChat
           messages={this.state.messages}
           renderInputToolbar={!matchActive ? () => null : undefined}
           minInputToolbarHeight = {matchActive == false ? 0 : undefined}
@@ -1135,7 +1405,28 @@ class Chat extends Component {
             }
           }
           user={{_id: this.state.userId, _name: this.state.userName }}
-        />
+        /> */}
+
+        <TouchableWithoutFeedback onPress={() => {Keyboard.dismiss()}}>
+          <View style={{ flex: 6, }}>
+            <GiftedChat
+                keyboardShouldPersistTaps={'never'}
+                messages={this.state.messages}
+                renderInputToolbar={!matchActive ? () => null : undefined}
+                minInputToolbarHeight = {matchActive == false ? 0 : undefined}
+                bottomOffset={35}      
+                onSend={
+                  (message) => {
+                    this.onSend(message);
+                  }
+                }
+                isAnimated={true}
+                user={{_id: this.state.userId, _name: this.state.userName }}
+                />
+          </View>
+        </TouchableWithoutFeedback>
+
+
         <View 
           style={{
             position: 'absolute',
@@ -1162,8 +1453,8 @@ class Chat extends Component {
                 end={{ x: 2, y: 2 }}
                 >
           
-          <View style = {{flex: 1, justifyContent: 'space-around',}}>
-            <Text style={{color: 'white'}}>Conversation expired.</Text>
+          <View style = {{flex: 1, justifyContent: 'center',}}>
+            <Text style={{fontSize: 18, color: 'white', fontFamily:'Helvetica-Light'}}>Conversation Expired</Text>
           </View>
       
           <View style={{flex: 1}}>
@@ -1183,7 +1474,7 @@ class Chat extends Component {
                 marginBottom: 20 }}                       
                 rounded  
                 onPress={ () => {this._handleExtendConversation()} } >                         
-                  <Text style={{color: btnTextColor}}>Extend Conversation</Text>
+                  <Text style={{color: btnTextColor, fontFamily:'Helvetica-Light'}}>Extend Conversation</Text>
               </Button>  
           </View>
         </LinearGradient>
@@ -1213,7 +1504,35 @@ class Chat extends Component {
         };
       });
     });
+
+    //listen for notifications when module Focus
+    const didFocus = this.props.navigation.addListener(
+      'didFocus',
+      payload => {
+        
+        //get notifications when arriving
+        this.handleNotification(userId, 'Chat', this.props.navigation.getParam('match_userid'));
+
+      }
+    );
+
+
+    //stop listening for notifications, since each module has different logic so lis
+    const didBlur = this.props.navigation.addListener(
+        'didBlur',
+      payload => {
+            
+        let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+
+        //remove listener when leaving. 
+        query.off('child_changed', this.state.listener);
+      }
+    );
+
+
   }
+
+  
 
 
   componentWillUnmount() {
@@ -1221,6 +1540,11 @@ class Chat extends Component {
     clearInterval(this.interval);
 
     this.closeChat;
+
+    //firebase.database().ref('example').child(this.state.somethingDyamic).off('value');
+
+    firebase.database().ref('/matches/' + userId).off('child_changed');
+
   }
 
 }

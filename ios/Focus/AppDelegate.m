@@ -15,9 +15,9 @@
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import "RNSplashScreen.h"
 
-#import <AppCenterReactNative.h>
-#import <AppCenterReactNativeAnalytics.h>
-#import <AppCenterReactNativeCrashes.h>
+#import "AppCenterReactNative.h"
+#import "AppCenterReactNativeAnalytics.h"
+#import "AppCenterReactNativeCrashes.h"
 #import <CodePush/CodePush.h>
 
 

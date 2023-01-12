@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Linking, StatusBar, Image, Alert, Dimensions, Modal, ScrollView, Platform, TouchableOpacity, Keyboard, KeyboardAvoidingView } from 'react-native';
+import { Linking, StatusBar, Image, Alert, Dimensions, Modal, ScrollView, Platform, TouchableOpacity, Keyboard, KeyboardAvoidingView, StyleSheet} from 'react-native';
 import RNfirebase from 'react-native-firebase';
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import DatePicker from 'react-native-datepicker';
@@ -16,6 +16,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCog, faUsers, faPlus, faArrowAltCircleLeft } from '@fortawesome/free-solid-svg-icons';
 import SplashScreen from 'react-native-splash-screen';
 import { renderNotification, handleNotification } from '../Utilities/utilities.js';
+const geofire = require('geofire-common');
 
 
 import {
@@ -160,7 +161,7 @@ class Dashboard extends Component {
       //update sate with value from dataSnapShot. 
       this.setState({
         profile: dataSnapshot.val()
-      }), this.showInstructions(), //showInstruction after state loads.
+      }),
 
     RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
     RNfirebase.analytics().setCurrentScreen('Dashboard', 'Dashboard');
@@ -182,16 +183,11 @@ class Dashboard extends Component {
     RNfirebase.analytics().setUserProperty('max_distance', dataSnapshot.val().max_distance.toString());
     RNfirebase.analytics().setUserProperty('min_age', dataSnapshot.val().min_age.toString());
     RNfirebase.analytics().setUserProperty('last_login', dataSnapshot.val().last_login.toString());
-    RNfirebase.analytics().setUserProperty('last_swipe_sesh_date', dataSnapshot.val().last_swipe_sesh_date.toString());
     RNfirebase.analytics().setUserProperty('notifications_match', dataSnapshot.val().notifications_match.toString());
     RNfirebase.analytics().setUserProperty('notifications_message', dataSnapshot.val().notifications_message.toString());
     })
 
     this.getLocation();
-
-    //get notifications 
-    handleNotification(userId, 'Dashboard', null);
-
 
   }  
 
@@ -206,6 +202,29 @@ class Dashboard extends Component {
    
     //check permissions
     this.checkPermission();
+      //listen for notifications when module Focus
+      const didFocus = this.props.navigation.addListener(
+        'didFocus',
+        payload => {
+            
+          //get notifications when arriving
+          this.handleNotification(userId, 'Dashbaord', null);
+  
+        }
+      );
+
+
+      //stop listening for notifications, since each module has different logic so lis
+      const didBlur = this.props.navigation.addListener(
+          'didBlur',
+          payload => {
+                    
+            let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+    
+            //remove listener when leaving. 
+            query.off('child_changed', this.state.listener);
+          }
+        );
 
   }  
 
@@ -217,10 +236,76 @@ class Dashboard extends Component {
   showInstructions = () => {
     
     if (this.state.profile.showInstructionsSettings) {
-      openOverlay();
+      //openOverlay();
     };
   } 
+  //handle notifications
+  handleNotification = (userId, screen, matchUseridExclude ) => {
 
+    let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+
+    let listener = query.on('child_changed', (notifySnapshot) => {
+ 
+      //first check if there's a notification to render by checking if showNotification is true on the child_changed event on the match, also check that notificaiton has happened since module mounted, so old notificaitons aren't served.  
+      if((notifySnapshot.val().showNotification == true) && (notifySnapshot.val().last_message_date*-1 < new Date().getTime())){
+        //render notification based off the notification type
+        switch (notifySnapshot.val().notificationType) {
+          case 'newMatch':
+            //don't notify of new match while on Swipes screen.
+            if(screen !== 'Swipes'){
+              renderNotification('New Match with '+notifySnapshot.val().name);
+            }
+            break;
+          case 'newChat':
+            //alert('matchUseridExclude is: '+matchUseridExclude); //WHY IS matchUserId being set to null here? 
+            //don't notify of new chat while on chat screen and chatting with that user. Match to exclude is only sent on chat page.
+             if (matchUseridExclude == notifySnapshot.val().match_userid){ //then check if person to exclude is not who you're talking to
+                //don't notify when chat is open with user
+                //alert('dont notify since need to exclude this user from sending you a notificaiton');
+                break;
+              }else{
+                //must not be on chat page, since match_user_exclude is not set
+                renderNotification('New Chat from '+notifySnapshot.val().name);
+                break;
+              }
+            
+          case 'newBlindDate':
+            renderNotification('New Blind Date requested.');
+            break;
+          case 'planned': //blind date accepted
+            renderNotification('Blind Date ready!');
+            break;
+          case 'accepted': //blind date accepted
+            renderNotification('Blind Date accepted!');
+            break;
+          case 'declined': //blind date declined
+            renderNotification('Blind Date declined.');
+            break;                   
+          case 'pendingUpdate': //blind date updated
+            renderNotification('Blind Date updated.');
+            break;
+          case 'pending': //blind date updated
+            renderNotification('Blind Date updated.');
+            break;                 
+          case 'conversationExtended':
+            renderNotification(notifySnapshot.val().name+' has extended the conversation!');
+            break;
+          default:
+            console.log(`Sorry, no matching notification type`);
+        }
+
+        //turn off notificationShow bool so it doesn't show again. 
+        firebase.database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
+          'showNotification': false
+        });  
+        
+        //save to state listner, so that it specific listener can be turned off when leaving 
+        this.setState({ listener: listener });
+
+      }
+    })
+
+  }
 
   // check if permission for notification has been granted previously, then getToken. 
   async checkPermission() {
@@ -323,6 +408,10 @@ class Dashboard extends Component {
     //save ref to current user in db. 
     firebaseRefCurrentUser = firebase.database().ref('/users/' + userId);
 
+    let date = new Date();
+    let offsetInMin = date.getTimezoneOffset();
+  
+
     //request authorization to location services
     Geolocation.requestAuthorization();
 
@@ -350,15 +439,20 @@ class Dashboard extends Component {
                     //console.log('state is: '+JSON.stringify(place.short_name));
                     console.log('place is: ');
                     stateText = place.short_name;
+                    
                   }               
                 })
 
                 //contenate strings
-                let city_state = cityText+', '+stateText;
+                let city_state = cityText+', '+stateText.toUpperCase();
   
+                //save hash of location.
+                const hash = geofire.geohashForLocation([position.coords.latitude, position.coords.longitude]);
                 //update firebase
-                firebaseRefCurrentUser.update({city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude});
-        
+                firebaseRefCurrentUser.update({ utc_offset_min: offsetInMin, city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude, geohash: hash });
+      
+
+
               })
 
         .catch(error => console.warn(error));
@@ -1391,12 +1485,12 @@ class Dashboard extends Component {
 
     if (this.state.profile.status == 'paused') {
       status = <Button transparent onPress = {() => this.resumeUser()}>
-                  <Text style={{color: 'red'}}>Resume Account</Text>
+                  <Text style={{color: 'red', fontFamily:'HelveticaNeue' }}>Resume Account</Text>
                 </Button> ;
 
     } else if (this.state.profile.status == 'active') {
       status = <Button transparent onPress = {() => this.pauseUser()}>
-                  <Text style={{color: 'red'}}>Pause Account</Text>
+                  <Text style={{color: 'red', fontFamily:'HelveticaNeue'}}>Pause Account</Text>
                 </Button>;
     }
 
@@ -1533,6 +1627,7 @@ class Dashboard extends Component {
                 
                 <ListItem itemDivider style={{flexDirection: "row", justifyContent: "space-between"}}>
                   <Text>My photos</Text>
+                  
                 </ListItem>
                   <CardItem>
                     <Body>
@@ -1826,7 +1921,7 @@ class Dashboard extends Component {
                     shadowRadius: 4.65,}} >
                   {this.state.profile.first_name} | {this.getAge(this.state.profile.birthday)}
               </Text>
-              <Text numberOfLines={1} style={{fontFamily:'Helvetica', fontSize: 20, color: 'white', textTransform: 'capitalize', marginBottom: 10}} >{this.state.profile.city_state}</Text>
+              <Text numberOfLines={1} style={{fontFamily:'Helvetica', fontSize: 20, color: 'white', marginBottom: 10}} >{this.state.profile.city_state}</Text>
               {/* <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.work} </Text> */}
               {/* <Text numberOfLines={1} style={{marginBottom: 10}} >{this.state.profile.education} </Text> */}
 
@@ -1964,7 +2059,7 @@ class Dashboard extends Component {
 
 
               <ListItem itemDivider style={{flexDirection: "row", justifyContent: "flex-start"}}>
-                <Text>My Preferences </Text>
+                <Text style={styles.title}>My Preferences </Text>
               </ListItem>
 
               <Item 
@@ -2001,16 +2096,16 @@ class Dashboard extends Component {
                       )
                     } 
                   >
-                <Label>Gender</Label>
-                <View style={{}}>
+                <Label style={styles.subtitle}>Gender</Label>
+                <View style={styles.subtitle}>
                   <Button full disabled transparent >
-                    <Text style={{color: 'black', textTransform: 'capitalize'}}>{this.state.profile.interested}</Text>
+                    <Text style={styles.subtitle}>{this.state.profile.interested}</Text>
                   </Button>                  
                 </View>
               </Item>
             
               <Item fixedLabel>
-                <Label>Age Range</Label>
+                <Label style={styles.subtitle}>Age Range</Label>
                 <MultiSlider 
                     min={18}
                     max={70}
@@ -2035,7 +2130,7 @@ class Dashboard extends Component {
                         this.forceUpdate();
                       })}                                                     
                   />
-                  <Text style={{ right:20}}>
+                  <Text style={{fontSize: 15, fontFamily:'Helvetica-Light', right:20}}>
                     {this.state.profile.min_age} - {this.state.profile.max_age == 70 ? '70+' : this.state.profile.max_age+' '}
                   </Text>
 
@@ -2089,10 +2184,10 @@ class Dashboard extends Component {
 
 
               <Item fixedLabel>
-                <Label>Max Dist</Label>
+                <Label style={styles.subtitle}>Max Dist</Label>
                 <Slider
                   style={{ width: 168, right:40 }}
-                  step={10}
+                  step={1}
                   minimumValue={10}
                   maximumValue={200}
                   minimumTrackTintColor={primaryColor}
@@ -2108,8 +2203,8 @@ class Dashboard extends Component {
                    this.setState({profile: { ...this.state.profile, max_distance: this.getMeters(val)}})
                  }
                 />
-                <Text style={{ right:20}}>
-                    {this.getMiles(this.state.profile.max_distance)} Miles
+                <Text style={{ fontSize: 15, fontFamily:'Helvetica-Light', right:20}}>
+                    {this.getMiles(this.state.profile.max_distance)} miles
                 </Text>
               </Item>
 
@@ -2125,12 +2220,12 @@ class Dashboard extends Component {
               {this._renderReview()} */}
 
               <ListItem itemDivider style={{flexDirection: "row", justifyContent: "flex-start"}}>
-                <Text>My notification</Text>
+                <Text style={styles.title}>My notifications</Text>
               </ListItem>
               
           <ListItem>
             <Left>
-              <Label style={{color: "dimgrey"}}>New Message</Label>
+              <Label style={styles.subtitle}>New Message</Label>
             </Left>
             
             <Body>              
@@ -2147,7 +2242,7 @@ class Dashboard extends Component {
 
           <ListItem>
             <Left>
-              <Label style={{color: "dimgrey"}}>New Match</Label>
+              <Label style={styles.subtitle}>New Match</Label>
             </Left>
             
             <Body>              
@@ -2163,7 +2258,7 @@ class Dashboard extends Component {
           </ListItem>
           <ListItem>
             <Left>
-              <Label style={{color: "dimgrey"}}>Daily Matches</Label>
+              <Label style={styles.subtitle}>Daily Matches</Label>
             </Left>
             
             <Body>              
@@ -2180,31 +2275,35 @@ class Dashboard extends Component {
 
        
               <ListItem itemDivider style={{flexDirection: "row", justifyContent: "flex-start"}}>
-                <Text>Other...</Text>
+                <Text style={styles.title}>Other...</Text>
               </ListItem>
 
                <Item fixedLabel onPress = {() => navigate("Intersitial", { flow: 'refer'})}>
 
             
 
-                <Label>Refer Friend</Label>
+                <Label style={styles.subtitle}>Refer Friend</Label>
                 <Input disabled />
               </Item> 
 
               <Item fixedLabel onPress = {() => this.linkOut('https://focusdating.co')} >
-                <Label>Help/Support</Label>
+                <Label style={styles.subtitle}>Help/Support</Label>
                 <Input disabled />
               </Item>
-              <Item fixedLabel >
-                <Label>Rate Us</Label>
+
+
+              <Item fixedLabel onPress = {() => 
+                 Linking.openURL('https://apps.apple.com/us/app/focus-blind-dating/1492965606') //use native review module here.
+                }>
+                <Label style={styles.subtitle}>Rate Us</Label>
                 <Input disabled />
               </Item>
               <Item fixedLabel onPress = {() => this.linkOut('https://focusdating.co/privacy.html')}  >
-                <Label>Privacy Policy</Label>
+                <Label style={styles.subtitle}>Privacy Policy</Label>
                 <Input disabled />
               </Item>
               <Item fixedLabel onPress = {() => this.linkOut('https://focusdating.co/terms.html')} >
-                <Label>Terms</Label>
+                <Label style={styles.subtitle}>Terms</Label>
                 <Input disabled />
               </Item>
               {/* <ListItem style={{flexDirection: "row", justifyContent: "flex-start"}} itemDivider>
@@ -2212,12 +2311,12 @@ class Dashboard extends Component {
               </ListItem> */}
               <View style={{flexDirection: "row", justifyContent: "center"}}>
                 <Button transparent onPress = {() => this.signOutUser()}  >
-                  <Text style = {{color: 'red'}}>Log out</Text>
+                  <Text style = {{color: 'red', fontFamily:'HelveticaNeue',}}>Log out</Text>
                 </Button>
               </View>
               <View style={{flexDirection: "row", justifyContent: "center"}}>
                 <Button transparent onPress = {() => this.deleteUser()}>
-                  <Text style = {{color: 'red'}}>Delete Account</Text>
+                  <Text style = {{color: 'red', fontFamily:'HelveticaNeue',}}>Delete Account</Text>
                 </Button>
               </View>
               <View style={{flexDirection: "row", justifyContent: "center"}}>
@@ -2230,6 +2329,24 @@ class Dashboard extends Component {
     );
   }
 }
+
+const styles = StyleSheet.create({
+  title: {
+    fontSize: 20, 
+    fontFamily:'Helvetica-Light', 
+    lineHeight: 25, 
+    color: 'black',
+    textTransform: 'capitalize'
+  },
+  subtitle: {
+    fontSize: 15, 
+    fontFamily:'Helvetica-Light', 
+    lineHeight: 25, 
+    color: 'black',
+    textTransform: 'capitalize'
+  }
+});
+
 
 
 export default Dashboard;

@@ -1,15 +1,18 @@
 import React, { Component, useEffect } from "react";
 import PropTypes from 'prop-types';
-import { Keyboard, TouchableWithoutFeedback, LayoutAnimation, Image, Alert, Dimensions, Animated, StyleSheet, TextInput, StatusBar, Linking } from "react-native";
+import { Keyboard, Modal, TouchableWithoutFeedback, KeyboardAvoidingView, LayoutAnimation, Image, Alert, Dimensions, Animated, StyleSheet, TextInput, StatusBar, Linking } from "react-native";
 import RNfirebase from 'react-native-firebase';
 import * as firebase from "firebase";
 import Geocoder from 'react-native-geocoding';
 import LinearGradient from 'react-native-linear-gradient';
 import  SvgCssUri from 'react-native-svg-uri';
+import { SvgUri } from 'react-native-svg';
 import 'react-native-url-polyfill/auto';
 import IAP, { purchaseUpdatedListener } from "react-native-iap";
 import dynamicLinks from '@react-native-firebase/dynamic-links';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+const geofire = require('geofire-common');
+
 import {
   ActionSheet,
   Item,
@@ -22,8 +25,12 @@ import {
 import { AccessToken, LoginButton, LoginManager, GraphRequest, GraphRequestManager } from 'react-native-fbsdk';
 
 const logo = require("../../images/focus-logo-old.svg");
-const logoText = require("../../images/logoText.png");
 const logoTextSvg = require("../../images/logoText.svg");
+const logoText2 = require("../../images/logoText3.svg");
+
+
+const logoText = require("../../images/logoText.png");
+
 const primaryColor = "#a83a59";
 const secondaryColor = "#c60dd9";
 
@@ -47,10 +54,13 @@ class Login extends Component {
       email: '',
       password: '',
       //gender: 'Gender Identity',
-      createAccount: true,
+      createAccount: false,
+      showModal: false,
+      login: false,
       errorMessage: false,
       rotated: false, 
       splashScreenVisible: false,
+      choice: true,
       slideUp: false,
       fadeInAnimation: new Animated.Value(0),
       rotation: new Animated.Value(0),
@@ -156,10 +166,10 @@ getLocation = () => {
           let city_state = cityText+', '+stateText;
 
           
-
+          const hash = geofire.geohashForLocation([position.coords.latitude, position.coords.longitude]);
           //update firebase
-          firebaseRefCurrentUser.update({ utc_offset_min: offsetInMin, city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude, });
-        
+          firebaseRefCurrentUser.update({ utc_offset_min: offsetInMin, city_state: city_state, latitude: position.coords.latitude, longitude: position.coords.longitude, geohash: hash });
+
         }).catch(error => console.warn(error));
     },
     error => console.log(error.message),
@@ -313,6 +323,7 @@ forgotPassword = (email) => {
 
 redirectUser = async (userId) => {
 
+
   //setUserIid to analytics
   RNfirebase.analytics().setUserId(userId);
 
@@ -361,10 +372,14 @@ redirectUser = async (userId) => {
 
       if(status == 'waitlist'|| status == 'onboard'){
           //show intro slides, with deeplink params if present
+          this.setState({ showModal: false, choice: true});
+          //alert('status is: '+status);
           this.props.navigation.navigate("Intro", {user_id_creator: user_id_creator, user_id: userId, code: code, image_creator: image_creator, reason: reason, name_creator: name_creator, name_created: name_created, type: type  });
       }
       else if(status == 'active'|| 'paused'){
         
+        this.setState({ showModal: false, choice: true});
+        //alert('status is: '+status);
         // if settings are valid - send to swipes. if not send to settings. 
         (profileComplete) ? this.props.navigation.navigate('Swipes') : this.props.navigation.navigate('Intro');
 
@@ -464,13 +479,16 @@ handleSignUp = () => {
         last_login: Date.now(),
         utc_offset_min: offsetInMin,
         intialUser: true,
-        showInstructionsSettings: true,
-        showInstructionsSwipes: true,
+        showInstructionsSettings: false,
+        showInstructionsSwipes: false,
         swipe_count: 0,
-        last_swipe_sesh_date: Date.now(),
+        score: 1000,
+        //last_swipe_sesh_date: Date.now(),
+        locationDeclined: 'null',
+        fcmToken: 'null',
         latitude: 40.71797067746141, //default to NYC
         longitude: -73.98527588801655, //default to NYC
-        city_state: 'New York, NY', //default to NYC
+        city_state: 'NYC', //default to NYC
         gender: 'Select',
         //gender_pref: (gender == 'male') ? 'male_straight' : 'female_straight', //default gender_pref to straight to have less required field to validate.
         //interested: (gender == 'male') ? 'female' : 'male', //default interested in to straight to have less required field to validate.         
@@ -654,11 +672,13 @@ onLoginOrRegister = () => {
                     images: [{file: '0', url: largePhotoURL, cache: 'force-cache'}],
                     last_login: Date.now(),
                     intialUser: true,
-                    showInstructionsSettings: true,
-                    showInstructionsSwipes: true,
+                    showInstructionsSettings: false,
+                    showInstructionsSwipes: false,
                     swipe_count: 0,
-                    last_swipe_sesh_date: Date.now(),
+                    score: 1000,
+                    //last_swipe_sesh_date: Date.now(),
                     latitude: latitude,
+                    fcmToken: 'null',
                     longitude: longitude,
                     city_state: city_state,
                     gender: gender,
@@ -737,7 +757,6 @@ onLoginOrRegister = () => {
 
   
     return (
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} >
 
         <LinearGradient style={{
                 flex: 1,
@@ -749,6 +768,270 @@ onLoginOrRegister = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0.1, y: 2.5 }}
                 >
+
+
+        <Modal
+          animationType="slide"
+          transparent={false}
+          visible={this.state.showModal}>
+          
+
+
+          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} >
+           
+            <View style={{ flex: 1, flexDirection: 'column', backgroundColor: '#13131A' }}>
+    
+              <View style={{ flex: 7, flexDirection: 'column', alignContent: 'flex-end', alignItems: 'center', marginTop: 100 }}>
+                
+                  {/* Show login with facebook, with email, create account, forgot password elements */}
+                  {(this.state.login) &&
+                  <View style={{
+                    flex: 1, 
+                    width: 300,
+                    flexDirection: 'column',
+                    marginBottom: 45,
+                    //opacity: fadeInAnimation, 
+                    justifyContent: 'center', 
+                    alignItems: 'center'
+                    }}>
+
+                      <TextInput
+                          style={styles.inputBox}
+                          value={this.state.email}
+                          onChangeText={email => this.setState({ email })}
+                          placeholder='Email'
+                          textContentType='username'
+                          autoCapitalize='none'
+                          placeholderTextColor='white'
+                          color='white'
+                          keyboardType='email-address'
+                      />
+                      <TextInput
+                          style={styles.inputBox}
+                          value={this.state.password}
+                          onChangeText={password => this.setState({ password })}
+                          placeholder='Password'
+                          secureTextEntry={true}
+                          textContentType= {this.state.createAccount ? 'newPassword' : 'password' }
+                          placeholderTextColor='white'
+                          color='white'
+                      />
+
+                      <Button 
+                        onPress = {() => this.handleLogin()} 
+                        rounded 
+                        bordered 
+                        style={{
+                          justifyContent: 'center', 
+                          marginTop: 20,
+                          marginBottom: 10,
+                          width: 250, 
+                          backgroundColor: 'white',
+                          borderColor: 'white',
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 3,
+                          },
+                          shadowOpacity: 0.5,
+                          shadowRadius: 4.65,
+                          elevation: 7}}>
+                            <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Login</Text>
+                        </Button>
+                        
+                        <Button transparent onPress = {() => this.forgotPassword()} style={{ justifyContent: 'center', }}>
+                            <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Forgot Password</Text>
+                        </Button>
+
+                        <Button transparent 
+                          onPress = {() => this.setState({choice: true, showModal: false, email: '', password: ''})} 
+                          style={{ justifyContent: 'center', }}>
+                            <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Go Back</Text>
+                        </Button>
+                        
+                      
+                      {/* Login with Facebook button */}
+                      {/* <Button 
+                        rounded 
+                        onPress = {() => this.onLoginOrRegister()} 
+                        style={{
+                          justifyContent: 'center', 
+                          margin: 10, 
+                          backgroundColor: '#4267B2',
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 3,
+                          },
+                          shadowOpacity: 0.29,
+                          shadowRadius: 4.65,
+                          elevation: 7}}>
+                            <Text>Login with Facebook</Text>
+                        </Button>    */}
+                  
+                  </View>
+                }
+
+                {/* if create account is clicked, show create account button */}
+                {(this.state.createAccount) &&
+                <View style={{
+                  //backgroundColor: 'brown', 
+                  flex: 2, 
+                  width: 300, 
+                  marginBottom: 45,
+                  justifyContent: 'center',
+                  alignItems: 'center' }}>
+
+                    <TextInput
+                        style={styles.inputBox}
+                        value={this.state.email}
+                        onChangeText={email => this.setState({ email })}
+                        placeholder='Email'
+                        textContentType='username'
+                        autoCapitalize='none'
+                        placeholderTextColor='white'
+                        color='white'
+                        keyboardType='email-address'
+                    />
+                    <TextInput
+                        style={styles.inputBox}
+                        value={this.state.password}
+                        onChangeText={password => this.setState({ password })}
+                        placeholder='Password'
+                        secureTextEntry={true}
+                        textContentType= {this.state.createAccount ? 'newPassword' : 'password' }
+                        placeholderTextColor='white'
+                        color='white'
+                    /> 
+                      <View style={{flexDirection: 'row', marginTop: 20, }}>
+                        <Text         
+                          style={{
+                            fontSize: 10,
+                            color: 'white',
+                            fontFamily:'Helvetica-Light',
+                            color: 'white',
+
+                          }}>By creating an account you’re agreeing to        
+                        </Text>
+                        <Text         
+                            onPress = {() => this.linkOut('https://focusdating.co/terms.html')}
+                            style={{
+                              color: 'white',
+                              textDecorationLine: 'underline',
+                              fontFamily:'Helvetica-Light',
+                              fontSize: 10,
+                              marginLeft: 3,
+                              }}>our terms.
+                        </Text>
+                      </View> 
+                    <Button 
+                        onPress = {() => this.validateAccount()} 
+                        bordered 
+                        rounded 
+                        style={{
+                          justifyContent: 'center', 
+                          marginTop: 20,
+                          marginBottom: 10,
+                          width: 250, 
+                          backgroundColor: 'white',
+                          borderColor: 'white',
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 3,
+                          },
+                          shadowOpacity: 0.6,
+                          shadowRadius: 4.65,
+                          elevation: 7}}>
+                          <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Create Account</Text>
+                      </Button>  
+
+                      <Button transparent 
+                          onPress = {() => this.setState({choice: true, showModal: false, email: '', password: ''})} 
+                          style={{ justifyContent: 'center', }}>
+                            <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Go Back</Text>
+                      </Button>
+                                  
+                    </View>
+              }
+                
+              </View>
+              
+              <View style={{ flex: 4, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: primaryColor }}>
+
+
+
+                <Animated.View  style={{
+                        flex: 1, 
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        //alignItems: 'center',
+                        //backgroundColor: 'blue',
+                        //height: 200,
+                        //margin: 0,
+                        //padding:50, 
+                        transform: [{rotate: rotation}]
+                      }}>
+                  
+                  <Button transparent onPress = {() => this.spinLogo()} >
+                    <SvgCssUri 
+                      width="120" 
+                      height="120"   
+                      fill="white"
+                      fillOpacity="0"
+                      strokeWidth="0"
+                      source={logo}
+                      style={{          
+                        shadowColor: "#000",
+                        shadowOffset: {
+                        width: 0,
+                        height: 1,
+                        },
+                      shadowOpacity: 0.5,
+                      shadowRadius: 8.65,}}
+                    />
+                </Button>
+
+                </Animated.View>
+
+                {/* <View style={{flex:1, justifyContent: 'flex-start'}}>
+                    <SvgCssUri 
+                          width="300" 
+                          height="150"   
+                          fill="white"
+                          fillOpacity="0"
+                          strokeWidth="0"
+                          source={logoText2}
+                          style={{          
+                            shadowColor: "#000",
+                            shadowOffset: {
+                            width: 0,
+                              height: 3,
+                            },
+                          shadowOpacity: 0.8,
+                          shadowRadius: 8.65,}}
+                      />
+                </View> */}
+
+                
+                {/* <View style={{flex:1, backgroundColor: 'green'}}>
+                  <Button 
+                    transparent
+                    onPress = {() => this.setState({choice: true, showModal: false, email: '', password: ''})} 
+                    style={{justifyContent: 'center', }}>
+                      <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Go Back</Text>
+                  </Button> 
+                </View> */}
+
+                
+    
+              </View>
+            </View>
+        
+          </TouchableWithoutFeedback>
+        </Modal>
+
+
                   <View style={{
                       flex: 1, 
                       flexDirection: 'column', 
@@ -756,7 +1039,7 @@ onLoginOrRegister = () => {
                       alignItems: 'center', 
                     }}>
                     <StatusBar 
-                      hidden={'hidden'} 
+                      hidden={'true'} 
                       barStyle={'dark-content'} 
                       animated={true}
                     />
@@ -769,9 +1052,9 @@ onLoginOrRegister = () => {
                           //justifyContent: 'center', 
                           //alignItems: 'center', 
                           // backgroundColor: 'black',
-                          width: 400,
-                          height: 10,
-                          marginBottom: 30
+                          //width: 400,
+                          //height: 10,
+                          //marginBottom: 30
                         }}> 
                         
                       </View>
@@ -804,9 +1087,9 @@ onLoginOrRegister = () => {
                             shadowColor: "#000",
                             shadowOffset: {
                             width: 0,
-                              height: 3,
+                            height: 1,
                             },
-                          shadowOpacity: 0.8,
+                          shadowOpacity: 0.5,
                           shadowRadius: 8.65,}}
                         />
                       </Button>
@@ -823,20 +1106,21 @@ onLoginOrRegister = () => {
 
                     <Animated.View style={{ 
                       //backgroundColor: 'lightgrey', 
-                      flex: 1,  
+                      flex: 2,  
                       flexDirection: "column",
                       justifyContent: 'flex-start', 
-                      marginTop: 35
+                      marginTop: 20,
+                      marginBottom: 80,
                       
                     }}>
 
                       <SvgCssUri 
-                          width="120" 
-                          height="40"   
+                          width="300" 
+                          height="150"   
                           fill="white"
                           fillOpacity="0"
                           strokeWidth="0"
-                          source={logoTextSvg}
+                          source={logoText2}
                           style={{          
                             shadowColor: "#000",
                             shadowOffset: {
@@ -846,13 +1130,16 @@ onLoginOrRegister = () => {
                           shadowOpacity: 0.8,
                           shadowRadius: 8.65,}}
                       />
+
+
+
                   </Animated.View>
 
 
 
 
                   <View style={{
-                    flex: 4,
+                    flex: 7,
                     //backgroundColor: 'yellow',
                     flexDirection: 'column',
                     justifyContent: 'center',
@@ -874,29 +1161,67 @@ onLoginOrRegister = () => {
 
 
 
-                    <View style={{backgroundColor: '#222223', paddingBottom: 5, width: deviceWidth, flex: 1, flexDirection: "column" , justifyContent: 'center', alignItems: 'center' }}>
+                    <View 
+                      style={{
+                        backgroundColor: '#13131A', 
+                        //paddingBottom: 5, 
+                        width: deviceWidth, 
+                        flex: 1, 
+                        flexDirection: "column" , 
+                        justifyContent: 'center', 
+                        alignItems: 'center' 
+                      }}>
 
-                      <TextInput
-                          style={styles.inputBox}
-                          value={this.state.email}
-                          onChangeText={email => this.setState({ email })}
-                          placeholder='Email'
-                          textContentType='username'
-                          autoCapitalize='none'
-                          placeholderTextColor='white'
-                          color='white'
-                          keyboardType='email-address'
-                      />
-                      <TextInput
-                          style={styles.inputBox}
-                          value={this.state.password}
-                          onChangeText={password => this.setState({ password })}
-                          placeholder='Password'
-                          secureTextEntry={true}
-                          textContentType= {this.state.createAccount ? 'newPassword' : 'password' }
-                          placeholderTextColor='white'
-                          color='white'
-                      />
+
+
+
+
+
+                        {/* Show login with facebook, with email, create account, forgot password elements */}
+                        {(this.state.choice) &&
+                        <Animated.View style={{
+                          flex: 1, 
+                          width: 300,
+                          flexDirection: 'column',
+                          marginBottom: 45,
+                          opacity: fadeInAnimation, 
+                          justifyContent: 'center', 
+                          }}>                      
+                          
+                            <Button 
+                              onPress = {() => this.setState({createAccount: true, login: false, choice: false, showModal: true, email: '', password: ''})} 
+                              bordered 
+                              rounded 
+                              style={{
+                                justifyContent: 'center', 
+                                margin: 20,
+                                width: 250, 
+                                backgroundColor: 'white',
+                                borderColor: 'white',
+                                shadowColor: "#000",
+                                shadowOffset: {
+                                  width: 0,
+                                  height: 3,
+                                },
+                                shadowOpacity: 0.6,
+                                shadowRadius: 4.65,
+                                elevation: 7}}>
+                                 <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Create Account</Text>
+                            </Button>
+                            
+                            <Button transparent onPress = {() => this.setState({login: true, createAccount: false, showModal: true, choice: false, email: '', password: ''})} style={{flexDirection: 'column', justifyContent: 'center'}}>
+                                <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Already have an account?</Text>
+                            </Button>
+
+
+  
+
+                        </Animated.View>
+                        }
+
+
+
+
 
                     </View>
 
@@ -937,141 +1262,7 @@ onLoginOrRegister = () => {
                     } */}
 
                 
-                {/* Show login with facebook, with email, create account, forgot password elements */}
-                {(!this.state.createAccount) &&
-                <Animated.View style={{
-                  flex: 1, 
-                  width: 300,
-                  flexDirection: 'column',
-                  //backgroundColor: 'green',
-                  marginBottom: 45,
-                  opacity: fadeInAnimation, 
-                  justifyContent: 'flex-end', 
-                  }}>
 
-                  <Button 
-                    onPress = {() => this.handleLogin()} 
-                    rounded 
-                    bordered 
-                    style={{
-                      justifyContent: 'center', 
-                      margin: 10, 
-                      backgroundColor: 'white',
-                      borderColor: 'white',
-                      shadowColor: "#000",
-                      shadowOffset: {
-                        width: 0,
-                        height: 3,
-                      },
-                      shadowOpacity: 0.5,
-                      shadowRadius: 4.65,
-                      elevation: 7}}>
-                        <Text style={{color: primaryColor}}>Login</Text>
-                    </Button>
-
-                    {/* Login with Facebook button */}
-                    {/* <Button 
-                      rounded 
-                      onPress = {() => this.onLoginOrRegister()} 
-                      style={{
-                        justifyContent: 'center', 
-                        margin: 10, 
-                        backgroundColor: '#4267B2',
-                        shadowColor: "#000",
-                        shadowOffset: {
-                          width: 0,
-                          height: 3,
-                        },
-                        shadowOpacity: 0.29,
-                        shadowRadius: 4.65,
-                        elevation: 7}}>
-                          <Text>Login with Facebook</Text>
-                      </Button>    */}
-
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-around', }}>
-                        <Button transparent onPress = {() => this.setState({createAccount: true, email: '', password: ''})} style={{flex: 1, alignItems: 'center'}}>
-                            <Text style={{color: 'white'}}>Create Account</Text>
-                        </Button>
-                        <Button transparent onPress = {() => this.forgotPassword()} style={{flex: 1, alignItems: 'center'  }}>
-                            <Text style={{color: 'white'}}>Forgot Password</Text>
-                        </Button>
-                      </View>
-
-                </Animated.View>
-                }
-
-                {/* if create account is clicked, show create account button */}
-                {(this.state.createAccount) &&
-                <Animated.View style={{
-                  //backgroundColor: 'brown', 
-                  flex: 1, 
-                  width: 300, 
-                  marginBottom: 45,
-                  opacity: fadeInAnimation, 
-                  justifyContent: 'flex-end', }}>
-                  
-                  <View 
-                    style={{
-                      flex: 1,
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      alignItems: 'flex-end',
-                      marginBottom: 10 
-                    }}                   
-                    >
-                  
-                    <Text         
-                    style={{
-                      color: 'white',
-                      fontSize: 10,
-                      //textAlign: 'center',
-                      //marginBottom: 20
-                      }}>By creating an account you’re agreeing to        
-                    </Text>
-                    <Text         
-                        onPress = {() => this.linkOut('https://focusdating.co/terms.html')}
-                        style={{
-                          color: 'white',
-                          textDecorationLine: 'underline',
-                          fontSize: 10,
-                          //alignSelf: 'flex-end',
-                          //textAlign: 'center',
-                          //marginBottom: 20,
-                          marginLeft: 3,
-                          }}>our terms.
-                        </Text>
-
-                  </View>
-                  
-                  <Button 
-                    onPress = {() => this.validateAccount()} 
-                    bordered 
-                    rounded 
-                    style={{
-                      justifyContent: 'center', 
-                      margin: 10, 
-                      backgroundColor: 'white',
-                      borderColor: 'white',
-                      shadowColor: "#000",
-                      shadowOffset: {
-                        width: 0,
-                        height: 3,
-                      },
-                      shadowOpacity: 0.6,
-                      shadowRadius: 4.65,
-                      elevation: 7}}>
-                      <Text style={{color: primaryColor}}>Create Account</Text>
-                  </Button>     
-                  
-                
-                  <Button 
-                    transparent
-                    onPress = {() => this.setState({createAccount: false, email: '', password: ''})} 
-                    style={{justifyContent: 'center', }}>
-                      <Text style={{color: 'white'}}>Sign in</Text>
-                  </Button>      
-                </Animated.View>
-                }
 
                 </Animated.View>
                     
@@ -1084,10 +1275,8 @@ onLoginOrRegister = () => {
 
           </LinearGradient>
 
-      </TouchableWithoutFeedback>
 
-
-  )
+   )
   }
 }
 
@@ -1103,9 +1292,10 @@ const styles = StyleSheet.create({
   },
   inputBox: {
       width: 250,
-      margin: 15,
+      margin: 5,
       padding: 15,
       fontSize: 16,
+      fontFamily:'Helvetica-Light',
       borderColor: '#d3d3d3',
       borderBottomWidth: 1,
       textAlign: 'left'

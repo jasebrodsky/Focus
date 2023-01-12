@@ -348,20 +348,15 @@ class Payments extends Component {
                     {/* static header */}
                     <View style={{
                       flex: 1, 
-                      width: deviceWidth-80,
-                      //backgroundColor: '#1C1C24',
-                      borderRadius: 30,
-                      padding: 40,
-                      justifyContent: 'center', 
-                      marginLeft: 40,
-                      marginRight: 40,
+                      justifyContent: 'center',
+                      alignItems: 'center', 
                       marginTop: 20, }}>
 
                         <Text 
                           style={{ 
                             color: 'white', 
-                            fontSize: 40,
-                            fontWeight: '700', 
+                            fontSize: 32,
+                            fontWeight: '900', 
                             fontFamily:'HelveticaNeue',
                             shadowColor: "#000",
                             shadowOffset: {
@@ -370,16 +365,16 @@ class Payments extends Component {
                             },
                             shadowOpacity: 0.29,
                             shadowRadius: 4.65,
-                          }}>Get Focus
+                          }}>Get Focus Unlimited
                         </Text>
-                        <Text 
+                        {/* <Text 
                           style={{ 
                             fontFamily:'HelveticaNeue',
                             textAlign: 'left', 
                             fontSize: 40, 
                             color: 'white'
                           }}>Unlimited
-                        </Text>
+                        </Text> */}
 
                     </View>
                     </LinearGradient>
@@ -389,7 +384,10 @@ class Payments extends Component {
                         <View style={{
                           flex: 6, 
                           width: deviceWidth-80,
-                          backgroundColor: 'black',
+                          //backgroundColor: 'black',
+                          borderBottomLeftRadius: 30,
+                          borderWidth: 0.5,
+                          borderColor: 'grey',
                           borderRadius: 30,
                           marginTop: 40,
                           alignItems: 'center',
@@ -402,7 +400,7 @@ class Payments extends Component {
                             layout={"default"}
                             loop={true}
                             autoplay={true}
-                            autoplayInterval={4000}
+                            autoplayInterval={5000}
                             removeClippedSubviews ={false}
                             enableMomentum={false}
                             ref={ref => this.carousel = ref}
@@ -453,7 +451,7 @@ class Payments extends Component {
                                         backgroundColor: this.state.activeTier == 0 ? '#BDDDEE' : 'white',
                                         borderBottomLeftRadius: 30,
                                         borderWidth: 0.5,
-                                        borderColor: 'black',
+                                        borderColor: 'grey',
                                         }}>
                                           <Text style={{ fontFamily: 'Helvetica-Bold', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[0]['subscriptionPeriodNumberIOS']+' '+productArray[0]['subscriptionPeriodUnitIOS'].toLowerCase()} </Text>
                                           <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[0]['localizedPrice']} </Text>
@@ -466,7 +464,7 @@ class Payments extends Component {
                                         justifyContent: 'center', 
                                         backgroundColor: this.state.activeTier == 1 ? '#BDDDEE' : 'white',
                                         borderWidth: 0.5,
-                                        borderColor: 'black',
+                                        borderColor: 'grey',
                                         }}>
                                           <Text style={{ fontFamily: 'Helvetica-Bold', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[1]['subscriptionPeriodNumberIOS']+' '+productArray[1]['subscriptionPeriodUnitIOS'].toLowerCase()} </Text>
                                           <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[1]['localizedPrice']} </Text>
@@ -481,7 +479,7 @@ class Payments extends Component {
                                         backgroundColor: this.state.activeTier == 2 ? '#BDDDEE' : 'white',
                                         borderBottomRightRadius: 30,
                                         borderWidth: 0.5,
-                                        borderColor: 'black',
+                                        borderColor: 'grey',
                                         }}>
                                           <Text style={{ fontFamily: 'Helvetica-Bold', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[2]['subscriptionPeriodNumberIOS']+' '+productArray[2]['subscriptionPeriodUnitIOS'].toLowerCase()} </Text>
                                           <Text style={{ fontFamily: 'Helvetica-Light', padding: 2, fontSize: 12, textAlign: 'center', color: "black"}}>{productArray[2]['localizedPrice']} </Text>                                         

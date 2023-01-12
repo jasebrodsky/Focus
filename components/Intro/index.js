@@ -91,8 +91,8 @@ class Intro extends Component {
         {
           key: '1',
           // title: 'Welcome to Focus',
-          title: 'Go on Blind Dates.',
-          subtext: 'Expirence a different way of dating.',
+          title: 'Go on blind dates.',
+          subtext: 'Experience a different way of dating.',
           // text: "where blind dating is re-imagined." ,
           icon: faUtensils,
           colors: ['#13131A', '#13131A'],
@@ -111,7 +111,7 @@ class Intro extends Component {
         {
           key: '3',
           title: "We'll coordinate it.",
-          subtext:  "When you're both ready, we’ll book the reservations.", //'Only gentlemen', 'Invite a friend',
+          subtext:  "When you're both ready, we’ll coordinate your date.", //'Only gentlemen', 'Invite a friend',
           // text:  "and connections are made with you not your photos.", //'Spread the word.',
           icon:   faCheckDouble, //faBolt, //faUserLock, //faUnlockAlt, //faRestroom //faShield
           colors: [primaryColor, secondaryColor],
@@ -226,12 +226,18 @@ class Intro extends Component {
   
   componentDidMount() {
     
-    //check if deeplink exists of type refer, if so, run inviteFlow, which updates UX based off invite link
-    
-    //update state with gender passed from navigation
-    // this.setState({
-    //   gender: this.props.navigation.getParam('gender'), //get from login screen
-    // });
+    const { navigate } = this.props.navigation;
+
+    //check if user is active status now, if so redirect over to swipes
+    firebase.database().ref('/users/' + firebase.auth().currentUser.uid).on('value', ((snapshot) => {
+            
+        //if status becomes active, redirect to swipes.
+        if(snapshot.val().status == 'active'){
+          //navigate to swipes when off waitlist
+          navigate("Swipes");
+        }
+      })
+    )
 
       RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
       RNfirebase.analytics().setUserId(this.state.userId);
@@ -266,7 +272,7 @@ class Intro extends Component {
     //go to Registration flow
 
     //navigate("ManageAboutMe");
-    this.props.navigation.navigate("ManageAboutMeModal", {step: 0, userId: this.state.userId}); 
+    this.props.navigation.navigate("ManageAboutMeModal", {step: 0, userId: this.state.userId, from: 'Intro'}); 
 
     //if user canJoin redirect to Registration. 
     //if (this.context.deepLinkParams.gender_creator == 'female' || this.state.gender == 'female'){
@@ -321,9 +327,12 @@ class Intro extends Component {
           shadowOpacity: 0.29,
           shadowRadius: 4.65,}} icon={item.icon}/> */}
         <View style={{
-            padding: 50,
+            //padding: 50,
             flex: 1,
-            justifyContent: 'center'
+            justifyContent: 'center',
+            alignItems: 'flex-start',
+            //backgroundColor: 'blue',
+            width: Dimensions.get('window').width -100
 
         }}>
           <Text style={{
@@ -366,14 +375,15 @@ class Intro extends Component {
 
     return (
 
-      <LinearGradient style={{
-        alignSelf: 'center',
-        padding: 70,
-        marginTop: 15,
-        width: deviceWidth,
-        position: 'relative',
-        top: 20,
-        alignItems: 'center',
+      <LinearGradient 
+      style={{
+          flex: 1,
+          alignSelf: 'center',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 90,
+          width: deviceWidth,
+          top: 50,        
         }}
         colors={[primaryColor, primaryColor]}
         start={{ x: 0, y: 0 }}
@@ -416,13 +426,13 @@ _renderNextButton  =  ()  => {
     return (
 
       <LinearGradient style={{
+        flex: 1,
         alignSelf: 'center',
-        padding: 70,
-        marginTop: 15,
-        width: deviceWidth,
-        position: 'relative',
-        top: 20,
+        justifyContent: 'center',
         alignItems: 'center',
+        padding: 90,
+        width: deviceWidth,
+        top: 50,
         }}
         colors={[primaryColor, primaryColor]}
         start={{ x: 0, y: 0 }}

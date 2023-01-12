@@ -115,6 +115,8 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSHumanReadableCopyright</key>
+	<string></string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Allow location access to provide relevant matches in your location.</string>
 	<key>NSLocationAlwaysUsageDescription</key>

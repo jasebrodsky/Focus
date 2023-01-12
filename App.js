@@ -66,6 +66,10 @@ const MainStack = createStackNavigator(
     },   
     Dashboard: {
       screen: Dashboard,
+      navigationOptions: {
+        gesturesEnabled: false, //remove swiping left/right, to avoid unexpected navigation when on dashboard. 
+
+    },
     },
     ManageAboutMe: {
       screen: ManageAboutMe,
@@ -78,6 +82,9 @@ const MainStack = createStackNavigator(
     },     
     Swipes: {
       screen: Swipes,
+      navigationOptions: {
+        gesturesEnabled: false, //remove swiping left/right, to avoid unexpected navigation when swiping. 
+      },
     },
     Messages: {
       screen: Messages,
@@ -94,8 +101,8 @@ const MainStack = createStackNavigator(
         paddingTop: getStatusBarHeight()+15,
         paddingBottom: getStatusBarHeight()/2,
       },
-      headerMode: 'screen',
-      },
+      headerMode: 'screen',   
+    },
       headerTransitionPreset: 'fade-in-place',
       transitionConfig: () => {
           return {

@@ -31,6 +31,7 @@ import {
   H3,
   Icon,
 } from "native-base";
+const Elo = require('arpad');
 
 import { renderNotification, handleNotification } from '../Utilities/utilities.js';
 
@@ -71,10 +72,12 @@ class Swipes extends Component {
       profileViewerVisible: false,
       profileMaxHeight: "15%",
       swipeCountStart: 0,
+      last_swipe_sesh_date: new Date().getTime(),  
       swipeCount: 0,
       query_start: null,
       query_end: null,
-      cardIndex: 0
+      cardIndex: 0,
+      listener: '',
     }
   }
 
@@ -106,11 +109,29 @@ class Swipes extends Component {
 
     //rotate logo 
     this.runAnimation()
+   
+    
+    
+    // //stop listening for notifications, since each module has different logic so lis
+    // this.props.navigation.addListener("didBlur", () => {
+    //     // user has navigated away from this screen
+    //     alert('leaving, Profile screen - forgot handleNotification');
+
+    //     //remove listener when leaving. 
+    //     firebase.database().ref('/matches/' + userId).off('child_changed');
+
+    // });
+
+
+
 
     //force update match data so that updated settings and matches will be reflected fetched data, to get fetch fresh batch of matches. 
     const didFocus = this.props.navigation.addListener(
       'didFocus',
       payload => {
+        
+        //get notifications when arriving
+        this.handleNotification(userId, 'Swipes', null);
 
         //save params from nav if swipes needs to be force updated (since navigating backwards won't re-render component)
         let forceUpdate = this.props.navigation.getParam('forceUpdate');
@@ -119,10 +140,30 @@ class Swipes extends Component {
         if (forceUpdate == true){
           //reset cardindex to 0
           this.setState({ loading: true, cardIndex: 0});
-          //fetch new matches and put into state
-          this.getMatches(userId);
-        }
 
+          //when force update is needed, call for updated user data and put trigger getMatches to update state with it. 
+          firebase.database().ref('/users/' + userId).once('value', (snapshot) => {  
+            this.getMatches(snapshot.val())
+          })
+            
+        }
+      } 
+    );
+
+    //leaving, stop listtending for notifications.
+    const didBlur = this.props.navigation.addListener(
+      'didBlur',
+      payload => {
+                
+        let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+
+        let query2 = firebase.database().ref('/users/' + userId);
+
+        //remove listener when leaving. 
+        query.off('child_changed', this.state.listener);
+        
+        //remove listener when leaving. 
+        query2.off('value', this.state.listener);
       }
     );
 
@@ -130,29 +171,26 @@ class Swipes extends Component {
     const userId = firebase.auth().currentUser.uid;
     this.setState({ userId: userId });
 
-    //getMatches of current user initally. 
-    this.getMatches(userId);
 
     //get unread chat count
     this.getUnreadChatCount(userId);
 
-    //get notifications 
-    handleNotification(userId, 'Swipes', null);
 
     //query for logged in users information needed and set state with it.     
-    firebase.database().ref('/users/' + userId).on('value', ((snapshot) => {
-                
-      //if swipeCount becomes zero while component is loaded, getMore matches. 
-      if (snapshot.val().swipe_count == 0) {
-          //reset cardindex to 0
-          this.setState({ loading: true, cardIndex: 0});
-          //fetch new matches and put into state
-          this.getMatches(userId);
-      }
-
+    //firebase.database().ref('/users/' + userId).on('value', ((snapshot) => {
+    firebase.database().ref('/users/' + userId).once('value', (snapshot) => {
+            
         //set state with user data. 
         this.setState({
+            user: snapshot.val(),
             user_name: snapshot.val().first_name,
+            user_lat: snapshot.val().latitude,
+            user_long: snapshot.val().longitude,
+            user_max_distance: snapshot.val().max_distance,
+            user_min_age: snapshot.val().min_age,
+            user_max_age: snapshot.val().max_age,
+            interested: snapshot.val().interested,
+            excluded_users: snapshot.val().excluded_users,
             user_images: snapshot.val().images,
             user_about: snapshot.val().about,
             user_birthday: snapshot.val().birthday,
@@ -162,15 +200,35 @@ class Swipes extends Component {
             user_work: snapshot.val().work,
             user_reviews: snapshot.val().reviews,
             user_last_login: snapshot.val().last_login,
-            swipeCountStart: snapshot.val().swipe_count,
-            showInstructionsSwipes: snapshot.val().showInstructionsSwipes,
-        }), this.showInstructions(snapshot.val().showInstructionsSwipes),
+            swipeCount: snapshot.val().swipe_count,
+            //swipeCountStart: snapshot.val().swipe_count,
+            showInstructionsSwipes: false,
+        }), 
             RNFirebase.analytics().setAnalyticsCollectionEnabled(true);
             RNFirebase.analytics().setCurrentScreen('Swipes', 'Swipes');
             RNFirebase.analytics().setUserId(userId);
-
+            this.getMatches(snapshot.val())
        })
-      )
+
+       firebase.database().ref('/users/' + userId).on('value', (snapshot) => {
+        const user = snapshot.val();
+      
+        // if anytime the user object has a swipe_count field and it's 0
+        if (user && user.swipe_count == 0) {
+            // //if swipeCount becomes zero while component is loaded, getMore matches. 
+              //reset cardindex to 0
+              this.setState({ loading: true, isEmpty: false, cardIndex: 0, last_swipe_sesh_date: new Date().getTime() });
+              
+              //fetch new matches and put into state, 0 represents swipe_count to use in fetch. 
+              this.getMatches(user,0);
+        }
+      });
+      
+      
+      
+      
+      
+      
     }
 
     //function to run animated loading in a rotation running indefinetly
@@ -215,7 +273,8 @@ class Swipes extends Component {
 
   componentWillUnmount() {
     //unmount listener for below ref
-    firebase.database().ref('/matches/' + userId).off('value');
+    //firebase.database().ref('/matches/' + userId).off('value');
+    // firebase.database().ref('/matches/' + userId).off();
   }
 
   //function to show instructions, only show when showInstructions from state is true. 
@@ -228,48 +287,38 @@ class Swipes extends Component {
 
 
   //async function to fetch matches from cloud function
-  async getMatches(userId) {
+  async getMatches(user, swipe_count) {
 
-    //turn loading flag to true, so that swiper doesn't render with null data and break.
-    this.setState({ loading: true });
+    console.log('running getMatches for user: '+user.userid);    
 
+    let excludedUsers = Object.values(user.excludedUsers).map(obj => {
+      if (obj.useridExcluded === user.userid) {
+        return obj.useridExcluder;
+      } else if (obj.useridExcluder === user.userid) {
+        return obj.useridExcluded;
+      }
+    });
+
+    excludedUsers = encodeURIComponent(excludedUsers.join(','));
+
+    //save SwipeCount as 0 if it's sent as param in function, otherwise use what's in the user object. 
+    let swipeCount = (swipe_count == 0) ? 0 : user.swipe_count;
+
+    //turn loading flag to true, so that swiper doesn't render with null data and break, and update last swipe date to use for real time matching logic.
+    this.setState({ loading: true, last_swipe_sesh_date: new Date().getTime() });
       //try block to fetch matches from cloud function
       try {
         //await response from could funciton
-        let response = await fetch('https://us-central1-blurred-195721.cloudfunctions.net/getMatches?userid='+userId); 
-
-        // turn returned response into json data
-        let responseJson = await response.json();
-
-        console.log('responseJson is: '+responseJson);
-        // for each match userid inside responeJson
-        let promises = responseJson.map((match) => {
-          
-          //save match userid per match into var, needed to select props of that obj.
-          let matchUserId = Object.keys(match);
-          // select matchType of per match
-          let matchType = match[matchUserId].matchType;
-
-          //call firebase to return profile data per match
-          return firebase.database().ref('/users/' + matchUserId).once('value')
-          .then((profileSnap) => {
-       
-            //save profileSnap to json var in order to add match type prop to it
-            let profileObj = profileSnap.toJSON();
-
-            //add new property match_type to object
-            profileObj["match_type"] = matchType;
-
-            //Return profile obj to promise. 
-            return profileObj;
-          })
-        })
-
-        // after all promises resolve, then set profileObj to state. 
-        Promise.all(promises).then((profileObj) => {
-          
+        let rankedMatches = await fetch('http://127.0.0.1:5001/blurred-195721/us-central1/getMatchingUsers?userid='+user.userid+'&birthday='+user.birthday+'&swipe_count='+swipeCount+'&latitude='+user.latitude+'&longitude='+user.longitude+'&max_distance='+user.max_distance+'&min_age='+user.min_age+'&max_age='+user.max_age+'&gender='+user.gender+'&interested='+user.interested+'&excluded_users='+excludedUsers)
+        .then(response => 
+          response.json(),
+          //console.log('response is: '+JSON.stringify(response))
+          )
+        .then(rankedMatchesArray => {
+          // process the data here
+          console.log('data is: '+rankedMatchesArray);
           //if profile objs are empty or undefined show flag empty profiles else put profile into state
-          if (profileObj === undefined || profileObj.length == 0) {
+          if (rankedMatchesArray === undefined || rankedMatchesArray.length == 0 || rankedMatchesArray == 'no more swipes.') {
             //turn empty flag to true
             this.setState({ 
               isEmpty: true,
@@ -277,23 +326,97 @@ class Swipes extends Component {
               loading: false
             });  
 
-            // else put profilObjs into state
+          // else put rankedMatchesArray into state
           }else{
             this.setState({ 
-              profiles: profileObj,
+              profiles: rankedMatchesArray,
               loading: false,
               isEmpty: false,
             }), this.updateWithPotentialMatches();
-          }
-        })
+         }
 
-        //return 'good';
+        });
+
       } catch (error){
         console.log('error occured: '+error);
       }
   }
 
+  //handle notifications
+  handleNotification = (userId, screen, matchUseridExclude ) => {
+    
+    let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
 
+     //var listener = query.on("value", 
+
+      let listener = query.on('child_changed', (notifySnapshot) => {
+           
+        //first check if there's a notification to render by checking if showNotification is true on the child_changed event on the match, also check that notificaiton has happened since module mounted, so old notificaitons aren't served.  
+        if((notifySnapshot.val().showNotification == true) && (notifySnapshot.val().last_message_date*-1 < new Date().getTime())){
+          //render notification based off the notification type
+          switch (notifySnapshot.val().notificationType) {
+            case 'newMatch':
+              //don't notify of new match while on Swipes screen.
+              if(screen !== 'Swipes'){
+                renderNotification('New Match with '+notifySnapshot.val().name);
+              }
+              break;
+            case 'newChat':
+              //alert('matchUseridExclude is: '+matchUseridExclude); //WHY IS matchUserId being set to null here? 
+              //don't notify of new chat while on chat screen and chatting with that user. Match to exclude is only sent on chat page.
+              if (matchUseridExclude == notifySnapshot.val().match_userid){ //then check if person to exclude is not who you're talking to
+                  //don't notify when chat is open with user
+                  //alert('dont notify since need to exclude this user from sending you a notificaiton');
+                  break;
+                }else{
+                  //must not be on chat page, since match_user_exclude is not set
+                  renderNotification('New Chat from '+notifySnapshot.val().name);
+                  break;
+                }
+              
+            case 'newBlindDate':
+              renderNotification('New Blind Date requested.');
+              break;
+            case 'planned': //blind date accepted
+              renderNotification('Blind Date ready!');
+              break;
+            case 'accepted': //blind date accepted
+              renderNotification('Blind Date accepted!');
+              break;
+            case 'declined': //blind date declined
+              renderNotification('Blind Date declined.');
+              break;                   
+            case 'pendingUpdate': //blind date updated
+              renderNotification('Blind Date updated.');
+              break;
+            case 'pending': //blind date updated
+              renderNotification('Blind Date updated.');
+              break;                 
+            case 'conversationExtended':
+              renderNotification(notifySnapshot.val().name+' has extended the conversation!');
+              break;
+            default:
+              console.log(`Sorry, no matching notification type`);
+          }
+
+
+        //firebase.database().ref('/matches/' + userId).orderByChild('showNotification').on('child_changed', (notifySnapshot) => {
+
+        
+
+        //turn off notificationShow bool so it doesn't show again. 
+        firebase.database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
+          'showNotification': false
+        });  
+        
+        //save to state listner, so that it specific listener can be turned off when leaving 
+        this.setState({ listener: listener });
+
+        
+      }
+    })
+
+  }
 
   //function to update eligible match to potential match in real time, since getMatches cloudfunction returns static matches on fetch, not reflecteive of real-time swipes. 
   updateWithPotentialMatches = () => {
@@ -416,6 +539,7 @@ class Swipes extends Component {
             reviews: reviews_match ? reviews_match : {},
             prompts: prompts_match ? prompts_match : {},
             active: 'true',
+            seen: false,
             match_date: new Date().getTime(),
             expiration_date: ( new Date().getTime() + 604800000),  //  604800000 is 1 week in ms                                          
             match_id: match_id,
@@ -440,6 +564,7 @@ class Swipes extends Component {
             work: user_work,
             reviews: user_reviews ? user_reviews : {},
             active: 'true',
+            seen: false,
             match_date: new Date().getTime(),
             expiration_date: ( new Date().getTime() + 604800000),  //  604800000 is 1 week in ms                                          
             match_id: match_id,
@@ -506,14 +631,14 @@ class Swipes extends Component {
         
         //reference where other user likes current user, filter to likes given since current user logged in. 
         let likeGivenRef = firebase.database().ref('swipes/'+userid_match+'/'+userid+'/')
-          // .orderByChild("swipe_date")
-          // .startAt(this.state.user_last_login)
-          // .endAt(new Date().getTime())
-          ;
+          .orderByChild("swipe_date")
+          .startAt(this.state.user_last_login)
+          .endAt(new Date().getTime());
 
-        //if like given is true, then push new match. 
-        likeGivenRef.once('value').then((likeGiven) => {        
-          if (likeGiven.val().like){
+        
+        //if like given is true and they swiped while user has been loged in (so flag for potential match == true), then push new match. 
+        likeGivenRef.once('value').then((likeGiven) => { 
+          if (likeGiven.exists() && likeGiven.val().like && (likeGiven.val().swipe_date > this.state.last_swipe_sesh_date  )){
             this.pushNewMatch(imagesObj, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match, prompts_match);
           }
         })
@@ -529,28 +654,31 @@ class Swipes extends Component {
     //function to get 10 more matches, used when user successfully invites friend. 
     getMoreMatches = (userid) => {
 
-      //reset cardindex to 0
-      this.setState({ loading: true, cardIndex: 0});
-
       //update swipeCount in firebase, so that cloud function will return fresh batch of matches. 
       let userRef = firebase.database().ref('users/'+userid+'/');
       
       //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
       userRef.update({  
-        swipe_count: 0,
-        last_swipe_sesh_date: new Date().getTime() 
+        swipe_count: 0
       }).then(()=>{
-        this.getMatches(userid);
+
+        //set swipe_count to 0, loading true, cardIndex 0
+        this.setState({ 
+          user: {
+            swipe_count: 0
+          },
+          swipe_count: 0,
+          loading: true, 
+          cardIndex: 0, 
+        });
+
+        this.getMatches(this.state.user);
         console.log("successfully updated swipecount, getting more matches.");
 
       }).catch(error => {
         console.log("couldnt update swipdconnt with error: " + error);
       });
 
-      //set state with data. 
-      this.setState({
-        swipeCountStart: 0
-      })
     }
 
   //Function to save new swipe object
@@ -586,19 +714,28 @@ class Swipes extends Component {
 
 }
   //handle swipe events
-  onSwiped = (cardIndex, direction) => {
-
-    //ref to user object to update their swipeCount
-    let userRef = firebase.database().ref('users/'+this.state.userId+'/');
-
-    //set new swipeCount
-    userRef.update({
-      swipe_count: this.state.swipeCountStart + 1,
-    });
+  onSwiped = async (cardIndex, direction) => {
 
     // save variable for direction of swipe
-    let like = (direction == 'right') ? true : false;
+     let like = (direction == 'right') ? true : false;
 
+    //MANAGE SWIPECOUNT IN CLIENT CACHE TO AVOID DB READS
+    //save ref and perpare to update new swipeCount in db
+    let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+    
+    await this.setState(prevState => ({
+        user: {
+            ...prevState.user,
+            swipe_count: prevState.user.swipe_count + 1
+        }
+      }), () => {
+        userRef.update({
+            swipe_count: this.state.user.swipe_count,
+        })
+      }
+    );
+
+    
     // save to firebase db swipe event and possible match
     this.pushNewSwipe(
           like, //like
@@ -647,7 +784,7 @@ class Swipes extends Component {
                 <Thumbnail large source={{uri: review.photo}} />
               </Left>
               <Body>
-                <Text style={{color: primaryColor}}>{review.name+' says:'}</Text>
+                <Text style={{color: primaryColor, fontFamily:'HelveticaNeue' }}>{review.name+' says:'}</Text>
                 <Text note>{review.reason}</Text>
               </Body>
             </ListItem>
@@ -743,7 +880,7 @@ class Swipes extends Component {
                     },
                     shadowOpacity: 0.29,
                     shadowRadius: 4.65,}} icon={ faUserClock }/>
-                    <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}> No more matches.</Text>
+                    <Text style={{textAlign: 'center', color: 'black', fontSize: 18, fontFamily:'Helvetica-Light',  marginTop: 10}}> Come back tomorrow for more.</Text>
                     <View style ={{marginTop: 20}}>
                       <Button rounded 
                         style={{ 
@@ -761,7 +898,7 @@ class Swipes extends Component {
                           
                           onPress={() => navigate("Intersitial", { flow: 'moreMatches', from: 'swipes'})}
                           >
-                        <Text style={{color: 'white'}}>Get More</Text>
+                        <Text style={{color: 'white', fontFamily:'HelveticaNeue'}}>Get more</Text>
                       </Button>
                     </View>
                   </LinearGradient>}
@@ -799,7 +936,7 @@ class Swipes extends Component {
                     },
                     shadowOpacity: 0.29,
                     shadowRadius: 4.65,}} icon={ faComments }/>
-                    <Text style={{textAlign: 'center', color: 'black', marginTop: 10}}>You have new matches.</Text>
+                    <Text style={{textAlign: 'center', color: 'black', marginTop: 10, fontFamily:'HelveticaNeue'}}>Someone liked you back.</Text>
                     <View style ={{marginTop: 20}}>
                       <Button rounded 
                         style={{ 
@@ -814,7 +951,7 @@ class Swipes extends Component {
                           shadowRadius: 4.65, }}                         
                           onPress = {() => navigate("Messages", {flow: 'swipes', from: 'swipes' })}
                           >
-                        <Text style={{color: 'white'}}>View Matches</Text>
+                        <Text style={{color: 'white', fontFamily:'HelveticaNeue'}}>View Matches</Text>
                       </Button>
                     </View>
                   </LinearGradient>}
@@ -893,7 +1030,9 @@ class Swipes extends Component {
                   ref = {swiper => {this.swiper = swiper}}
                   verticalSwipe = {false}
                   //onTapCard={() => this.setState({ profileViewerVisible: true, matchAbout: this.state.profiles[cardIndex].about, matchReviews: this.state.profiles[cardIndex].reviews, matchEducation: this.state.profiles[cardIndex].education, matchBirthday: this.state.profiles[cardIndex].birthday, matchWork: this.state.profiles[cardIndex].work, matchGender: this.state.profiles[cardIndex].gender, matchCityState: this.state.profiles[cardIndex].city_state, matchEducation: this.state.profiles[cardIndex].education,  matchImages: Object.values(this.state.profiles[cardIndex].images) })} 
-                  onTapCard={() =>  this.props.navigation.navigate("Profile", {profile: this.state.profiles[cardIndex], from: 'Swipes'})} 
+                  onTapCard={() =>  
+                    this.props.navigation.navigate("Profile", {profile: this.state.profiles[cardIndex], from: 'Swipes'})
+                  } 
 
                   cardIndex={this.state.cardIndex}
                   backgroundColor={'white'}

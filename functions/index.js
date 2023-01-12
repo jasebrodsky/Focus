@@ -5,31 +5,579 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
-// set up cors and axios for 3rd party api requests (yelp)
-const cors = require('cors')({origin: true});
-var axios = require('axios');
+const yelp = require('yelp-fusion');
+const client = yelp.client('CKia7Mz51NpAHxvG-thuvuZk0RGPeGmyVyYVsYJEfAOI_nO2acc3NRZROLq-VgkXVD2RvqzVzKiMz3tdoVKc8NPhc8-5prI7VFZMWTtXpSKmp0J_HVsEyCS_1IrLYXYx');
 
-//yelp functionality
-exports.yelpAutoSuggest = functions.https.onRequest( async (request, response) => {
+const createReservationFlow = require('./functions/createReservationFlow');
+const createDateFlow = require('./functions/createDateFlow');
+const getDates = require('./functions/getDates');
+const geofire = require('geofire-common');
+const Elo = require('arpad');
+
+
+  //sync users btw firebase (for UX purposes) and firestore (for querying purposes)
+  exports.syncUsers = functions.database.ref('/users/{userId}').onWrite((change, context) => {
+    // Get the user data
+    const user = change.after.val();
+
+    // Add the user to the Firestore collection
+    return admin.firestore().collection('users').doc(context.params.userId).set(user);
+  });
+
+  //sync swipes btw firebase (for UX purposes) and firestore (for querying purposes)
+  exports.syncSwipesReceived = functions.database.ref('/swipesReceived/{userId}').onWrite((change, context) => {
+    // Get the swipe data
+    const swipe = change.after.val();
+
+    // Add the swipe to the Firestore collection
+    return admin.firestore().collection('swipesReceived').doc(context.params.userId).set(swipe);
+  });
+
+  //sync swipes btw firebase (for UX purposes) and firestore (for querying purposes)
+  exports.syncSwipes = functions.database.ref('/swipes/{userId}').onWrite((change, context) => {
+    // Get the user data
+    const swipe = change.after.val();
+
+    // Add the user to the Firestore collection
+    return admin.firestore().collection('swipes').doc(context.params.userId).set(swipe);
+  });
+
+  //getMatchingUsers that query user colletion for all appropriate users based off current users preferences and swipe history
+  exports.getMatchingUsers = functions.https.onRequest( async (req, res) => {
+
+    const swipeCount = req.query.swipe_count;
+    const remainingSwipes = 10 - swipeCount;
+
+    //if remainingSwipe is greater than 0, continue script, otherwise stop.
+    if(remainingSwipes <= 0 ){
+      return res.status(200).json('no more swipes.');
+    } 
+
+    //continue script
+
+    const currentUserId = req.query.userid;
+    //const currentUserELOScore = req.query.currentUserELOScore;
+    const currentUserELOScore = 5.0;
+    const currentUserBirthday = req.query.birthday;
+    const currentUserLatitude = req.query.latitude;
+    const currentUserLongitude = req.query.longitude;
+    const currentUserMaxDistance = req.query.max_distance;
+    const minAgePreference = req.query.min_age;
+    const maxAgePreference = req.query.max_age;
+    const excludedUsers = req.query.excluded_users; //remember to pass this excluded_users=123&excluded_users=456&excluded_users=789
+
+    // compute time current time to use to determin age data 
+    const currentTime = new Date();
+    const birthday = new Date(currentUserBirthday);
+    const currentUserAge = currentTime.getFullYear() - birthday.getFullYear();
+
+    //if users birthday hasn't occured this year, then subtract one from the birthday. 
+    if (currentTime.getTime() < birthday.getTime()) {
+      currentUserAge -= 1;
+    }
+
+    //save min and max ages 
+    const minAgeBirthDate = currentTime.getFullYear() - minAgePreference;
+    const maxAgeBirthDate = currentTime.getFullYear() - maxAgePreference;
+    const maxBirthDay = new Date(maxAgeBirthDate, currentTime.getMonth(), currentTime.getDate());
+    const minBirthDay = new Date(minAgeBirthDate, currentTime.getMonth(), currentTime.getDate());
+
+    //if (maxBirthDay > currentTime) {
+      // Subtract an additional year if the maximum birth date is in the future
+      maxBirthDay.setFullYear(maxBirthDay.getFullYear() - 1);
+    //}
+    
+    
+
+    // compute array of users gender preferences, in order to be used to filter for appropriate matches.
+    const currentUserGenderPreference = req.query.interested //can be either male,female, everyone
+    const currentUserGender = req.query.gender; // can be: 'male', 'female', 'non-binary'
+
+    // build geo coding data to use for start/end of queryies. 
+   // const center = [Number(currentUserLatitude), Number(currentUserLongitude)];
+    
+  const center = isNaN(currentUserLatitude) || isNaN(currentUserLongitude) ?
+    [40.7128, -74.0060] : // New York City
+    [Number(currentUserLatitude), Number(currentUserLongitude)]; //else use lat/long
   
-  response.set("Access-Control-Allow-Origin", "*"); // you can also whitelist a specific domain like "http://127.0.0.1:4000"
-  response.set("Access-Control-Allow-Headers", "Content-Type");
+  const radiusInM = currentUserMaxDistance;
+
+    // Each item in 'bounds' represents a startAt/endAt pair. We have to issue
+    // a separate query for each pair. There can be up to 9 pairs of bounds
+    // depending on overlap, but in most cases there are 4.
+    const bounds = geofire.geohashQueryBounds(center, radiusInM);
+    //console.log('bounds is: '+bounds);
+    const promises = [];
+    for (const b of bounds) {
+      let q = admin.firestore().collection('users')
+        .where("status", "==", 'active')
+        .where("intialUser", "==", false)
+
+      //if current user is into either male or females' (not 'everyone')
+      if (currentUserGenderPreference !== 'everyone') {
+        //look for users that have gender that the current user prefers (male or female)
+        q = q.where("gender", "==", currentUserGenderPreference);
+      }
+
+      // //if curent user is binary (male or female)
+      // if (currentUserGender !== 'nonbinary') {
+      //   //look for users that are interested in the users gender (male or female)
+      //   q = q.where("interested", "==", currentUserGender); //Or 'everyone'..  Might need to do this on client and filter for [currentUserGender, 'everyone']
+      // }
+    
+      q = q.orderBy('geohash')
+          .startAt(b[0])
+          .endAt(b[1]);
+    
+      promises.push(q.get());
+    }
+
+    // Collect all the query results together into a single list
+    Promise.all(promises).then((snapshots) => {
+      const allUsers = [];
+
+      for (const snap of snapshots) {
+        for (const doc of snap.docs) {
+          const lat = doc.get('latitude');
+          const lng = doc.get('longitude');
+
+          // We have to filter out a few false positives due to GeoHash
+          // accuracy, but most will match
+          const distanceInKm = geofire.distanceBetween([lat, lng], center);
+          const distanceInM = distanceInKm * 1000;
+          if (distanceInM <= radiusInM) {
+            allUsers.push(doc.data());
+          }
+        }
+      }
+
+      return allUsers;
+    }).then( async (allUsers) => {
+
+      // First, create an arrays for all the swipe activity involving the current userid. 
+      let swipesReceivedRight = []; //show these first since these are potetial matches
+      let swipesReceivedLeft = [];  //show these last since these people don't like the current user abd won't be matches
+      let swipesGivenLeft = []; //show these last since current user doesn't like them and won't be matches unless they change their mind later. 
+      let swipesGivenRight = []; //show these never since these will eventually be a mutual match or never a match. 
+
+      // Calculate the date 6 months ago to use to exclude old swipeLefts, to give users second chances after 6 months. 
+      const sixMonthsAgo = new Date(currentTime.getTime() - 6 * 30 * 24 * 60 * 60 * 1000);
+
+      //query for swipe given data
+      await admin.firestore().collection("swipes")
+      .doc(currentUserId)
+      .get()
+      .then(doc => {
+        if (doc.exists) {
+          // Loop through the maps in the document and save the IDs to the appropriate array
+          for (const key in doc.data()) {
+            if (doc.data().hasOwnProperty(key)) {
+              const map = doc.data()[key];
+              if (map.like) {
+                swipesGivenRight.push(key);
+              } else {
+                  // Only push the key to the swipesGivenLeft array if the swipe date is within the last 6 months
+                  if (map.swipe_date >= sixMonthsAgo) {
+                    swipesGivenLeft.push(key);
+                  }
+              }
+            }
+          }
+        }
+      });
+
+      //query for swipes Received data
+      await admin.firestore().collection("swipesReceived")
+      .doc(currentUserId)
+      .get()
+      .then(doc => {
+        if (doc.exists) {
+          // Loop through the maps in the document and save the IDs to the appropriate array
+          for (const key in doc.data()) {
+            if (doc.data().hasOwnProperty(key)) {
+              const map = doc.data()[key];
+              if (map.like) {
+                swipesReceivedRight.push(key);
+              } else {
+                // Only push the key to the swipesReceivedLeft array if the swipe date is within the last 6 months
+                if (map.swipe_date >= sixMonthsAgo) {
+                  swipesReceivedLeft.push(key);
+                }
+              }
+            }
+          }
+        }
+      });
+
+      //combine all users to be excluded (swipeGivenRight, swipeReceivedLeft, and excludedUsers
+      const excludedUsersArrayNotUnique = [...new Set(swipesGivenRight.concat(swipesReceivedLeft, excludedUsers))];
+      //add current userId to exclude array
+      excludedUsersArrayNotUnique.push(currentUserId);
+
+      //remove duplicate users to exclude
+      let excludedUsersArray = excludedUsersArrayNotUnique.filter((value, index, self) => {
+        return self.indexOf(value) === index;
+      });
+      
+      //additional filters on client to exclude incompatiable users
+      const rankedMatchesNoSort = allUsers.filter(
+        user => 
+          !excludedUsersArray.includes(user.userid) //exclude userids from the excludedUsersArray
+          && user.birthdayTimeStamp > maxBirthDay.getTime() //exclude users who are too old for the current users preferences
+          && user.birthdayTimeStamp <= minBirthDay.getTime() //exclude users who are too young for the current users preferences
+          && user.min_age <= currentUserAge //exclude users who think the current user is too young for their preferences
+          && user.max_age >= currentUserAge //exclude users who think the current user is too old for their preferences
+          && ((user.interested == currentUserGender) || (user.interested == 'everyone'))  //exclude users who are not interested in the current users gender.
+      );
+
+      //only take the first 5 swipe rights, so that a max of 5 potential matches will be shown to avoid overwhelming popular users. 
+      swipesReceivedRight.slice(0, 4);
+
+      // For each user in swipesReceivedRight array add property potential_match in order to sort user to top of rankedMatches and include new property matchType: 'potential_match' for client. 
+      const rankedMatchesSorted = rankedMatchesNoSort.map(user => {
+        //if user recieved a swipe right, add property potential_match, in order to sort to top. 
+        if (swipesReceivedRight.includes(user.userid)) {
+          return {...user, matchType: 'potential_match'};
+        }
+        //if user aleady swiped left, add property unlikely match, in order to sort to bottom. 
+        if (swipesGivenLeft.includes(user.userid)) {
+          return {...user, matchType: 'unlikely_match'};
+        }
+        //else user is an eligible match. 
+        else {
+          return {...user, matchType: 'eligible_match'};
+        }
+      });
+
+      //now sort by first potential matches, then by ELO score
+      rankedMatchesSorted.sort((a, b) => {
+        
+        // Sort potential matches to the top // UPDATE: put first 5 potential matches randomly in top 10. 
+        if (a.matchType === 'potential_match' && b.matchType !== 'potential_match') {
+          return -1;
+        }
+        if (a.matchType !== 'potential_match' && b.matchType === 'potential_match') {
+          return 1;
+        }
+      
+        // Sort unlikely matches to the bottom
+        if (a.matchType === 'unlikely_match' && b.matchType !== 'unlikely_match') {
+          return 1;
+        }
+        if (a.matchType !== 'unlikely_match' && b.matchType === 'unlikely_match') {
+          return -1;
+        }
+      
+        // Within the eligible matches, sort by score
+        if (a.matchType === 'eligible_match' && b.matchType === 'eligible_match') {
+          //return b.score - a.score;
+          return b.last_login - a.score;
+        }
+
+      });
+
+      //get the top 10 matches
+      const top10Matches = rankedMatchesSorted.slice(0, remainingSwipes);
+
+      //randomize top10Matches
+        for (let i = top10Matches.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [top10Matches[i], top10Matches[j]] = [top10Matches[j], top10Matches[i]];
+        }
+      
+
+      console.log('currenUserAge is: '+currentUserAge);
+      console.log('allUsers are: '+allUsers);
+      console.log('excludedUsersArray are: '+excludedUsersArray);
+      console.log('swipesReceivedRight are: '+(swipesReceivedRight));
+      console.log('top10Matches are: '+(top10Matches));
+
+      //return rankedMatches to client.
+      // how to think about limits, since you only want to send 10 back.. should we paginate process until there's 10?
+     
+     //send array of user objects to client.
+     //add flag matchType: potential_match OR eligible_match for the others. 
+     //swipes should only get swipeData from this array, which is returned to it. handle potential matches with flag.  
+     
+      return res.status(200).json(top10Matches);
+        
+  });
+
+  //schedule function to calculate/update users ELO score for all new swipes, and maybe other actions as well like logging in and sending messages? 
+
+});
+
+
+
+  //get dates from yelp http function
+  exports.getDates = functions
+
+      .runWith({
+        timeoutSeconds: 540,
+        memory: '4GB',
+      })
+      .region('us-central1')
+      .https.onRequest(async (request, response) => {
+          
+        //convert type to categories to search. 
+        switch(request.query.type) {
+          case 'cocktails':
+            categories = 'bars'; //bars
+            // openAt = new Date(date.proposedTime).setHours(20 + utc_offset, 30, 0); //8:30pm
+            break;
+          case 'coffee':
+            categories = 'coffee,coffeeroasteries';
+            // openAt = new Date(date.proposedTime).setHours(11 + utc_offset, 30, 0); //11:30am
+            break;
+          case 'gallery':
+            categories = 'galleries';
+            // openAt = new Date(date.proposedTime).setHours(15 + utc_offset, 30, 0); //3:30pm          
+            break;
+          case 'park':
+            categories = 'parks';
+            // openAt = new Date(date.proposedTime).setHours(12 + utc_offset, 30, 0); //12:30am
+            break;
+          case 'museum':
+            categories = 'artmuseums';
+            // openAt = new Date(date.proposedTime).setHours(15 + utc_offset, 30, 0); //3:30pm
+            break;
+          case 'tea':
+            categories = 'coffee,bubbletea,tea';
+            // openAt = new Date(date.proposedTime).setHours(11 + utc_offset, 30, 0); //11:30am
+            break;
+          case 'dessert':
+            categories = 'donuts,cupcakes,gelato,icecream,macarons,chocolate,bakeries';
+            // openAt = new Date(date.proposedTime).setHours(19 + utc_offset, 30, 0); //7:30pm
+            break;
+          case 'hookah':
+            categories = 'hookah_bars';
+            // openAt = new Date(date.proposedTime).setHours(20 + utc_offset, 30, 0); //8:30pm
+            break;
+          default:
+            categories = 'bars';
+            // openAt = new Date(date.proposedTime).setHours(20 + utc_offset, 30, 0); //8:30pm
+        }
+
+        //map categories out
+        client.search({
+          //location: "NYC",
+          latitude: request.query.lat,
+          longitude: request.query.long,
+          categories: categories,
+          limit: 20,
+          sort_by: 'best_match',
+          }).then(dates => {
   
-  // enable cors 
-  cors(request, response, () => {
-    // request to yelp api
-     axios.get("https://api.yelp.com/v3/autocomplete?text=del&latitude=37.786882&longitude=-122.399972", {headers:{ Authorization: `bearer CKia7Mz51NpAHxvG-thuvuZk0RGPeGmyVyYVsYJEfAOI_nO2acc3NRZROLq-VgkXVD2RvqzVzKiMz3tdoVKc8NPhc8-5prI7VFZMWTtXpSKmp0J_HVsEyCS_1IrLYXYx`}})
-    .then(r => {
-      console.log("Cloud yelp resp", r);
-       response.send(r);
-    })
-    .catch( e => {
-      console.log( "Cloud yelp error: ", e);
-      response.sendStatus(500);
-    })
+             // return 'dates';
+              return response.status(200).send(dates);
+  
+          }).catch(e => {
+          console.log(e);
+          
+      });
+
   })
 
-})
+
+  //Create date request trigger
+  exports.createDate = functions
+
+      .runWith({
+        timeoutSeconds: 540,
+        memory: '4GB',
+      })
+      .region('us-central1')
+      .https.onRequest(async (request, response) => {
+    
+        //return promise of all dates that have been created status fulfill
+        let datesFulfill = await admin.database().ref('dates').orderByChild('status').equalTo('fulfill').once('value');
+      
+        console.log('datesFulfill is: '+JSON.stringify(datesFulfill));
+        //if dateFulfill isn't null, then create a date for each date
+        if(datesFulfill){
+
+          //MAKE SURE THIS IS SEQUENTIAL AND SLOW, IN ORDER TO NOT HAVE YELP NOT THROTTLE TRAFFICK DOWN. 
+          Object.entries(datesFulfill.val()).forEach( async (date) => {
+            //console.log('starting with date of: '+JSON.stringify(date)); 
+            console.log('date1: '+date[1].status);      
+            const dateDetails = await createDateFlow(date[1], date[0]); //THERE MUST BE A BETTER WAY.... 
+            console.log('dateDetails returns: '+dateDetails);
+          })
+          return response;
+        }
+
+  })
+
+  // exports.doThings = functions
+  // .runWith({
+  //   timeoutSeconds: 540,
+  //   memory: '4GB',
+  // })
+  // .region('us-central1')
+  // .https.onRequest(async (request, response) => {
+  //   // Array to store all users that will be updated
+  //   const updateUsers = [];
+
+  //   // Function to convert a birthday to a timestamp
+  //   const birthdayToTimestamp = (birthday) => {
+  //     const date = new Date(birthday);
+  //     return date.getTime();
+  //   }
+
+  //   // Function to convert latitude and longitude to a geohash
+  //   const latLongToGeohash = (lat, long) => {
+  //     const hash = geofire.geohashForLocation([lat, long]);
+  //     return hash;
+  //   }
+
+  //   // Get the list of users from the database
+  //   const usersRef = admin.database().ref('/users');
+  //   const snapshot = await usersRef.once('value');
+  //   const users = snapshot.val();
+
+  //   console.log('users length: '+Object.keys(users).length);
+  //   // Loop through users and update each one with the birthdayTimeStamp and geohash properties
+  //   Object.values(users).forEach((user) => {
+  //     const updatedUser = {
+  //       ...user,
+  //       genderOnProfile: true,
+  //       // birthdayTimeStamp: birthdayToTimestamp(user.birthday),
+  //       // geohash: latLongToGeohash(user.latitude, user.longitude),
+  //     };
+  //     updateUsers.push(updatedUser);
+  //   });
+
+
+  //   // Update the user object paths in the realtime database with the new properties
+  //   updateUsers.forEach((user) => {
+
+  //     //console.log('user is: '+user.first_name)
+
+  //     //only if user has a birthday, then set the user
+  //     if(true){
+  //       //console.log('user birthday is: '+user.birthday)
+
+  //       admin.database().ref(`users/${user.userid}`).set(user);
+  //     }
+  //   });
+
+  //   // Send a response message indicating that the update was successful
+  //   response.send('Users updated successfully');
+  // });
+
+
+    //schedule create date for all dates in fulfill status every x time. 
+    //create reservations for all dates in fulfill,  make a non normative time to feel personalized
+    exports.createDateSchedule = functions.pubsub.schedule('every 1 minutes').onRun(async ( context ) => {
+    
+        //return promise of all dates that have been created status fulfill
+        let datesFulfill = await admin.database().ref('dates').orderByChild('status').equalTo('fulfill').once('value');
+      
+        //if dateFulfill isn't null, then create a date for each date
+        if(datesFulfill){
+          //MAKE SURE THIS IS SEQUENTIAL AND SLOW, IN ORDER TO NOT HAVE YELP NOT THROTTLE TRAFFICK DOWN. 
+          Object.entries(datesFulfill.val()).forEach( async (date) => {
+            //console.log('starting with date of: '+JSON.stringify(date)); 
+            console.log('date1: '+date[1].status);      
+            const dateDetails = await createDateFlow(date[1], date[0]); //THERE MUST BE A BETTER WAY.... 
+            console.log('dateDetails returns: '+dateDetails);
+          })
+        }
+              
+        return null;
+    })
+
+      //update score for users every time a swipe write is trigered
+        exports.updateScoresTrigger = functions
+        .runWith({
+          timeoutSeconds: 300,
+          memory: '2GB',
+        })
+        .region('us-central1')
+        .database.ref('/swipes/{userid}/{match_userid}/').onWrite(async (change, context) => {
+        //query all swipesGiven with flag scoreUpdateNeeded = true (will only find swipes that haven't been reflect in score yet.)  
+          
+          const updates = {};
+
+          //get variables from context and write
+          const match_userid = context.params.match_userid;
+          const user_userid = context.params.userid;
+
+          //ref to user object to read and update their scores
+          let userRef = admin.database().ref('users/'+user_userid+'/');
+          let matchRef = admin.database().ref('users/'+match_userid+'/');
+
+          let user_score = 1000;
+          let match_score = 1000;
+
+          //get realtime scores from realtime database here. 
+          await userRef.once('value', (snapshot) => {
+            user_score = snapshot.val().score;
+          });
+
+          await userRef.once('value', (snapshot) => {
+            match_score = snapshot.val().score;
+          });
+
+          let like = change.after.val().like;
+       
+          //compute new scores
+          const elo = new Elo();
+          let new_user_score, new_match_score;
+      
+          //if user swiped right -- count as a loss and update scores
+          if (like){ //if
+            new_user_score = elo.newRatingIfLost(user_score, match_score);
+            new_match_score = elo.newRatingIfWon(match_score, user_score);
+          }else if(!like){ //if lost
+            new_match_score = elo.newRatingIfLost(match_score, user_score );
+            new_user_score = elo.newRatingIfWon(user_score, match_score);
+          }
+      
+          //set new scores for users. 
+          userRef.update({
+            score: new_user_score,
+          });
+      
+          matchRef.update({
+            score: new_match_score,
+          });
+
+          // Add the updates for this user and match to the updates object
+          updates[`users/${match_userid}/score`] = new_match_score;
+          updates[`users/${user_userid}/score`] = new_user_score;
+
+        // Perform all update operations in a single call
+        console.log('update score in firebase');
+        admin.database().ref().update(updates);            
+        return null;
+    })
+
+
+  // //create date when a new date changes to fulfill status. 
+  // exports.createDateTrigger = functions
+  // .runWith({
+  //   timeoutSeconds: 300,
+  //   memory: '2GB',
+  // })
+  // .region('us-central1')
+  // .database.ref('/dates/{dateId}').onUpdate( async (change, context) => {
+
+  //   //UPDATE if status becomes fulfill and was before not fulfill, then createReservationFlow
+  //   if(change.after.val().status == 'fulfill' ){
+
+  //     const dateDetails = await createDateFlow(change.after.val(), context.params.dateId);
+      
+  //     //return response from createReservationFlow
+  //     res.type('html').send(dateDetails);
+
+  //    }
+    
+  // });
+
+
+
+
 
 
 // //delete users
@@ -78,35 +626,86 @@ exports.yelpAutoSuggest = functions.https.onRequest( async (request, response) =
 //function to send notification when user is off waitlist.
 exports.notifyOffWaitlist = functions.database.ref('/users/{userId}').onUpdate((change, context) => {
   
+  //create empty array of fcmTokens
+  let fcmTokens = [];
+  
   //check if user is updated from waitlist to active status
   if(change.before.val().status == 'waitlist' && change.after.val().status == 'active' ){
     console.log('user is off waitlist.');
     //save data of message
     const fcmToken = change.after.val().fcmToken;
-    const messageTitle = 'Welcome to Focus \uD83D\uDE4C';
+    //push fcmToken to fcmTokens array
+    fcmTokens.push(fcmToken); 
+    const messageTitle = 'Welcome to Focus Blind Dating \uD83D\uDE4C';
     const messageTxt = 'You are off the waitlist!';
     
     //build media messages notification
-    const payload = {
-      notification: {
+    // const payload = {
+    //   notification: {
+    //       title: messageTitle,
+    //       body: messageTxt,
+    //       sound : "default"
+    //   },
+    //   data: {
+    //       VIEW: 'swipes'
+    //   }
+    // };
+
+      //build media match notification
+      const payload = {
+        notification: {
           title: messageTitle,
           body: messageTxt,
-          sound : "default"
-      },
-      data: {
+        },
+        data: {
+          title: messageTitle,
+          body: messageTxt,
           VIEW: 'swipes'
-      }
-    };
+        },
+        apns: {
+          payload: {
+            aps: {
+              alert: {
+                title: messageTitle,
+                body: messageTxt,    
+              },
+              badge: 0,
+              sound: 'default',
+            },
+          },
+        },
+        tokens: fcmTokens//end data
+      }//end payload
+
+
+    
 
 
     // Send a message to the device corresponding to the provided registration token.
-    return admin.messaging().sendToDevice(fcmToken, payload)
+
+    // send message to each token in the payload
+    return admin.messaging().sendMulticast(payload)
       .then((response) => {
-        console.log('Successfully sent message:', response);
-      })
-      .catch((error) => {
-        console.log('Error sending message:', error);
+        if (response.failureCount > 0) {
+          const failedTokens = [];
+          response.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+              failedTokens.push(fcmTokens[idx]);              
+            }
+          });
+          console.log('List of tokens that caused failures: ' + failedTokens);
+        }
+        console.log('response:', JSON.stringify(response));
       });
+
+
+    // return admin.messaging().sendToDevice(fcmToken, payload)
+    //   .then((response) => {
+    //     console.log('Successfully sent message:', response);
+    //   })
+    //   .catch((error) => {
+    //     console.log('Error sending message:', error);
+    //   });
   }
 })
 
@@ -117,6 +716,7 @@ exports.notifyBlindDate = functions.database.ref('/dates/{dateId}').onWrite( asy
   let messageTitle = '';
   let messageTxt = '';
   let sendNotification = false; //flag to send notificaiton eventually. 
+  let fcmTokens = [];
 
   //if a new date has been created (didnt exist before), notify user of a new date
   if (!change.before.exists()) {
@@ -137,14 +737,21 @@ exports.notifyBlindDate = functions.database.ref('/dates/{dateId}').onWrite( asy
     //when date goes to acepted status from pending or pendingUpdate status //UPDATE TO PENDING -> FULFILL
     }else if( ((change.before.val().status == 'pending') || (change.before.val().status == 'pendingUpdate')) && (change.after.val().status == 'fulfill') ){
       messageTitle = 'Blind Date accepted';
-      messageTxt = 'Your Blind Date has been accepted. Open to find out the details.';
+      messageTxt = "Your Blind Date has been accepted. We're now personalizing your date. Expect more details within 24 hours.";
       sendNotification = true;
       console.log('Blind Date ready to fulfill');
 
     //else
     }else if( (change.before.val().status == 'fulfill') && (change.after.val().status == 'accepted') ){
       messageTitle = 'Blind Date details';
-      messageTxt = 'Your Blind Date details are ready. Open to see.';
+      messageTxt = 'Your personalized blind date is ready. Open to see the details.';
+      sendNotification = true;
+      console.log('Blind Date accepted');
+
+    //else pending -> accepted, date personalized. 
+    }else if( (change.before.val().status == 'pending') && (change.after.val().status == 'accepted') ){
+      messageTitle = 'Blind Date details';
+      messageTxt = 'Your personalized blind date is ready. Open to see the details.';
       sendNotification = true;
       console.log('Blind Date accepted');
 
@@ -157,28 +764,73 @@ exports.notifyBlindDate = functions.database.ref('/dates/{dateId}').onWrite( asy
 
     //save data of message
     const fcmToken = change.after.val().fcmToken;
+    fcmTokens.push(fcmToken);
     
-    //build media messages notification
-    const payload = {
-      notification: {
+    // //build media messages notification
+    // const payload = {
+    //   notification: {
+    //       title: messageTitle,
+    //       body: messageTxt,
+    //       sound : "default"
+    //   },
+    //   data: {
+    //       VIEW: 'messages' //use date id from context here context.params.dateId, when building deeplink into BlindDate module. 
+    //   }
+    // };
+
+      //build media match notification
+      const payload = {
+        notification: {
           title: messageTitle,
           body: messageTxt,
-          sound : "default"
-      },
-      data: {
-          VIEW: 'messages' //use date id from context here context.params.dateId, when building deeplink into BlindDate module. 
-      }
-    };
+        },
+        data: {
+          title: messageTitle,
+          body: messageTxt,
+          VIEW: 'messages'
+        },
+        apns: {
+          payload: {
+            aps: {
+              alert: {
+                title: messageTitle,
+                body: messageTxt,    
+              },
+              badge: 0,
+              sound: 'default',
+            },
+          },
+        },
+        tokens: fcmTokens//end data
+      }//end payload
+
+
 
     // Send a message to the device corresponding to the provided registration token.
     if(sendNotification){
-      return admin.messaging().sendToDevice(fcmToken, payload)
+
+    // send message to each token in the payload
+    return admin.messaging().sendMulticast(payload)
       .then((response) => {
-        console.log('Successfully sent message:', response);
-      })
-      .catch((error) => {
-        console.log('Error sending message:', error);
+        if (response.failureCount > 0) {
+          const failedTokens = [];
+          response.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+              failedTokens.push(fcmTokens[idx]);              
+            }
+          });
+          console.log('List of tokens that caused failures: ' + failedTokens);
+        }
+        console.log('response:', JSON.stringify(response));
       });
+      // return admin.messaging().sendToDevice(fcmToken, payload)
+      // .then((response) => {
+      //   console.log('Successfully sent message:', response);
+      // })
+      // .catch((error) => {
+      //   console.log('Error sending message:', error);
+      // });
+
     }
 
   }
@@ -187,6 +839,8 @@ exports.notifyBlindDate = functions.database.ref('/dates/{dateId}').onWrite( asy
 //function to send notification when conversation is extended.
 exports.notifyConversationExtended = functions.database.ref('/conversations/{conversationId}').onUpdate((change, context) => {
   
+  let fcmTokens = [];
+
   console.log('conversation has been updated');
   //check if user has an extended conversation 
   if((change.before.val().active == false) && (change.after.val().active == true)){
@@ -194,29 +848,69 @@ exports.notifyConversationExtended = functions.database.ref('/conversations/{con
     console.log('conversation is extended.');
     //save data of message
     const fcmToken = change.after.val().notifyFcmToken;
+    fcmTokens.push(fcmToken);
     const messageTitle = 'Conversation Extended \uD83D\uDE0D';
     const messageTxt = 'Open to find out who.';
     
     //build media messages notification
-    const payload = {
-      notification: {
+    // const payload = {
+    //   notification: {
+    //       title: messageTitle,
+    //       body: messageTxt,
+    //       sound : "default"
+    //   },
+    //   data: {
+    //       VIEW: 'messages'
+    //   }
+    // };
+
+      const payload = {
+        notification: {
           title: messageTitle,
           body: messageTxt,
-          sound : "default"
-      },
-      data: {
+        },
+        data: {
+          title: messageTitle,
+          body: messageTxt,
           VIEW: 'messages'
-      }
-    };
+        },
+        apns: {
+          payload: {
+            aps: {
+              alert: {
+                title: messageTitle,
+                body: messageTxt,    
+              },
+              badge: 0,
+              sound: 'default',
+            },
+          },
+        },
+        tokens: fcmTokens//end data
+      }//end payload
 
     // Send a message to the device corresponding to the provided registration token.
-    return admin.messaging().sendToDevice(fcmToken, payload)
-      .then((response) => {
-        console.log('Successfully sent message:', response);
-      })
-      .catch((error) => {
-        console.log('Error sending message:', error);
-      });
+    // send message to each token in the payload
+    return admin.messaging().sendMulticast(payload)
+    .then((response) => {
+      if (response.failureCount > 0) {
+        const failedTokens = [];
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            failedTokens.push(fcmTokens[idx]);              
+          }
+        });
+        console.log('List of tokens that caused failures: ' + failedTokens);
+      }
+      console.log('response:', JSON.stringify(response));
+    });
+    // return admin.messaging().sendToDevice(fcmToken, payload)
+    //   .then((response) => {
+    //     console.log('Successfully sent message:', response);
+    //   })
+    //   .catch((error) => {
+    //     console.log('Error sending message:', error);
+    //   });
   }
 })
 
@@ -259,6 +953,7 @@ exports.getCode = functions.https.onRequest((req, res) => {
         //code_id: codeId,
         created: new Date().getTime(),
         created_by: userid,
+        shared: false,
         expired: false,
         number: newNumber,
         redeemed_by: false,
@@ -293,142 +988,67 @@ exports.notifyNewMessage = functions.database.ref('/conversations/{conversationI
   const fromId = message.user._id;
   const messageTxt = message ['text'];
   const notify = message ['notify'];
+  let fcmTokens = [];
 
   //fetch fcmToken of reciepient in order to send push notification
   return admin.database().ref('/users/' + toId ).once('value').then((snapUser) => {
     //build media messages notification
     const sendNotificationMessage = snapUser.val().notifications_message;
     const fcmToken = snapUser.val().fcmToken;
+    fcmTokens.push(fcmToken);
 
     console.log('fcmToken is: '+fcmToken);
     console.log('sendNotificationMessage is: '+sendNotificationMessage);
 
     //build media messages notification
-    const payload = {
-        notification: {
-          title: senderName + " sent you a message \uD83D\uDCAC" ,
-          body: messageTxt,
-          sound : "default"
-        },
-        data: {
-          VIEW: 'messages'
-        }
-    }
+    // const payload = {
+    //     notification: {
+    //       title: senderName + " sent you a message \uD83D\uDCAC" ,
+    //       body: messageTxt,
+    //       sound : "default"
+    //     },
+    //     data: {
+    //       VIEW: 'messages'
+    //     }
+    // }
+
+        //build media match notification
+        const payload = {
+          notification: {
+            title: senderName + " sent you a message \uD83D\uDCAC",
+            body: messageTxt,
+            //sound : "default"
+          },
+          data: {
+            title: senderName + " sent you a message \uD83D\uDCAC",
+            body: messageTxt,
+            VIEW: 'messages'
+          },
+          apns: {
+            payload: {
+              aps: {
+                alert: {
+                  title: senderName + " sent you a message \uD83D\uDCAC",
+                  body: messageTxt,    
+                },
+                //badge: 1,
+                sound: 'default',
+              },
+            },
+          },
+          tokens: fcmTokens//end data
+        }//end payload
 
     //send message if user allows notifications for messages
     if ((sendNotificationMessage == true) && (notify == true)) {
 
-      return admin.messaging().sendToDevice(fcmToken, payload)
-      .then((response) => {
-        console.log('Successfully sent message:', response);
-      })
-      .catch((error) => {
-        console.log('Error sending message:', error);
-      });
-    }
-
-  })//end return-then
-});
-
-
-//function to send notification at noon local time for newMatchBatch. 
-//run function every 15 min and check which user has offset that equals noon, to send notificaiotn and reset swipe counts. 
-exports.notifyNewMatchBatch = functions.pubsub.schedule('15,30,45,0 * * * *').onRun(async ( context ) => {
-
-  // today date
-  let today = new Date();
-  console.log('today is: '+today);
-  
-  // today's minitues in UTC -- use this, since some timezones are offsetted by 15, 30, 60 min. 
-  let currentUTCMinutes = today.getUTCMinutes();
-  console.log('CurrentUTCMinutes is: '+currentUTCMinutes);
-
-  // today's hour in UTC
-  let currentUTChour = today.getUTCHours();
-  console.log('currentUTChour is: '+currentUTChour);
-
-  // put (hours * 60) + min together, for total min. 
-  let currentUTCtimeMin = (currentUTChour * 60) + currentUTCMinutes;
-  console.log('currentUTCtimeMin is: '+currentUTCtimeMin);
-
-  //the local UTCoffset which equals noon, is the current UTC time - (12 hours * 60 min). 
-  let localUtcOffsetMin = currentUTCtimeMin - (12 * 60); 
-  console.log('localUtcOffsetMin is: '+localUtcOffsetMin);
-
-  //what UTC Offset to target, at noon ....  currentUTC - 12 = localUtcOffset
-  //UTC (GMT) = 0, local UTC offset = -12
-  //UTC (GMT) = 1, local UTC offset = -11
-  //UTC (GMT) = 2, local UTC offset = -10
-  //UTC (GMT) = 3, local UTC offset = -9
-  //UTC (GMT) = 4, local UTC offset = -8
-  //UTC (GMT) = 5, local UTC offset = -7    
-  //UTC (GMT) = 6, local UTC offset = -6
-  //UTC (GMT) = 7, local UTC offset = -5    
-  //UTC (GMT) = 8, local UTC offset = -4
-  //UTC (GMT) = 9, local UTC offset = -3
-  //UTC (GMT) = 10, local UTC offset = -2  
-  //UTC (GMT) = 11, local UTC offset = -1
-  //UTC (GMT) = 12, local UTC offset = 0
-  //UTC (GMT) = 13, local UTC offset = 1
-  //UTC (GMT) = 14, local UTC offset = 2
-  //UTC (GMT) = 15, local UTC offset = 3
-  //UTC (GMT) = 16, local UTC offset = 4
-  //UTC (GMT) = 17, local UTC offset = 5
-  //UTC (GMT) = 18, local UTC offset = 6    
-  //UTC (GMT) = 19, local UTC offset = 7
-  //UTC (GMT) = 20, local UTC offset = 8    
-  //UTC (GMT) = 21, local UTC offset = 9 
-  //UTC (GMT) = 22, local UTC offset = 10 
-  //UTC (GMT) = 23, local UTC offset = 11 
-  //UTC (GMT) = 24, local UTC offset = 12
-  
-  
-  //return promise of users who are in their local noon time
-  let fcmTokenFetchPromise = await admin.database().ref('users').orderByChild('utc_offset_min').equalTo(localUtcOffsetMin).once('value');
-    //save empty array of tokens
-    let fcmTokens = [];
-
-    //for each returned user, put their token into an array.
-    fcmTokenFetchPromise.forEach(user => {
-      //handle when fcmToken is null by excluding from array and also check if user has permission to send notifications
-      if(user.val().fcmToken && user.val().notifications_daily_match == true){
-        //push fcmToken to fcmTokens array
-        fcmTokens.push(user.val().fcmToken);
-      }
-
-      console.log('fcmTokens are: '+fcmTokens);
-
-      //update swipe count to 0 sine it's noon for userday. 
-       admin.database().ref('/users/' + user.val().userid).update({
-        swipe_count: 0,
-      }).catch(reason => {
-        console.log(reason);
-        res.status(500).send('error: '+reason)
-      });   
-    })
-
-    //construct the payload for the Multicast function.
-    const payload = {
-      data: {
-        title: 'Hello again.',
-        body: 'Your daily matches have arrived',
-        VIEW: 'swipes'
-      },
-      apns: {
-        payload: {
-          aps: {
-            alert: {
-              title: 'Hello again',
-              body: 'Your daily matches have arrived. \uD83D\uDE0D',    
-            },
-            badge: 99,
-            sound: 'default',
-          },
-        },
-      },
-      tokens: fcmTokens
-    };
-
+      // return admin.messaging().sendToDevice(fcmToken, payload)
+      // .then((response) => {
+      //   console.log('Successfully sent message:', response);
+      // })
+      // .catch((error) => {
+      //   console.log('Error sending message:', error);
+      // });
 
 
     // send message to each token in the payload
@@ -445,8 +1065,158 @@ exports.notifyNewMatchBatch = functions.pubsub.schedule('15,30,45,0 * * * *').on
         }
         console.log('response:', JSON.stringify(response));
       });
-    })
+   
+
+    }
+
+  })//end return-then
+});
+
+
+//function to send notification at noon local time for newMatchBatch. 
+//run function every 15 min and check which user has offset that equals noon, to send notificaiotn and reset swipe counts. 
+
+
+// exports.notifyNewMatchBatch = functions.pubsub.schedule('15,30,45,0 * * * *').onRun(async ( context ) => {
+
+//   // today date
+//   let today = new Date();
+//   console.log('today is: '+today);
   
+//   // today's minitues in UTC -- use this, since some timezones are offsetted by 15, 30, 60 min. 
+//   let currentUTCMinutes = today.getUTCMinutes();
+//   console.log('CurrentUTCMinutes is: '+currentUTCMinutes);
+
+//   // today's hour in UTC
+//   let currentUTChour = today.getUTCHours();
+//   console.log('currentUTChour is: '+currentUTChour);
+
+//   // put (hours * 60) + min together, for total min. 
+//   let currentUTCtimeMin = (currentUTChour * 60) + currentUTCMinutes;
+//   console.log('currentUTCtimeMin is: '+currentUTCtimeMin);
+
+//   //the local UTCoffset which equals noon, is the current UTC time - (12 hours * 60 min). 
+//   let localUtcOffsetMin = currentUTCtimeMin - (12 * 60); 
+//   console.log('localUtcOffsetMin is: '+localUtcOffsetMin);
+
+//   //what UTC Offset to target, at noon ....  currentUTC - 12 = localUtcOffset
+//   //UTC (GMT) = 0, local UTC offset = -12
+//   //UTC (GMT) = 1, local UTC offset = -11
+//   //UTC (GMT) = 2, local UTC offset = -10
+//   //UTC (GMT) = 3, local UTC offset = -9
+//   //UTC (GMT) = 4, local UTC offset = -8
+//   //UTC (GMT) = 5, local UTC offset = -7    
+//   //UTC (GMT) = 6, local UTC offset = -6
+//   //UTC (GMT) = 7, local UTC offset = -5    
+//   //UTC (GMT) = 8, local UTC offset = -4
+//   //UTC (GMT) = 9, local UTC offset = -3
+//   //UTC (GMT) = 10, local UTC offset = -2  
+//   //UTC (GMT) = 11, local UTC offset = -1
+//   //UTC (GMT) = 12, local UTC offset = 0
+//   //UTC (GMT) = 13, local UTC offset = 1
+//   //UTC (GMT) = 14, local UTC offset = 2
+//   //UTC (GMT) = 15, local UTC offset = 3
+//   //UTC (GMT) = 16, local UTC offset = 4
+//   //UTC (GMT) = 17, local UTC offset = 5
+//   //UTC (GMT) = 18, local UTC offset = 6    
+//   //UTC (GMT) = 19, local UTC offset = 7
+//   //UTC (GMT) = 20, local UTC offset = 8    
+//   //UTC (GMT) = 21, local UTC offset = 9 
+//   //UTC (GMT) = 22, local UTC offset = 10 
+//   //UTC (GMT) = 23, local UTC offset = 11 
+//   //UTC (GMT) = 24, local UTC offset = 12
+  
+  
+//   //return promise of users who are in their local noon time
+//   let fcmTokenFetchPromise = await admin.database().ref('users').orderByChild('utc_offset_min').equalTo(localUtcOffsetMin).once('value');
+//     //save empty array of tokens
+//     let fcmTokens = [];
+
+//     //for each returned user, put their token into an array.
+//     fcmTokenFetchPromise.forEach(user => {
+//       //handle when fcmToken is null by excluding from array and also check if user has permission to send notifications
+//       if(user.val().fcmToken && user.val().notifications_daily_match == true){
+//         //push fcmToken to fcmTokens array
+//         fcmTokens.push(user.val().fcmToken);
+//       }
+
+//       console.log('fcmTokens are: '+fcmTokens);
+
+//       //update swipe count to 0 sine it's noon for userday. 
+//        admin.database().ref('/users/' + user.val().userid).update({
+//         swipe_count: 0,
+//       }).catch(reason => {
+//         console.log(reason);
+//         res.status(500).send('error: '+reason)
+//       });   
+//     })
+
+//     //construct the payload for the Multicast function.
+//     const payload = {
+//       data: {
+//         title: 'Hello again.',
+//         body: 'Your daily matches have arrived',
+//         VIEW: 'swipes'
+//       },
+//       apns: {
+//         payload: {
+//           aps: {
+//             alert: {
+//               title: 'Hello again',
+//               body: 'Your daily matches have arrived. \uD83D\uDE0D',    
+//             },
+//             //badge: 0,
+//             sound: 'default',
+//           },
+//         },
+//       },
+//       tokens: fcmTokens
+//     };
+
+
+
+//     // send message to each token in the payload
+//     return admin.messaging().sendMulticast(payload)
+//       .then((response) => {
+//         if (response.failureCount > 0) {
+//           const failedTokens = [];
+//           response.responses.forEach((resp, idx) => {
+//             if (!resp.success) {
+//               failedTokens.push(fcmTokens[idx]);              
+//             }
+//           });
+//           console.log('List of tokens that caused failures: ' + failedTokens);
+//         }
+//         console.log('response:', JSON.stringify(response));
+//       });
+//     })
+  
+
+    //clean up codes that have bever been sent, first of the month at 9am 
+    exports.cleanCodes = functions.pubsub.schedule('0 9 1 * *').onRun(async ( context ) => {
+    
+      //return promise of all codes that have been created over 30 days ago
+      let codesDelete = await admin.database().ref('codes').orderByChild('shared').equalTo(false).once('value');
+        
+      //for each returned code, delete it. 
+        codesDelete.forEach(code => {
+
+            console.log('code.key is: '+code.key);
+
+            let refDelete = admin.database().ref('codes/'+code.key);
+            
+            refDelete.remove().then(function() {
+              console.log("Remove succeeded.")
+              //return 'Remove succeeded';
+            }).catch(function(error) {
+              console.log("Remove failed: " + error.message)
+              //return 'error: '+error.message;
+            });
+          
+        })  
+        
+        return null;
+    })
 
 
 //function to send notification when new match is recieved. 
@@ -460,12 +1230,16 @@ exports.notifyNewMatch = functions.database.ref('/matches/{reciepientId}/{newMat
   console.log('reciepientId is: '+toId);
   const messageTitle = 'You have a new match \uD83D\uDE0D';
   const messageTxt = 'Chat with '+matchName+' to focus their photos.';
+  //save empty array of tokens
+  let fcmTokens = [];
 
   //fetch fcmToken of reciepient in order to send push notification
   return admin.database().ref('/users/' + toId ).once('value').then((snapUser) => {
     //build media messages notification
     const sendNotificationMatch = snapUser.val().notifications_match;
     const fcmToken = snapUser.val().fcmToken;
+    //push fcmToken to fcmTokens array
+    fcmTokens.push(fcmToken);
 
     console.log('fcmToken is: '+fcmToken);
     console.log('sendNotificationMatch is: '+sendNotificationMatch);
@@ -475,24 +1249,53 @@ exports.notifyNewMatch = functions.database.ref('/matches/{reciepientId}/{newMat
       notification: {
         title: messageTitle,
         body: messageTxt,
-        sound : "default"
       },
       data: {
-        // SENDER_NAME: senderName,
-        // SENDER_ID: fromId,
+        title: messageTitle,
+        body: messageTxt,
         VIEW: 'messages'
-      }//end data
+      },
+      apns: {
+        payload: {
+          aps: {
+            alert: {
+              title: messageTitle,
+              body: messageTxt,    
+            },
+            //badge: 0,
+            sound: 'default',
+          },
+        },
+      },
+      tokens: fcmTokens//end data
     }//end payload
+
 
     //send message if user allows notifications for matches
     if (sendNotificationMatch == true) {
-      return admin.messaging().sendToDevice(fcmToken, payload)
+
+      // return admin.messaging().sendToDevice(fcmToken, payload)
+      // .then((response) => {
+      //   console.log('Successfully sent message:', response);
+      // })
+      // .catch((error) => {
+      //   console.log('Error sending message:', error);
+      // });
+    // send message to each token in the payload
+    return admin.messaging().sendMulticast(payload)
       .then((response) => {
-        console.log('Successfully sent message:', response);
-      })
-      .catch((error) => {
-        console.log('Error sending message:', error);
+        if (response.failureCount > 0) {
+          const failedTokens = [];
+          response.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+              failedTokens.push(fcmTokens[idx]);              
+            }
+          });
+          console.log('List of tokens that caused failures: ' + failedTokens);
+        }
+        console.log('response:', JSON.stringify(response));
       });
+
     }
   })
 });
@@ -763,10 +1566,16 @@ exports.getMatches = functions.https.onRequest((req, res) => {
           console.log('max_lat is: '+max_lat);
           console.log('max_long is: '+max_long);
           console.log('max_age is: '+max_age);
+          console.log('min_age is: '+min_age);  
+          console.log('matchObjAge is: '+matchObjAge);
 
-          console.log('matchObj.latitude is: '+matchObj.latitude);
-          console.log('matchObj.longitude is: '+matchObj.longitude);
-          console.log('excluded_users_array is: '+excluded_users_array);
+          // console.log('matchObj.latitude is: '+matchObj.latitude);
+          // console.log('matchObj.longitude is: '+matchObj.longitude);
+          
+        
+
+    
+          //console.log('excluded_users_array is: '+excluded_users_array);
 
           //return matches after passing requirements
           return matchObj.status == 'active' && //only active profiles
@@ -794,7 +1603,7 @@ exports.getMatches = functions.https.onRequest((req, res) => {
 
         //console.log('sortedEligibleMatchesArray[index].status: '+sortedEligibleMatchesArray[index]);
 
-        //save flag for when eligibleMatch is user in context or in swipesRecieved or swipesGivenRights or swipesGivenLefts 
+        //save flag for when eligibleMatch is user in context or in swipesReceivedRights or swipesReceivedLefts or swipesGivenLefts or swipesGivenRights 
         remove = (sortedEligibleMatchesArray[index] == userid) || swipesReceivedRights.includes(sortedEligibleMatchesArray[index]) || swipesReceivedLefts.includes(sortedEligibleMatchesArray[index]) || swipesGivenLefts.includes(sortedEligibleMatchesArray[index]) || swipesGivenRights.includes(sortedEligibleMatchesArray[index]);
 
         //if removed = true, remove that element from eligbleMatchList array.
@@ -818,8 +1627,9 @@ exports.getMatches = functions.https.onRequest((req, res) => {
      // iterate swipesReceivedRights in reverse, so that when splicing array we arent' skipping next item due to the index incrementing while list decreasing
       for (index = swipesReceivedRights.length - 1; index >= 0; --index) {
 
-        //save flag for user is active match, since both users swiped right on eachother.  
-        remove = swipesGivenRights.includes(swipesReceivedRights[index]);
+        //save flag to remove user, if user is active match, since both users swiped right on eachother.
+        //or save flag to remove user if loggged in user swiped left on user that liked them, they shouldn't see same not liked person again. 
+        remove = swipesGivenRights.includes(swipesReceivedRights[index]) || swipesGivenLefts.includes(swipesReceivedRights[index]);
 
         //if removed = true, remove that element from swipesReceivedRights array.
         if (remove) {

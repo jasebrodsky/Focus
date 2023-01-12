@@ -169,6 +169,11 @@ class Refer extends Component {
 
     //goback
     this.props.navigation.goBack();
+
+    //record in analytics link was shared 
+    RNfirebase.analytics().logEvent('buttonClicked', {
+      buttonClicked: 'go back',
+    });
     
   }
 
@@ -244,126 +249,154 @@ class Refer extends Component {
   //function to build deep link. pass code from getCode function into link, then trigger share dialog
   _buildLinkAndShare = async () => {
     
-    //fetch from getCode cloud function, then build short link from returned code
-     await fetch('https://us-central1-blurred-195721.cloudfunctions.net/getCode?name_creator='+this.state.user_name+'&gender_creator='+this.state.gender+'&photo_creator='+this.state.user_photo+'&reason='+this.state.reason+'&userid='+this.state.userId)
-    .then((response) => response.json())
-    .then((responseJson) => {
-   
-      console.log('responseJson is: '+responseJson);
-      //save code var.
-      let code = responseJson.sharable_code;
-      let codeDelete = responseJson.code_id;
-      this.setState({codeDelete: codeDelete}); //save codeDelete to state, in case user cancels share. 
 
-      const link = dynamicLinks().buildShortLink({
-        link: encodeURI('https://focusdating.co/refer/?type=refer&code='+code+'&user_id_creator='+this.state.userId+'&gender_creator='+this.state.gender+'&name_creator='+this.state.user_name+'&name_created='+this.state.name+'&reason='+this.state.reason),
-        domainUriPrefix: 'https://focusdating.page.link',
-        social: {
-          title: "Download Focus",
-          descriptionText: "Go on Blind Dates. With your type. We'll coodinate it.",
-          //descriptionText: this.state.user_name + 'says: '+this.state.reason,
-          imageUrl: 'https://focusdating.co/images/banner_14.jpg'
-        },     
-        ios: {
-          bundleId: 'com.helm.focus',
-          appStoreId: '1492965606',
-        },
-      })
-      
-      return link;
-    })
+    let name = this.state.name;
+    let reason = this.state.reason;
+    let reasonLength = reason.length;
+
+    if(!name || reasonLength < 15){
+
+      Alert.alert(
+        'More info required ',
+        "Please enter more than 15 characters.",
+        [
+          {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+        ],
+        { cancelable: false }
+      ) 
 
 
-      .then((link) => {
-
-        //let link2 = 'testlink';
-        console.log(`got link: ${link}`);
-
-        //set up share 
-        //let name = this.state.name;
-        let name = this.state.name;
-        let reason = this.state.reason;
-        let reasonLength = reason.length;
-
-        if(!name || reasonLength < 15){
+    }else{
+      //fetch from getCode cloud function, then build short link from returned code
+      await fetch('https://us-central1-blurred-195721.cloudfunctions.net/getCode?name_creator='+this.state.user_name+'&gender_creator='+this.state.gender+'&photo_creator='+this.state.user_photo+'&reason='+this.state.reason+'&userid='+this.state.userId)
+      .then((response) => response.json())
+      .then((responseJson) => {
     
-          alert('please enter reason over 15 characters');
-        }else{
+        console.log('responseJson is: '+responseJson);
+        //save code var.
+        let code = responseJson.sharable_code;
+        let codeDelete = responseJson.code_id;
+        this.setState({codeDelete: codeDelete}); //save codeDelete to state, in case user cancels share. 
 
-        Share.share({
-          message: this.state.name+' - just referred you to Focus and shared the following: "'+this.state.reason.substring(0, 50)+'..." read the rest on the app.',  
-          url: link, //make landing page with query param of reason. 
-          title: 'Check this out' //what does this do?
-        }).then(({action, activityType}) => {
+        const link = dynamicLinks().buildShortLink({
+          link: encodeURI('https://focusdating.co/refer/?type=refer&code='+code+'&user_id_creator='+this.state.userId+'&gender_creator='+this.state.gender+'&name_creator='+this.state.user_name+'&name_created='+this.state.name+'&reason='+this.state.reason),
+          domainUriPrefix: 'https://focusdating.page.link',
+          social: {
+            title: "Download Focus",
+            descriptionText: "Go on Blind Dates. With your type. We'll coodinate it.",
+            //descriptionText: this.state.user_name + 'says: '+this.state.reason,
+            imageUrl: 'https://focusdating.co/images/share.png'
+          },     
+          ios: {
+            bundleId: 'com.helm.focus',
+            appStoreId: '1492965606',
+          },
+        })
+        //record in analytics link was created 
+        RNfirebase.analytics().logEvent('linkCreated', {
+          linkCreated: true
+        });
+        
+        return link;
 
 
-          let Analytics = RNfirebase.analytics();
-          if(action === Share.dismissedAction) {
+      })
+
+
+        .then( async (link) => {
+
+          //let link2 = 'testlink';
+          console.log(`got link: ${link}`);
+
+          //set up share 
+          const result = await Share.share({
+            message: this.state.name+' - just referred you to Focus and shared the following: "'+this.state.reason.substring(0, 50)+'..." read the rest on the app.',  
+            url: link, //make landing page with query param of reason. 
+            title: 'Check this out' //what does this do?
+          });
+          
+          if (result.action === Share.sharedAction) {
+            if (result.activityType) {
+              // shared with activity type of result.activityType
+              console.log('shared with activity type of');
+              // shared
+              console.log('shared! check if code was ');
+
+              //record in analytics link was shared 
+              RNfirebase.analytics().logEvent('referShareSent', {
+                activityType: result.activityType,
+                reason: this.state.reason
+              });
+
+              //add shared to true, for cleaning up later. 
+             let codeRef = firebase.database().ref('codes/' + this.state.codeDelete+'/');
+
+              //update ref
+             codeRef.update({  
+                shared: true,
+                shareType: result.activityType
+              });
             
+              //update swipeCount in firebase, so that cloud function will return fresh batch of matches. 
+              let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+              
+              //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
+              userRef.update({  
+                swipe_count: 0,
+                //status: 'active', //should users only become active via the waitlist admin flow? if so, comment out this line so status never changes here. 
+                referStatus: 'sentReferral',
+                referReason: this.state.reason,
+              }).then(()=>{
+                
+                //check if coming from swipes
+                if ( this.props.navigation.getParam('from') == 'swipes' ) {
+
+                  //redirect to messages and pass params freeExtend: true, so that . 
+                  this.props.navigation.navigate("Swipes", {forceUpdate: true, swipeCount: 0});
+                  console.log("successfully updated swipecount, getting more matches.");
+                
+                }else if(this.props.navigation.getParam('from') == 'waitlist'){
+                  
+                  this.props.navigation.navigate("Waitlist");
+
+                }else if ( this.props.navigation.getParam('from') == 'conversations' ) {
+                  
+                  //if coming from conversations, extend the conversation and redirect back messages.           
+                  this._handleExtendConversation()
+                                  
+                  //then redirect back messages
+                  this.props.navigation.navigate("Messages");
+                }
+                          
+                else{
+                  //goback
+                  this.props.navigation.goBack();
+                }
+              }).catch(error => {
+                console.log("couldnt update swipdconnt with error: " + error);
+              });
+            }
+          } else if (result.action === Share.dismissedAction) { //STOPPED WORKING SOMETIME AGO?
+            // dismissed
+            console.log('shared dismissed');
+
             //delete unsent code from db
             firebase.database().ref('codes/' + this.state.codeDelete).remove();
-          
+
             //record in analytics the event that a share was cancelled  
             RNfirebase.analytics().logEvent('referShareDismissed', {
               reason: this.state.reason
             });
-          } 
-          else {
-
-            //record in analytics the event that a share was cancelled  
-            RNfirebase.analytics().logEvent('referShareSent', {
-              reason: this.state.reason
-            });
-          
-            //update swipeCount in firebase, so that cloud function will return fresh batch of matches. 
-            let userRef = firebase.database().ref('users/'+this.state.userId+'/');
-            
-            //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
-            userRef.update({  
-              swipe_count: 0,
-              last_swipe_sesh_date: new Date().getTime(),
-              status: 'active', //should users only become active via the waitlist admin flow? if so, comment out this line so status never changes here. 
-              referStatus: 'sentReferral',
-              referReason: this.state.reason,
-            }).then(()=>{
-              
-              //check if coming from swipes
-              if ( this.props.navigation.getParam('from') == 'swipes' || this.props.navigation.getParam('from') == 'waitlist' ) {
-
-                //redirect to messages and pass params freeExtend: true, so that . 
-                this.props.navigation.navigate("Swipes", {forceUpdate: true, swipeCount: 0});
-                console.log("successfully updated swipecount, getting more matches.");
-              
-              }else if ( this.props.navigation.getParam('from') == 'conversations' ) {
-                
-                alert('flow is conversations')
-                //if coming from conversations, extend the conversation and redirect back messages.           
-                this._handleExtendConversation()
-                                
-                //then redirect back messages
-                this.props.navigation.navigate("Messages");
-              }
-                        
-              else{
-                //goback
-                this.props.navigation.goBack();
-              }
-            }).catch(error => {
-              console.log("couldnt update swipdconnt with error: " + error);
-            });
-
           }
         })
-    
-        .catch(function(error) {
-            alert("Data could not be saved." + error);
-        });
+        
+        .catch((err) => {
+          console.log('unable to build link?', err);
+        })
       }
-      })
-      
-      .catch((err) => {
-        console.log('unable to build link?', err);
-      })
+
+
+
     
               
     return link;
@@ -421,8 +454,8 @@ class Refer extends Component {
                 <Text 
                   style={{ 
                     color: 'white', 
-                    fontSize: 40,
-                    fontWeight: '700', 
+                    fontSize: 32,
+                    fontWeight: '900', 
                     fontFamily:'HelveticaNeue',
                     shadowColor: "#000",
                     shadowOffset: {
@@ -430,15 +463,15 @@ class Refer extends Component {
                       height: 3,
                     },
                     shadowOpacity: 0.29,
-                    shadowRadius: 4.65,}} >Refer your
+                    shadowRadius: 4.65,}} >Refer your friend
                 </Text>
-                <Text 
+                {/* <Text 
                   style={{ 
                     color: 'white', 
                     fontFamily:'HelveticaNeue',
                     fontSize: 30, 
                     color: 'white'}}>Friend
-                </Text>
+                </Text> */}
 
             </View>
           

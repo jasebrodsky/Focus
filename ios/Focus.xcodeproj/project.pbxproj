@@ -15,9 +15,7 @@
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* FocusTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* FocusTests.m */; };
-		38F4368B315760F793320A27 /* libPods-Focus.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AC41519D6CAF33EE8A3A3BAF /* libPods-Focus.a */; };
 		4A6ABC2DFDAB4B1298A49643 /* Roboto_medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9EDD041E59C243E69B1D5EFD /* Roboto_medium.ttf */; };
-		4DC2289BDDA1B1C8C12A71C8 /* libPods-Focus-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1BDBD28ACB41782BA99A75FD /* libPods-Focus-tvOSTests.a */; };
 		5A2615B123B6BB20009EDCE5 /* images in Resources */ = {isa = PBXBuildFile; fileRef = 5A2615B023B6BB20009EDCE5 /* images */; };
 		5A2E1D4C23DCCF56002C463A /* AppCenter-Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A2E1D4B23DCCF55002C463A /* AppCenter-Config.plist */; };
 		5A67DBE823B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
@@ -33,8 +31,10 @@
 		5AC564BF26AE8777004E5BEE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5AC564BE26AE8777004E5BEE /* LaunchScreen.storyboard */; };
 		5ACAEC6123B48ADE0051F25E /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5ACAEC6023B48ADE0051F25E /* JavaScriptCore.framework */; };
 		5ACAEC6223B48AEB0051F25E /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5ACAEC6023B48ADE0051F25E /* JavaScriptCore.framework */; };
-		62E0563AF23791D8045512CB /* libPods-Focus-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6018B32562E749194C19CC70 /* libPods-Focus-tvOS.a */; };
 		71EF0A916D3B4FEF8A3602B6 /* rubicon-icon-font.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B5A5BDE6052D4D89B0AC263F /* rubicon-icon-font.ttf */; };
+		9C97DE0C84949F95A1AFC6F0 /* libPods-Focus-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E24C20885A599D53A9443D1 /* libPods-Focus-tvOS.a */; };
+		D276F795B31E106F1B878F9C /* libPods-Focus-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 635909F3A319A309B9483D6D /* libPods-Focus-tvOSTests.a */; };
+		E58604621634425FA5BE9D4C /* libPods-Focus Dating.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39745038EE3C94976FFFB891 /* libPods-Focus Dating.a */; };
 		E9623F6FFA2845F5B90A82BC /* Roboto.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E2D32CEC2D964498861D5F00 /* Roboto.ttf */; };
 /* End PBXBuildFile section */
 
@@ -50,6 +50,7 @@
 
 /* Begin PBXFileReference section */
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
+		00A1CB27FE0C9C3700DEF30C /* Pods-Focus-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-Focus-tvOSTests/Pods-Focus-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* FocusTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FocusTests.m; sourceTree = "<group>"; };
 		06959BB04F7443858E972989 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/native-base/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
@@ -62,14 +63,12 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Focus/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Focus/main.m; sourceTree = "<group>"; };
 		13C57095D8C448E9A2CED8F0 /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/native-base/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
-		1BDBD28ACB41782BA99A75FD /* libPods-Focus-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Focus-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		229A13E100570C0EF4B43ECC /* libPods-FocusTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-FocusTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24F9067D368246B8A0ECFD29 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/native-base/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		2D02E47B1E0B4A5D006451C7 /* Focus-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Focus-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* Focus-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Focus-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		39745038EE3C94976FFFB891 /* libPods-Focus Dating.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Focus Dating.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3C866FCD01F3484393EEF525 /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/native-base/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
 		3CF866DFE320430B824916C6 /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/native-base/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
-		3D401065B8919D5F94F56EE8 /* Pods-FocusTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FocusTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-FocusTests/Pods-FocusTests.release.xcconfig"; sourceTree = "<group>"; };
 		5A2615AE23B6BADD009EDCE5 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = images; path = ../images; sourceTree = "<group>"; };
 		5A2615B023B6BB20009EDCE5 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = images; path = ../images; sourceTree = "<group>"; };
 		5A2E1D4B23DCCF55002C463A /* AppCenter-Config.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "AppCenter-Config.plist"; sourceTree = "<group>"; };
@@ -85,27 +84,25 @@
 		5ACAEC5823B47B2A0051F25E /* libFBSDKLoginKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libFBSDKLoginKit.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5ACAEC6023B48ADE0051F25E /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.2.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 		5FF0A8B828F04C10BE0A2840 /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Brands.ttf; path = "../node_modules/native-base/Fonts/FontAwesome5_Brands.ttf"; sourceTree = "<group>"; };
-		6018B32562E749194C19CC70 /* libPods-Focus-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Focus-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		69F808D7515ED8DDA9B72F1B /* Pods-Focus-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOSTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Focus-tvOSTests/Pods-Focus-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
-		70C80592445BFEF747A79EEE /* Pods-Focus-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOS.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Focus-tvOS/Pods-Focus-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
+		635909F3A319A309B9483D6D /* libPods-Focus-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Focus-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7202904C84DD87AC2422CAFC /* Pods-Focus-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Focus-tvOS/Pods-Focus-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		790FB8AAE1F24A6BB6BC77E4 /* Fontisto.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Fontisto.ttf; path = "../node_modules/native-base/Fonts/Fontisto.ttf"; sourceTree = "<group>"; };
 		8A8F9A69BF0340738F88533D /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/native-base/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
 		8AE9215DFBD940A0AAE20899 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/native-base/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		8D1585A52AA9490BADA41962 /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/native-base/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
+		8E24C20885A599D53A9443D1 /* libPods-Focus-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Focus-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8F181ECE9BDB4104AF4D8246 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/native-base/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
 		93C2627B66FF4408A7FBAFDA /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/native-base/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
 		96BC37CD81C74AA0B88016A5 /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/native-base/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		9EDD041E59C243E69B1D5EFD /* Roboto_medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Roboto_medium.ttf; path = "../node_modules/native-base/Fonts/Roboto_medium.ttf"; sourceTree = "<group>"; };
 		A1303B48FEF34A74A0037A9C /* AntDesign.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = AntDesign.ttf; path = "../node_modules/native-base/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
-		AC41519D6CAF33EE8A3A3BAF /* libPods-Focus.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Focus.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B0371AF1D384F0F9923EF5F7 /* Pods-Focus.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus.release.xcconfig"; path = "Pods/Target Support Files/Pods-Focus/Pods-Focus.release.xcconfig"; sourceTree = "<group>"; };
+		AEE472215DB14580CFC4F7BE /* Pods-Focus Dating.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus Dating.release.xcconfig"; path = "Target Support Files/Pods-Focus Dating/Pods-Focus Dating.release.xcconfig"; sourceTree = "<group>"; };
+		B0E662C742B8243B0B4ABDC6 /* Pods-Focus-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Focus-tvOS/Pods-Focus-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		B5A5BDE6052D4D89B0AC263F /* rubicon-icon-font.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "rubicon-icon-font.ttf"; path = "../node_modules/native-base/Fonts/rubicon-icon-font.ttf"; sourceTree = "<group>"; };
+		C29595E4E0BC0AC9E99BDAC0 /* Pods-Focus-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Focus-tvOSTests/Pods-Focus-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		C6D79CCB72E44B23A48D88C2 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/native-base/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
-		D3874A912D2F5B04C4970A12 /* Pods-FocusTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FocusTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-FocusTests/Pods-FocusTests.debug.xcconfig"; sourceTree = "<group>"; };
-		D98DAF3646B07B49625D5E70 /* Pods-Focus-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOSTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Focus-tvOSTests/Pods-Focus-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		E2D32CEC2D964498861D5F00 /* Roboto.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Roboto.ttf; path = "../node_modules/native-base/Fonts/Roboto.ttf"; sourceTree = "<group>"; };
-		E63666F93B0F70B3EE46EE39 /* Pods-Focus.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Focus/Pods-Focus.debug.xcconfig"; sourceTree = "<group>"; };
-		F456C9466BC464ADC45EB5D0 /* Pods-Focus-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus-tvOS.release.xcconfig"; path = "Pods/Target Support Files/Pods-Focus-tvOS/Pods-Focus-tvOS.release.xcconfig"; sourceTree = "<group>"; };
+		F348B6CBB2BECBE94C262F94 /* Pods-Focus Dating.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus Dating.debug.xcconfig"; path = "Target Support Files/Pods-Focus Dating/Pods-Focus Dating.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,8 +110,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				38F4368B315760F793320A27 /* libPods-Focus.a in Frameworks */,
 				5A7F936028B20D5500CEA954 /* StoreKit.framework in Frameworks */,
+				E58604621634425FA5BE9D4C /* libPods-Focus Dating.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,7 +123,7 @@
 				5AB7EB0F23B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */,
 				5AB7EB0A23B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */,
 				5ACAEC6123B48ADE0051F25E /* JavaScriptCore.framework in Frameworks */,
-				62E0563AF23791D8045512CB /* libPods-Focus-tvOS.a in Frameworks */,
+				9C97DE0C84949F95A1AFC6F0 /* libPods-Focus-tvOS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -138,7 +135,7 @@
 				5AB7EB0623B59A6A00DA7014 /* FBSDKCoreKit.framework in Frameworks */,
 				5AB7EB1023B59A9900DA7014 /* FBSDKShareKit.framework in Frameworks */,
 				5AB7EB0B23B59A8B00DA7014 /* FBSDKLoginKit.framework in Frameworks */,
-				4DC2289BDDA1B1C8C12A71C8 /* libPods-Focus-tvOSTests.a in Frameworks */,
+				D276F795B31E106F1B878F9C /* libPods-Focus-tvOSTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,10 +214,9 @@
 				5AB7EB0223B59A6A00DA7014 /* FBSDKCoreKit.framework */,
 				5AB7EB0C23B59A9900DA7014 /* FBSDKShareKit.framework */,
 				5ACAEC6023B48ADE0051F25E /* JavaScriptCore.framework */,
-				AC41519D6CAF33EE8A3A3BAF /* libPods-Focus.a */,
-				229A13E100570C0EF4B43ECC /* libPods-FocusTests.a */,
-				6018B32562E749194C19CC70 /* libPods-Focus-tvOS.a */,
-				1BDBD28ACB41782BA99A75FD /* libPods-Focus-tvOSTests.a */,
+				39745038EE3C94976FFFB891 /* libPods-Focus Dating.a */,
+				8E24C20885A599D53A9443D1 /* libPods-Focus-tvOS.a */,
+				635909F3A319A309B9483D6D /* libPods-Focus-tvOSTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -242,8 +238,8 @@
 				00E356EF1AD99517003FC87E /* FocusTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				97F946FBDF3CDE7890096910 /* Pods */,
 				0AC9B0524192448CB17922A6 /* Resources */,
+				CF3E498C106B06E1B8A10684 /* Pods */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -260,19 +256,17 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		97F946FBDF3CDE7890096910 /* Pods */ = {
+		CF3E498C106B06E1B8A10684 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				E63666F93B0F70B3EE46EE39 /* Pods-Focus.debug.xcconfig */,
-				B0371AF1D384F0F9923EF5F7 /* Pods-Focus.release.xcconfig */,
-				D3874A912D2F5B04C4970A12 /* Pods-FocusTests.debug.xcconfig */,
-				3D401065B8919D5F94F56EE8 /* Pods-FocusTests.release.xcconfig */,
-				70C80592445BFEF747A79EEE /* Pods-Focus-tvOS.debug.xcconfig */,
-				F456C9466BC464ADC45EB5D0 /* Pods-Focus-tvOS.release.xcconfig */,
-				69F808D7515ED8DDA9B72F1B /* Pods-Focus-tvOSTests.debug.xcconfig */,
-				D98DAF3646B07B49625D5E70 /* Pods-Focus-tvOSTests.release.xcconfig */,
+				F348B6CBB2BECBE94C262F94 /* Pods-Focus Dating.debug.xcconfig */,
+				AEE472215DB14580CFC4F7BE /* Pods-Focus Dating.release.xcconfig */,
+				B0E662C742B8243B0B4ABDC6 /* Pods-Focus-tvOS.debug.xcconfig */,
+				7202904C84DD87AC2422CAFC /* Pods-Focus-tvOS.release.xcconfig */,
+				C29595E4E0BC0AC9E99BDAC0 /* Pods-Focus-tvOSTests.debug.xcconfig */,
+				00A1CB27FE0C9C3700DEF30C /* Pods-Focus-tvOSTests.release.xcconfig */,
 			);
-			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -282,13 +276,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Focus Dating" */;
 			buildPhases = (
-				692FB4CA92B3D4C4BE700E44 /* [CP] Check Pods Manifest.lock */,
+				DC336927A13AFA16D5FB8F2F /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				AF2FDD70CD72E15BB88763FC /* [CP] Copy Pods Resources */,
+				8DFB93135384333121750642 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -303,7 +297,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "Focus-tvOS" */;
 			buildPhases = (
-				8C0C56C49291C6F22FE926C1 /* [CP] Check Pods Manifest.lock */,
+				B521660074FD024A06284E5F /* [CP] Check Pods Manifest.lock */,
 				FD10A7F122414F3F0027D42C /* Start Packager */,
 				2D02E4771E0B4A5D006451C7 /* Sources */,
 				2D02E4781E0B4A5D006451C7 /* Frameworks */,
@@ -323,7 +317,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "Focus-tvOSTests" */;
 			buildPhases = (
-				BAC5D934584A399F09E5BD94 /* [CP] Check Pods Manifest.lock */,
+				37760FD3478EFDA96B074175 /* [CP] Check Pods Manifest.lock */,
 				2D02E48C1E0B4A5D006451C7 /* Sources */,
 				2D02E48D1E0B4A5D006451C7 /* Frameworks */,
 				2D02E48E1E0B4A5D006451C7 /* Resources */,
@@ -344,7 +338,7 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 940;
+				LastUpgradeCheck = 1330;
 				ORGANIZATIONNAME = Facebook;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
@@ -452,7 +446,7 @@
 			shellPath = /bin/sh;
 			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
 		};
-		692FB4CA92B3D4C4BE700E44 /* [CP] Check Pods Manifest.lock */ = {
+		37760FD3478EFDA96B074175 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -467,42 +461,20 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Focus-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Focus-tvOSTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		8C0C56C49291C6F22FE926C1 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Focus-tvOS-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		AF2FDD70CD72E15BB88763FC /* [CP] Copy Pods Resources */ = {
+		8DFB93135384333121750642 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Focus/Pods-Focus-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Focus Dating/Pods-Focus Dating-resources.sh",
 				"${PODS_ROOT}/FBSDKCoreKit/FacebookSDKStrings.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/QBImagePickerController/QBImagePicker.bundle",
 				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
@@ -547,10 +519,10 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Focus/Pods-Focus-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Focus Dating/Pods-Focus Dating-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		BAC5D934584A399F09E5BD94 /* [CP] Check Pods Manifest.lock */ = {
+		B521660074FD024A06284E5F /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -565,7 +537,29 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Focus-tvOSTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Focus-tvOS-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DC336927A13AFA16D5FB8F2F /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Focus Dating-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -664,17 +658,18 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E63666F93B0F70B3EE46EE39 /* Pods-Focus.debug.xcconfig */;
+			baseConfigurationReference = F348B6CBB2BECBE94C262F94 /* Pods-Focus Dating.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Focus/Focus.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = F583Y3M9CR;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = arm64;
 				INFOPLIST_FILE = Focus/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.65;
+				MARKETING_VERSION = 1.70;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -688,16 +683,17 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B0371AF1D384F0F9923EF5F7 /* Pods-Focus.release.xcconfig */;
+			baseConfigurationReference = AEE472215DB14580CFC4F7BE /* Pods-Focus Dating.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Focus/Focus.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = F583Y3M9CR;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = arm64;
 				INFOPLIST_FILE = Focus/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.65;
+				MARKETING_VERSION = 1.70;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -711,7 +707,7 @@
 		};
 		2D02E4971E0B4A5E006451C7 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 70C80592445BFEF747A79EEE /* Pods-Focus-tvOS.debug.xcconfig */;
+			baseConfigurationReference = B0E662C742B8243B0B4ABDC6 /* Pods-Focus-tvOS.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -724,6 +720,10 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = "Focus-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift",
+					"$(inherited)",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -733,13 +733,13 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 9.2;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Debug;
 		};
 		2D02E4981E0B4A5E006451C7 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F456C9466BC464ADC45EB5D0 /* Pods-Focus-tvOS.release.xcconfig */;
+			baseConfigurationReference = 7202904C84DD87AC2422CAFC /* Pods-Focus-tvOS.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -752,6 +752,10 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = "Focus-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift",
+					"$(inherited)",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -761,13 +765,13 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 9.2;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Release;
 		};
 		2D02E4991E0B4A5E006451C7 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 69F808D7515ED8DDA9B72F1B /* Pods-Focus-tvOSTests.debug.xcconfig */;
+			baseConfigurationReference = C29595E4E0BC0AC9E99BDAC0 /* Pods-Focus-tvOSTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ANALYZER_NONNULL = YES;
@@ -780,6 +784,10 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = "Focus-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift",
+					"$(inherited)",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -789,13 +797,13 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Focus-tvOS.app/Focus-tvOS";
-				TVOS_DEPLOYMENT_TARGET = 10.1;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Debug;
 		};
 		2D02E49A1E0B4A5E006451C7 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D98DAF3646B07B49625D5E70 /* Pods-Focus-tvOSTests.release.xcconfig */;
+			baseConfigurationReference = 00A1CB27FE0C9C3700DEF30C /* Pods-Focus-tvOSTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ANALYZER_NONNULL = YES;
@@ -808,6 +816,10 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = "Focus-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift",
+					"$(inherited)",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -817,7 +829,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Focus-tvOS.app/Focus-tvOS";
-				TVOS_DEPLOYMENT_TARGET = 10.1;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Release;
 		};
@@ -825,6 +837,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -843,6 +857,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -852,7 +867,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				"EXCLUDED_ARCHS[sdk=*]" = arm64;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = arm64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"/Users/$(USER)/Documents/FacebookSDK",
 					"$(inherited)",
@@ -874,7 +889,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -885,6 +900,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -903,6 +920,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -912,6 +930,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = arm64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"/Users/$(USER)/Documents/FacebookSDK",
 					"$(inherited)",
@@ -926,7 +945,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;

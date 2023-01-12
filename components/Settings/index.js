@@ -177,7 +177,6 @@ class Settings extends Component {
     RNfirebase.analytics().setUserProperty('max_distance', dataSnapshot.val().max_distance.toString());
     RNfirebase.analytics().setUserProperty('min_age', dataSnapshot.val().min_age.toString());
     RNfirebase.analytics().setUserProperty('last_login', dataSnapshot.val().last_login.toString());
-    RNfirebase.analytics().setUserProperty('last_swipe_sesh_date', dataSnapshot.val().last_swipe_sesh_date.toString());
     RNfirebase.analytics().setUserProperty('notifications_match', dataSnapshot.val().notifications_match.toString());
     RNfirebase.analytics().setUserProperty('notifications_message', dataSnapshot.val().notifications_message.toString());
     })

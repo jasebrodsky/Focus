@@ -40,7 +40,9 @@ class Messages extends Component {
       currentDate: new Date(),
       loading: true,
       isEmpty: false,
-      expiredMatches: false
+      expiredMatches: false,
+      reservationFirstName: 'TESTIES',
+      reservationLastName: 'TESTIES2'
     }
   }
 
@@ -68,6 +70,74 @@ class Messages extends Component {
       useNativeDriver: true,
     }).start(() => this.runAnimation());
   }
+
+    //handle notifications
+    handleNotification = (userId, screen, matchUseridExclude ) => {
+    
+      let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+
+      let listener = query.on('child_changed', (notifySnapshot) => {
+  
+        //first check if there's a notification to render by checking if showNotification is true on the child_changed event on the match, also check that notificaiton has happened since module mounted, so old notificaitons aren't served.  
+        if((notifySnapshot.val().showNotification == true) && (notifySnapshot.val().last_message_date*-1 < new Date().getTime())){
+          //render notification based off the notification type
+          switch (notifySnapshot.val().notificationType) {
+            case 'newMatch':
+              //don't notify of new match while on Swipes screen.
+              if(screen !== 'Swipes'){
+                renderNotification('New Match with '+notifySnapshot.val().name);
+              }
+              break;
+            case 'newChat':
+              //alert('matchUseridExclude is: '+matchUseridExclude); //WHY IS matchUserId being set to null here? 
+              //don't notify of new chat while on chat screen and chatting with that user. Match to exclude is only sent on chat page.
+               if (matchUseridExclude == notifySnapshot.val().match_userid){ //then check if person to exclude is not who you're talking to
+                  //don't notify when chat is open with user
+                  //alert('dont notify since need to exclude this user from sending you a notificaiton');
+                  break;
+                }else{
+                  //must not be on chat page, since match_user_exclude is not set
+                  renderNotification('New Chat from '+notifySnapshot.val().name);
+                  break;
+                }
+              
+            case 'newBlindDate':
+              renderNotification('New Blind Date requested.');
+              break;
+            case 'planned': //blind date accepted
+              renderNotification('Blind Date ready!');
+              break;
+            case 'accepted': //blind date accepted
+              renderNotification('Blind Date accepted!');
+              break;
+            case 'declined': //blind date declined
+              renderNotification('Blind Date declined.');
+              break;                   
+            case 'pendingUpdate': //blind date updated
+              renderNotification('Blind Date updated.');
+              break;
+            case 'pending': //blind date updated
+              renderNotification('Blind Date updated.');
+              break;                 
+            case 'conversationExtended':
+              renderNotification(notifySnapshot.val().name+' has extended the conversation!');
+              break;
+            default:
+              console.log(`Sorry, no matching notification type`);
+          }
+  
+          //turn off notificationShow bool so it doesn't show again. 
+          firebase.database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
+            'showNotification': false
+          }); 
+          
+          //save to state listner, so that it specific listener can be turned off when leaving 
+          this.setState({ listener: listener });
+       
+        }
+      })
+  
+    }
 
   //Share function when sharing referral code native share functionality. 
   onShare = () => {
@@ -120,7 +190,10 @@ class Messages extends Component {
     let education = object.education;
     let work = object.work;
     let reviews = object.reviews;
+    let seen = object.seen;
     let match_date = object.match_date;
+    let reservationFirstName = this.state.reservationFirstName; //needed to setup date
+    let reservationLastName = this.state.reservationLastName; //needed to setup date
     let last_message = object.last_message;
     let last_message_date = object.last_message_date;
     let expiration_date = object.expiration_date;
@@ -139,11 +212,10 @@ class Messages extends Component {
     let dateStatus = (((object.date_status == 'pending') && notifyUser)  || ((object.date_status == 'pendingUpdate') && notifyUser) || object.date_status == 'accepted') ? true : false ; //dateStatus as true, if status is pending/pendingUpdate (and user needs is being waited on), or accepted
     let dateExpired = ((object.proposed_time - (6 * 3600000)) < this.state.currentDate.getTime()) ? true : false; 
 
-    console.log('object is: '+JSON.stringify(object));
     if (type == 'active' && match_state == 'active'){
       
       return(
-        <ListItem key={match_id} onPress={() => navigate("Chat", {profile: object, blur: blur, time_remaining: timeRemaining, expiration_date: expiration_date , match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, reviews: reviews })}>        
+        <ListItem key={match_id} onPress={() => navigate("Chat", {profile: object, seen: seen, reservationFirstName: reservationFirstName, reservationLastName: reservationLastName,  blur: blur, time_remaining: timeRemaining, expiration_date: expiration_date , match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, reviews: reviews })}>        
           <ProgressCircle
               matchStatus = {match_state}
               blur={blur}
@@ -158,8 +230,8 @@ class Messages extends Component {
             </ProgressCircle>
           <Body style={{flex: 1, padding: 5, flexDirection: 'row'}}>
             <View style={{flex: 1}}>
-              <Text>{name}</Text>
-              <Text note numberOfLines={1} style={{fontWeight: bold}}>
+              <Text style={{fontWeight: bold, fontFamily:'Helvetica-Light' }} >{name}</Text>
+              <Text note numberOfLines={1} style={{fontWeight: bold, fontFamily:'Helvetica-Light',  }}>
                 {last_message}
               </Text>
             </View>
@@ -192,7 +264,7 @@ class Messages extends Component {
     }else if (type == 'expired' && match_state == 'expired'){
       
       return(
-        <ListItem key={match_id} onPress={() => navigate("Chat", {profile: object, blur: blur, time_remaining: timeRemaining, expiration_date: expiration_date , match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, reviews: reviews })}>        
+        <ListItem key={match_id} onPress={() => navigate("Chat", {profile: object, seen: seen, reservationFirstName: reservationFirstName, reservationLastName: reservationLastName, blur: blur, time_remaining: timeRemaining, expiration_date: expiration_date , match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, reviews: reviews })}>        
           
           
           <ProgressCircle
@@ -224,18 +296,58 @@ class Messages extends Component {
 
     //rotate logo 
     this.runAnimation()
+    
 
     const { state, navigate } = this.props.navigation;
     let Analytics = RNfirebase.analytics();
     userId = firebase.auth().currentUser.uid;
+
     firebaseRef = firebase.database().ref('/matches/'+userId+'/').orderByChild('last_message_date').limitToFirst(50);
     
+    firebaseRefProfile = firebase.database().ref('/users/'+userId+'/');
+
+    //query for logged in users information needed and set state with it.     
+    firebase.database().ref('/users/' + userId).once('value', ((snapshot) => {
+            
+      //set state with user data. 
+      this.setState({ 
+        reservationFirstName: snapshot.val().first_name,
+        reservationLastName: snapshot.val().last_name,
+      });  
+    }))
+        
+
+    //listen for notifications when module Focus
+    const didFocus = this.props.navigation.addListener(
+      'didFocus',
+      payload => {
+        
+        //get notifications when arriving
+        this.handleNotification(userId, 'Messages', null);
+
+      }
+    );
+
+
+    //stop listening for notifications, since each module has different logic so lis
+    const didBlur = this.props.navigation.addListener(
+        'didBlur',
+        payload => {
+                
+          let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+  
+          //remove listener when leaving. 
+          query.off('child_changed', this.state.listener);
+        }
+      );
+
+
       var convos = [];
       //put message data into state in appropriate format
       firebaseRef.on('value', matchSnap => {
 
-        //clear array, if there's exisiting data here to make sure all items are unique when db is updated. 
-        convos = [];
+          //clear array, if there's exisiting data here to make sure all items are unique when db is updated. 
+          convos = [];
 
           //push match objects into convos array. If match is removed, don't add to arrary. 
           matchSnap.forEach((match) => {
@@ -249,7 +361,6 @@ class Messages extends Component {
             let matchRemoved = match.val().removed;
             let matchStatus = match.val().status;
             let matchBlur = match.val().blur;
-            
 
             //remove matches that have been removed by match
             if((matchRemoved !== true) && matchStatus !== 'paused'){
@@ -327,7 +438,7 @@ class Messages extends Component {
     const width = dimensions.width
 
     //get notifications 
-    handleNotification(userId, 'Messages', null);
+    //this.handleNotification(userId, 'Messages', null);
 
 
     return (
@@ -401,7 +512,7 @@ class Messages extends Component {
                 },
                 shadowOpacity: 0.29,
                 shadowRadius: 4.65,}} icon={ faInbox }/>
-                <Text style={{color: 'black', marginTop: 10}}> No messages yet. </Text>
+                <Text style={{color: 'black', marginTop: 10, fontSize: 18, fontFamily:'Helvetica-Light', }}> No messages yet. </Text>
                 <View style ={{marginTop: 20}}>
                   <Button rounded 
                     style={{ 
@@ -431,7 +542,7 @@ class Messages extends Component {
               }
               {this.state.expiredMatches &&
                 <Separator bordered>
-                  <Text>Expired</Text>
+                  <Text style={{fontFamily:'Helvetica-Light', }}>Expired</Text>
                 </Separator>
               }
               {

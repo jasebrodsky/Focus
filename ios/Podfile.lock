@@ -3,24 +3,24 @@ PODS:
     - AppCenter/Analytics (~> 4.0)
     - AppCenterReactNativeShared (~> 4.0)
     - React-Core
-  - appcenter-core (4.2.0):
+  - appcenter-core (4.4.5):
     - AppCenterReactNativeShared (~> 4.0)
     - React-Core
   - appcenter-crashes (4.2.0):
     - AppCenter/Crashes (~> 4.0)
     - AppCenterReactNativeShared (~> 4.0)
     - React-Core
-  - AppCenter/Analytics (4.2.0):
+  - AppCenter/Analytics (4.4.3):
     - AppCenter/Core
-  - AppCenter/Core (4.2.0)
-  - AppCenter/Crashes (4.2.0):
+  - AppCenter/Core (4.4.3)
+  - AppCenter/Crashes (4.4.3):
     - AppCenter/Core
-  - AppCenterReactNativeShared (4.2.0):
-    - AppCenter/Core (= 4.2.0)
+  - AppCenterReactNativeShared (4.4.5):
+    - AppCenter/Core (= 4.4.3)
   - Base64 (1.1.2)
   - boost-for-react-native (1.63.0)
-  - BVLinearGradient (2.5.6):
-    - React
+  - BVLinearGradient (2.6.2):
+    - React-Core
   - CodePush (5.7.0):
     - Base64 (~> 1.1)
     - JWT (~> 3.0.0-beta.7)
@@ -150,7 +150,7 @@ PODS:
   - nanopb/decode (0.3.9011)
   - nanopb/encode (0.3.9011)
   - PromisesObjC (1.2.12)
-  - Protobuf (3.17.0)
+  - Protobuf (3.21.5)
   - QBImagePickerController (3.4.0)
   - RCTRequired (0.61.5)
   - RCTTypeSafety (0.61.5):
@@ -413,12 +413,12 @@ PODS:
   - RSKImageCropper (3.0.2)
   - SajjadBlurOverlay (1.0.0):
     - React
-  - SSZipArchive (2.4.2)
+  - SSZipArchive (2.4.3)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
   - appcenter-analytics (from `../node_modules/appcenter-analytics/ios`)
-  - appcenter-core (from `../node_modules/appcenter/ios`)
+  - appcenter-core (from `../node_modules/appcenter`)
   - appcenter-crashes (from `../node_modules/appcenter-crashes/ios`)
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - CodePush (from `../node_modules/react-native-code-push`)
@@ -512,7 +512,7 @@ EXTERNAL SOURCES:
   appcenter-analytics:
     :path: "../node_modules/appcenter-analytics/ios"
   appcenter-core:
-    :path: "../node_modules/appcenter/ios"
+    :path: "../node_modules/appcenter"
   appcenter-crashes:
     :path: "../node_modules/appcenter-crashes/ios"
   BVLinearGradient:
@@ -609,14 +609,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  AppCenter: 87ef6eefd8ade4df59e88951288587429f3dd2a5
+  AppCenter: 3fd04aa1b166e16fdb03ec81dabe488aece83fbd
   appcenter-analytics: e34c776aa7145d0f3834c3bba2e003800d1572fe
-  appcenter-core: 1d3ae87d4f9280db4522fe8c25d3f7c9ab8e415f
+  appcenter-core: c593b2e4ac28d6a21b6a217c4a5e6b3de7b0b00f
   appcenter-crashes: dcfc443bd9fe7094e4fe49b15fabe68389a80c70
-  AppCenterReactNativeShared: ef370308277adf71ec1586798b196e4cc35335ea
+  AppCenterReactNativeShared: f395caeabde0dc3a11609dbcb737d0f14cd40e79
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
-  BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
+  BVLinearGradient: 34a999fda29036898a09c6a6b728b0b4189e1a44
   CodePush: fe25db2e24ff1a2fab8b280a9633d9ba520867be
   Crashlytics: 9220f5bc89e7a618df411b4f639389dbfb0e03d2
   DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
@@ -644,7 +644,7 @@ SPEC CHECKSUMS:
   JWT: ef71dfb03e1f842081e64dc42eef0e164f35d251
   nanopb: 18003b5e52dab79db540fe93fe9579f399bd1ccd
   PromisesObjC: 3113f7f76903778cf4a0586bd1ab89329a0b7b97
-  Protobuf: 7327d4444215b5f18e560a97f879ff5503c4581c
+  Protobuf: 7504b04fffcf6662ad629694db8231f5e744327f
   QBImagePickerController: d54cf93db6decf26baf6ed3472f336ef35cae022
   RCTRequired: b153add4da6e7dbc44aebf93f3cf4fcae392ddf1
   RCTTypeSafety: 9aa1b91d7f9310fc6eadc3cf95126ffe818af320
@@ -684,9 +684,9 @@ SPEC CHECKSUMS:
   RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
   RSKImageCropper: 1ac71e9a82e3f41eea3eedfff8eacb0d3821c9ec
   SajjadBlurOverlay: 4366a3417954b7d4a8a70682e0c43959ff76a3cb
-  SSZipArchive: e7b4f3d9e780c2acc1764cd88fbf2de28f26e5b2
+  SSZipArchive: fe6a26b2a54d5a0890f2567b5cc6de5caa600aef
   Yoga: f2a7cd4280bfe2cca5a7aed98ba0eb3d1310f18b
 
-PODFILE CHECKSUM: 9cae16d4a9977d62b1f899efc87a9051141c8f40
+PODFILE CHECKSUM: 0c7a9ab3bba1a262398ddb06c671ae88c2acdd4f
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.11.3
