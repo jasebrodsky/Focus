@@ -41,7 +41,7 @@
     "moment": "^2.24.0",
     "moment-duration-format": "^2.3.2",
     "native-base": "^2.2.1",
-    "npm": "^6.4.1",
+    "npm": "^9.4.1",
     "prop-types": "^15.7.2",
     "react": "16.11.0",
     "react-devtools-core": "^4.20.2",
