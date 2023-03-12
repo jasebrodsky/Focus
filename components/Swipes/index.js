@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Dimensions, StatusBar, SafeAreaView, Animated, ActivityIndicator, Image, ImageBackground, TouchableOpacity, Modal,ScrollView,Share } from 'react-native'
 import RNFirebase from "react-native-firebase";
+import 'firebase/firestore';
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import * as firebase from "firebase";
 import ImageViewer from 'react-native-image-zoom-viewer';
@@ -183,6 +184,7 @@ class Swipes extends Component {
         //set state with user data. 
         this.setState({
             user: snapshot.val(),
+            user_score: snapshot.val().score,
             user_name: snapshot.val().first_name,
             user_lat: snapshot.val().latitude,
             user_long: snapshot.val().longitude,
@@ -213,10 +215,14 @@ class Swipes extends Component {
        firebase.database().ref('/users/' + userId).on('value', (snapshot) => {
         const user = snapshot.val();
       
-        // if anytime the user object has a swipe_count field and it's 0
-        if (user && user.swipe_count == 0) {
+        console.log('REALTIME -- user.swipe_count: '+user.swipe_count);
+        console.log('OLD -- this.state.swipeCount: '+this.state.swipeCount);
+
+        // if anytime the user object has a swipe_count field and it's 0 and it wasn't before. 
+        if ((user && user.swipe_count == 0) && (this.state.swipeCount != 0)) {
             // //if swipeCount becomes zero while component is loaded, getMore matches. 
-              //reset cardindex to 0
+              
+            //reset cardindex to 0
               this.setState({ loading: true, isEmpty: false, cardIndex: 0, last_swipe_sesh_date: new Date().getTime() });
               
               //fetch new matches and put into state, 0 represents swipe_count to use in fetch. 
@@ -291,55 +297,119 @@ class Swipes extends Component {
 
     console.log('running getMatches for user: '+user.userid);    
 
-    let excludedUsers = Object.values(user.excludedUsers).map(obj => {
-      if (obj.useridExcluded === user.userid) {
-        return obj.useridExcluder;
-      } else if (obj.useridExcluder === user.userid) {
-        return obj.useridExcluded;
-      }
-    });
+    let excludedUsers;
+    if (typeof user.excludedUsers !== "undefined") {
+        excludedUsers = Object.values(user.excludedUsers).map(obj => {
+            if (obj.useridExcluded === user.userid) {
+                return obj.useridExcluder;
+            } else if (obj.useridExcluder === user.userid) {
+                return obj.useridExcluded;
+            }
+        });
+    } else {
+        excludedUsers = "";
+    }
 
-    excludedUsers = encodeURIComponent(excludedUsers.join(','));
+    //excludedUsers = encodeURIComponent(excludedUsers.join(','));
 
     //save SwipeCount as 0 if it's sent as param in function, otherwise use what's in the user object. 
     let swipeCount = (swipe_count == 0) ? 0 : user.swipe_count;
 
     //turn loading flag to true, so that swiper doesn't render with null data and break, and update last swipe date to use for real time matching logic.
     this.setState({ loading: true, last_swipe_sesh_date: new Date().getTime() });
-      //try block to fetch matches from cloud function
+     
+    //CONFIRM APPROACH WILL WORK E2E. 
+    //SAVE LOCATION GEOPOINT TO DB ON LOGIN
+    //CONFIRM FIRESTORE QUERY CAN FILTER BY LOCATION
+    //CAN IMPLEMENT PAGINATION HERE, TO ONLY READ DOCUMENTS UNTIL SWIPESREMAINING NUMBER IS FOUND   
+    const location = new firebase.firestore.GeoPoint(user.latitude, user.longitude);
+
+    console.log('location is: '+ JSON.stringify(location));
+
+
+    
+    //try block to fetch matches from cloud function
       try {
-        //await response from could funciton
-        let rankedMatches = await fetch('http://127.0.0.1:5001/blurred-195721/us-central1/getMatchingUsers?userid='+user.userid+'&birthday='+user.birthday+'&swipe_count='+swipeCount+'&latitude='+user.latitude+'&longitude='+user.longitude+'&max_distance='+user.max_distance+'&min_age='+user.min_age+'&max_age='+user.max_age+'&gender='+user.gender+'&interested='+user.interested+'&excluded_users='+excludedUsers)
-        .then(response => 
-          response.json(),
-          //console.log('response is: '+JSON.stringify(response))
-          )
-        .then(rankedMatchesArray => {
-          // process the data here
-          console.log('data is: '+rankedMatchesArray);
-          //if profile objs are empty or undefined show flag empty profiles else put profile into state
-          if (rankedMatchesArray === undefined || rankedMatchesArray.length == 0 || rankedMatchesArray == 'no more swipes.') {
-            //turn empty flag to true
-            this.setState({ 
-              isEmpty: true,
-              allSwiped: true,
-              loading: false
-            });  
 
-          // else put rankedMatchesArray into state
-          }else{
-            this.setState({ 
-              profiles: rankedMatchesArray,
-              loading: false,
-              isEmpty: false,
-            }), this.updateWithPotentialMatches();
-         }
-
-        });
-
-      } catch (error){
-        console.log('error occured: '+error);
+        let data = {
+          userid: user.userid,
+          score: user.score,
+          birthday: user.birthday,
+          swipe_count: swipeCount,      
+          latitude: user.latitude,
+          longitude: user.longitude,
+          max_distance: user.max_distance,
+          min_age: user.min_age,
+          max_age: user.max_age,
+          gender: user.gender,
+          interested: user.interested,
+          excluded_users: excludedUsers
       }
+  
+        let options = {
+          method: 'POST',
+          body: JSON.stringify(data),
+          headers: { 'Content-Type': 'application/json' }
+      }
+      let rankedMatches = await fetch('https://us-central1-blurred-195721.cloudfunctions.net/getMatchingUsers', options)
+      //let rankedMatches = await fetch('http://127.0.0.1:5001/blurred-195721/us-central1/getMatchingUsers', options)
+      .then(response => 
+          response.json(),
+      )
+      .then(rankedMatchesArray => {
+          if (rankedMatchesArray === undefined || rankedMatchesArray.length == 0 || rankedMatchesArray == 'no more swipes.') {
+              this.setState({ 
+                  isEmpty: true,
+                  allSwiped: true,
+                  loading: false
+              });  
+          }else{
+              this.setState({ 
+                  profiles: rankedMatchesArray,
+                  loading: false,
+                  isEmpty: false,
+              }), this.updateWithPotentialMatches();
+          }
+      });
+
+    }catch (error){
+      console.log('error occured: '+error);
+    }
+
+
+
+      //   //await response from could funciton
+      //   let rankedMatches = await fetch('http://127.0.0.1:5001/blurred-195721/us-central1/getMatchingUsers?userid='+user.userid+'&score='+user.score+'&birthday='+user.birthday+'&swipe_count='+swipeCount+'&latitude='+user.latitude+'&longitude='+user.longitude+'&max_distance='+user.max_distance+'&min_age='+user.min_age+'&max_age='+user.max_age+'&gender='+user.gender+'&interested='+user.interested+'&excluded_users=')
+      //   .then(response => 
+      //     response.json(),
+      //     //console.log('response is: '+JSON.stringify(response))
+      //     )
+      //   .then(rankedMatchesArray => {
+      //     // process the data here
+      //     console.log('data is: '+rankedMatchesArray);
+      //     //if profile objs are empty or undefined show flag empty profiles else put profile into state
+      //     if (rankedMatchesArray === undefined || rankedMatchesArray.length == 0 || rankedMatchesArray == 'no more swipes.') {
+      //       //turn empty flag to true
+      //       this.setState({ 
+      //         isEmpty: true,
+      //         allSwiped: true,
+      //         loading: false
+      //       });  
+
+      //     // else put rankedMatchesArray into state
+      //     }else{
+      //       this.setState({ 
+      //         profiles: rankedMatchesArray,
+      //         loading: false,
+      //         isEmpty: false,
+      //       }), this.updateWithPotentialMatches();
+      //    }
+
+      //   });
+
+      // } catch (error){
+      //   console.log('error occured: '+error);
+      // }
   }
 
   //handle notifications
@@ -600,24 +670,38 @@ class Swipes extends Component {
   //Function to save new swipe object
   pushNewSwipe = (like, userid, userid_match, match_status, name_match, about_match, imagesObj, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match, prompts_match) => {
 
-    let potential_match = (match_status == 'potential_match') ? true : false;
+      console.log('match_status is: '+match_status);
 
-    //define ref to users' swipe object
-    let swipesRef = firebase.database().ref('swipes/'+userid+'/'+userid_match+'/');
-    let swipesRef2 = firebase.database().ref('swipesReceived/'+userid_match+'/'+userid+'/');
 
-    //set or replace users swipe with latest swipe
-    swipesRef.set({
-      like: like,
-      swipe_date: new Date().getTime(),
-      //images: imagesObj
+      let potential_match = (match_status == 'potential_match') ? true : false;
+      console.log('potential_match is: '+potential_match);
+
+    // Update the swipe colletion at user's document .
+    // If the "swipes" array already exists, it will merge this new array with the existing array
+      firebase.firestore().collection('swipes').doc(userid).set({
+          [userid_match]: {
+              like: like, // like or dislike
+              userid_match: userid_match,
+              swipe_date: new Date().getTime() // Time of swipe
+          }
+      }, { merge: true })
+    
+      firebase.firestore().collection('swipesReceived').doc(userid_match).set({
+        [userid]: {
+            like: like, // like or dislike
+            userid_match: userid,
+            swipe_date: new Date().getTime() // Time of swipe
+        }
+    }, { merge: true })
+
+    .then(() => {
+        console.log("Documents successfully written! @: "+userid_match);
+        console.log("Documents successfully written! @: "+userid);
+    })
+    .catch((error) => {
+        console.error("Error writing document: ", error);
     });
 
-    swipesRef2.set({
-      like: like,
-      swipe_date: new Date().getTime(),
-      //images: imagesObj
-    });
 
     //if user is potential match, then 
       // create new match object
@@ -630,18 +714,35 @@ class Swipes extends Component {
       if (like == true){
         
         //reference where other user likes current user, filter to likes given since current user logged in. 
-        let likeGivenRef = firebase.database().ref('swipes/'+userid_match+'/'+userid+'/')
-          .orderByChild("swipe_date")
-          .startAt(this.state.user_last_login)
-          .endAt(new Date().getTime());
+        // let likeGivenRef = firebase.database().ref('swipes/'+userid_match+'/'+userid+'/')
+        //   .orderByChild("swipe_date")
+        //   .startAt(this.state.user_last_login)
+        //   .endAt(new Date().getTime());
+
+        let likeGivenRef = firebase.firestore().collection('swipes')
+          .doc(userid_match)
+          .collection('swipes')
+          .where("userid", "==", userid)
+          .where("swipe_date", ">=", this.state.user_last_login)
+          .where("swipe_date", "<=", new Date())
+          .orderBy("swipe_date");
+
+         //if like given is true and they swiped while user has been loged in (so flag for potential match == true), then push new match. 
+          likeGivenRef.get().then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                if (doc.exists && doc.data().like && (doc.data().swipe_date > this.state.last_swipe_sesh_date)) {
+                    this.pushNewMatch(imagesObj, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match, prompts_match);
+                }
+            });
+        });
 
         
         //if like given is true and they swiped while user has been loged in (so flag for potential match == true), then push new match. 
-        likeGivenRef.once('value').then((likeGiven) => { 
-          if (likeGiven.exists() && likeGiven.val().like && (likeGiven.val().swipe_date > this.state.last_swipe_sesh_date  )){
-            this.pushNewMatch(imagesObj, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match, prompts_match);
-          }
-        })
+        // likeGivenRef.once('value').then((likeGiven) => { 
+        //   if (likeGiven.exists() && likeGiven.val().like && (likeGiven.val().swipe_date > this.state.last_swipe_sesh_date  )){
+        //     this.pushNewMatch(imagesObj, name_match, userid, userid_match, about_match, birthday_match, gender_match, city_state_match, education_match, work_match, reviews_match, prompts_match);
+        //   }
+        // })
       }
 
         // let Analytics = RNFirebase.analytics();
@@ -741,7 +842,7 @@ class Swipes extends Component {
           like, //like
           this.state.userId, //userid
           this.state.profiles[cardIndex].userid, //userid match
-          this.state.profiles[cardIndex].match_type, // potential match // this.state.profiles[cardIndex].potential_match
+          this.state.profiles[cardIndex].matchType, // potential match // this.state.profiles[cardIndex].potential_match
           this.state.profiles[cardIndex].first_name, //match name
           this.state.profiles[cardIndex].about, //match about
           this.state.profiles[cardIndex].images, //match images

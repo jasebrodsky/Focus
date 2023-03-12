@@ -1113,7 +1113,7 @@ class Chat extends Component {
                           profile: this.props.navigation.getParam('profile'), 
                           blur: this.props.navigation.getParam('blur'), 
                           conversationId: conversationId,  
-                          from: 'Chat', g
+                          from: 'Chat',
                         });
                       }
                     }

@@ -15,14 +15,25 @@ const geofire = require('geofire-common');
 const Elo = require('arpad');
 
 
-  //sync users btw firebase (for UX purposes) and firestore (for querying purposes)
+  // //sync users btw firebase (for UX purposes) and firestore (for querying purposes)
+  // exports.syncUsers = functions.database.ref('/users/{userId}').onWrite((change, context) => {
+  //   // Get the user data
+  //   const user = change.after.val();
+
+  //   // Add the user to the Firestore collection
+  //   return admin.firestore().collection('users').doc(context.params.userId).set(user);
+  // });
+
+
   exports.syncUsers = functions.database.ref('/users/{userId}').onWrite((change, context) => {
     // Get the user data
     const user = change.after.val();
 
-    // Add the user to the Firestore collection
+    // Update the profile object in the Firestore document
     return admin.firestore().collection('users').doc(context.params.userId).set(user);
-  });
+});
+
+
 
   //sync swipes btw firebase (for UX purposes) and firestore (for querying purposes)
   exports.syncSwipesReceived = functions.database.ref('/swipesReceived/{userId}').onWrite((change, context) => {
@@ -45,7 +56,7 @@ const Elo = require('arpad');
   //getMatchingUsers that query user colletion for all appropriate users based off current users preferences and swipe history
   exports.getMatchingUsers = functions.https.onRequest( async (req, res) => {
 
-    const swipeCount = req.query.swipe_count;
+    const swipeCount = req.body.swipe_count;
     const remainingSwipes = 10 - swipeCount;
 
     //if remainingSwipe is greater than 0, continue script, otherwise stop.
@@ -55,16 +66,15 @@ const Elo = require('arpad');
 
     //continue script
 
-    const currentUserId = req.query.userid;
-    //const currentUserELOScore = req.query.currentUserELOScore;
-    const currentUserELOScore = 5.0;
-    const currentUserBirthday = req.query.birthday;
-    const currentUserLatitude = req.query.latitude;
-    const currentUserLongitude = req.query.longitude;
-    const currentUserMaxDistance = req.query.max_distance;
-    const minAgePreference = req.query.min_age;
-    const maxAgePreference = req.query.max_age;
-    const excludedUsers = req.query.excluded_users; //remember to pass this excluded_users=123&excluded_users=456&excluded_users=789
+    const currentUserId = req.body.userid;
+    const currentScore = req.body.score;
+    const currentUserBirthday = req.body.birthday;
+    const currentUserLatitude = req.body.latitude;
+    const currentUserLongitude = req.body.longitude;
+    const currentUserMaxDistance = req.body.max_distance;
+    const minAgePreference = req.body.min_age;
+    const maxAgePreference = req.body.max_age;
+    const excludedUsers = req.body.excluded_users; //remember to pass this excluded_users=123&excluded_users=456&excluded_users=789
 
     // compute time current time to use to determin age data 
     const currentTime = new Date();
@@ -86,21 +96,19 @@ const Elo = require('arpad');
       // Subtract an additional year if the maximum birth date is in the future
       maxBirthDay.setFullYear(maxBirthDay.getFullYear() - 1);
     //}
-    
-    
 
     // compute array of users gender preferences, in order to be used to filter for appropriate matches.
-    const currentUserGenderPreference = req.query.interested //can be either male,female, everyone
-    const currentUserGender = req.query.gender; // can be: 'male', 'female', 'non-binary'
+    const currentUserGenderPreference = req.body.interested //can be either male,female, everyone
+    const currentUserGender = req.body.gender; // can be: 'male', 'female', 'non-binary'
 
     // build geo coding data to use for start/end of queryies. 
    // const center = [Number(currentUserLatitude), Number(currentUserLongitude)];
     
-  const center = isNaN(currentUserLatitude) || isNaN(currentUserLongitude) ?
-    [40.7128, -74.0060] : // New York City
-    [Number(currentUserLatitude), Number(currentUserLongitude)]; //else use lat/long
-  
-  const radiusInM = currentUserMaxDistance;
+    const center = isNaN(currentUserLatitude) || isNaN(currentUserLongitude) ?
+      [40.7128, -74.0060] : // New York City
+      [Number(currentUserLatitude), Number(currentUserLongitude)]; //else use lat/long
+    
+    const radiusInM = currentUserMaxDistance;
 
     // Each item in 'bounds' represents a startAt/endAt pair. We have to issue
     // a separate query for each pair. There can be up to 9 pairs of bounds
@@ -173,6 +181,7 @@ const Elo = require('arpad');
           for (const key in doc.data()) {
             if (doc.data().hasOwnProperty(key)) {
               const map = doc.data()[key];
+              console.log('map is: '+map);
               if (map.like) {
                 swipesGivenRight.push(key);
               } else {
@@ -230,6 +239,11 @@ const Elo = require('arpad');
           && ((user.interested == currentUserGender) || (user.interested == 'everyone'))  //exclude users who are not interested in the current users gender.
       );
 
+      console.log('swipesReceivedRight: '+swipesReceivedRight);
+      console.log('swipesReceivedLeft: '+swipesReceivedLeft);
+      console.log('swipesGivenRight: '+swipesGivenRight);
+      console.log('swipesGivenLeft: '+swipesGivenLeft);
+
       //only take the first 5 swipe rights, so that a max of 5 potential matches will be shown to avoid overwhelming popular users. 
       swipesReceivedRight.slice(0, 4);
 
@@ -271,7 +285,14 @@ const Elo = require('arpad');
         // Within the eligible matches, sort by score
         if (a.matchType === 'eligible_match' && b.matchType === 'eligible_match') {
           //return b.score - a.score;
-          return b.last_login - a.score;
+
+          // calculate the absolute difference between the match's score and the static score of 5
+          const scoreDiffA = Math.abs(a.score - currentScore);
+          const scoreDiffB = Math.abs(b.score - currentScore);
+          // sort based on the difference
+          return scoreDiffA - scoreDiffB;
+
+
         }
 
       });
@@ -295,10 +316,7 @@ const Elo = require('arpad');
       //return rankedMatches to client.
       // how to think about limits, since you only want to send 10 back.. should we paginate process until there's 10?
      
-     //send array of user objects to client.
-     //add flag matchType: potential_match OR eligible_match for the others. 
-     //swipes should only get swipeData from this array, which is returned to it. handle potential matches with flag.  
-     
+     //send array of user objects to client.     
       return res.status(200).json(top10Matches);
         
   });
@@ -415,54 +433,50 @@ const Elo = require('arpad');
   // })
   // .region('us-central1')
   // .https.onRequest(async (request, response) => {
-  //   // Array to store all users that will be updated
-  //   const updateUsers = [];
 
-  //   // Function to convert a birthday to a timestamp
-  //   const birthdayToTimestamp = (birthday) => {
-  //     const date = new Date(birthday);
-  //     return date.getTime();
-  //   }
+  //       const userId = 'e6GZxn9yZrX2rRFZVKtrhqo11qD2';
 
-  //   // Function to convert latitude and longitude to a geohash
-  //   const latLongToGeohash = (lat, long) => {
-  //     const hash = geofire.geohashForLocation([lat, long]);
-  //     return hash;
-  //   }
+  //       // Get the user record for the specified user ID
+  //       const userRecord = await admin.auth().getUser(userId);
+    
+  //       // Set the custom claim for the user
+  //       await admin.auth().setCustomUserClaims(userId, { role: 'admin' });
+    
+  //       // Update the user record to apply the custom claim
+  //       await admin.auth().updateUser(userId, {
+  //         customClaims: { role: 'admin' }
+  //       });
+    
+  //       console.log(`Successfully set admin role for user ${userId}`);
+      
+    
+  //   // // Array to store all users that will be updated
+  //   // const updateUsers = [];
 
-  //   // Get the list of users from the database
-  //   const usersRef = admin.database().ref('/users');
-  //   const snapshot = await usersRef.once('value');
-  //   const users = snapshot.val();
-
-  //   console.log('users length: '+Object.keys(users).length);
-  //   // Loop through users and update each one with the birthdayTimeStamp and geohash properties
-  //   Object.values(users).forEach((user) => {
-  //     const updatedUser = {
-  //       ...user,
-  //       genderOnProfile: true,
-  //       // birthdayTimeStamp: birthdayToTimestamp(user.birthday),
-  //       // geohash: latLongToGeohash(user.latitude, user.longitude),
-  //     };
-  //     updateUsers.push(updatedUser);
-  //   });
+  //   // // Get the list of users from the database
+  //   // const usersRef = admin.database().ref('users/');
+  //   // const snapshot = await usersRef.once('value');
+  //   // const users = snapshot.val();
 
 
-  //   // Update the user object paths in the realtime database with the new properties
-  //   updateUsers.forEach((user) => {
+  //   // //console.log('users: '+JSON.stringify(users));
 
-  //     //console.log('user is: '+user.first_name)
+  //   // //console.log('users length: '+Object.keys(users).length);
+  //   // // Loop through users and update each one with the birthdayTimeStamp and geohash properties
+  //   // Object.values(users).forEach( async (user) => {
 
-  //     //only if user has a birthday, then set the user
-  //     if(true){
-  //       //console.log('user birthday is: '+user.birthday)
+  //   //   //console.log('user is: '+JSON.stringify(user.userid));
 
-  //       admin.database().ref(`users/${user.userid}`).set(user);
-  //     }
-  //   });
+  //   //   //let userid = user.userid;
+      
+  //   //   if(user.userid){
+  //   //       await admin.firestore().collection('users').doc(user.userid).set(user);
+  //   //   }
+
+  //   // });
 
   //   // Send a response message indicating that the update was successful
-  //   response.send('Users updated successfully');
+  //   response.send('User set to admin role');
   // });
 
 
@@ -1077,119 +1091,119 @@ exports.notifyNewMessage = functions.database.ref('/conversations/{conversationI
 //run function every 15 min and check which user has offset that equals noon, to send notificaiotn and reset swipe counts. 
 
 
-// exports.notifyNewMatchBatch = functions.pubsub.schedule('15,30,45,0 * * * *').onRun(async ( context ) => {
+exports.notifyNewMatchBatch = functions.pubsub.schedule('15,30,45,0 * * * *').onRun(async ( context ) => {
 
-//   // today date
-//   let today = new Date();
-//   console.log('today is: '+today);
+  // today date
+  let today = new Date();
+  console.log('today is: '+today);
   
-//   // today's minitues in UTC -- use this, since some timezones are offsetted by 15, 30, 60 min. 
-//   let currentUTCMinutes = today.getUTCMinutes();
-//   console.log('CurrentUTCMinutes is: '+currentUTCMinutes);
+  // today's minitues in UTC -- use this, since some timezones are offsetted by 15, 30, 60 min. 
+  let currentUTCMinutes = today.getUTCMinutes();
+  console.log('CurrentUTCMinutes is: '+currentUTCMinutes);
 
-//   // today's hour in UTC
-//   let currentUTChour = today.getUTCHours();
-//   console.log('currentUTChour is: '+currentUTChour);
+  // today's hour in UTC
+  let currentUTChour = today.getUTCHours();
+  console.log('currentUTChour is: '+currentUTChour);
 
-//   // put (hours * 60) + min together, for total min. 
-//   let currentUTCtimeMin = (currentUTChour * 60) + currentUTCMinutes;
-//   console.log('currentUTCtimeMin is: '+currentUTCtimeMin);
+  // put (hours * 60) + min together, for total min. 
+  let currentUTCtimeMin = (currentUTChour * 60) + currentUTCMinutes;
+  console.log('currentUTCtimeMin is: '+currentUTCtimeMin);
 
-//   //the local UTCoffset which equals noon, is the current UTC time - (12 hours * 60 min). 
-//   let localUtcOffsetMin = currentUTCtimeMin - (12 * 60); 
-//   console.log('localUtcOffsetMin is: '+localUtcOffsetMin);
+  //the local UTCoffset which equals noon, is the current UTC time - (12 hours * 60 min). 
+  let localUtcOffsetMin = currentUTCtimeMin - (12 * 60); 
+  console.log('localUtcOffsetMin is: '+localUtcOffsetMin);
 
-//   //what UTC Offset to target, at noon ....  currentUTC - 12 = localUtcOffset
-//   //UTC (GMT) = 0, local UTC offset = -12
-//   //UTC (GMT) = 1, local UTC offset = -11
-//   //UTC (GMT) = 2, local UTC offset = -10
-//   //UTC (GMT) = 3, local UTC offset = -9
-//   //UTC (GMT) = 4, local UTC offset = -8
-//   //UTC (GMT) = 5, local UTC offset = -7    
-//   //UTC (GMT) = 6, local UTC offset = -6
-//   //UTC (GMT) = 7, local UTC offset = -5    
-//   //UTC (GMT) = 8, local UTC offset = -4
-//   //UTC (GMT) = 9, local UTC offset = -3
-//   //UTC (GMT) = 10, local UTC offset = -2  
-//   //UTC (GMT) = 11, local UTC offset = -1
-//   //UTC (GMT) = 12, local UTC offset = 0
-//   //UTC (GMT) = 13, local UTC offset = 1
-//   //UTC (GMT) = 14, local UTC offset = 2
-//   //UTC (GMT) = 15, local UTC offset = 3
-//   //UTC (GMT) = 16, local UTC offset = 4
-//   //UTC (GMT) = 17, local UTC offset = 5
-//   //UTC (GMT) = 18, local UTC offset = 6    
-//   //UTC (GMT) = 19, local UTC offset = 7
-//   //UTC (GMT) = 20, local UTC offset = 8    
-//   //UTC (GMT) = 21, local UTC offset = 9 
-//   //UTC (GMT) = 22, local UTC offset = 10 
-//   //UTC (GMT) = 23, local UTC offset = 11 
-//   //UTC (GMT) = 24, local UTC offset = 12
+  //what UTC Offset to target, at noon ....  currentUTC - 12 = localUtcOffset
+  //UTC (GMT) = 0, local UTC offset = -12
+  //UTC (GMT) = 1, local UTC offset = -11
+  //UTC (GMT) = 2, local UTC offset = -10
+  //UTC (GMT) = 3, local UTC offset = -9
+  //UTC (GMT) = 4, local UTC offset = -8
+  //UTC (GMT) = 5, local UTC offset = -7    
+  //UTC (GMT) = 6, local UTC offset = -6
+  //UTC (GMT) = 7, local UTC offset = -5    
+  //UTC (GMT) = 8, local UTC offset = -4
+  //UTC (GMT) = 9, local UTC offset = -3
+  //UTC (GMT) = 10, local UTC offset = -2  
+  //UTC (GMT) = 11, local UTC offset = -1
+  //UTC (GMT) = 12, local UTC offset = 0
+  //UTC (GMT) = 13, local UTC offset = 1
+  //UTC (GMT) = 14, local UTC offset = 2
+  //UTC (GMT) = 15, local UTC offset = 3
+  //UTC (GMT) = 16, local UTC offset = 4
+  //UTC (GMT) = 17, local UTC offset = 5
+  //UTC (GMT) = 18, local UTC offset = 6    
+  //UTC (GMT) = 19, local UTC offset = 7
+  //UTC (GMT) = 20, local UTC offset = 8    
+  //UTC (GMT) = 21, local UTC offset = 9 
+  //UTC (GMT) = 22, local UTC offset = 10 
+  //UTC (GMT) = 23, local UTC offset = 11 
+  //UTC (GMT) = 24, local UTC offset = 12
   
   
-//   //return promise of users who are in their local noon time
-//   let fcmTokenFetchPromise = await admin.database().ref('users').orderByChild('utc_offset_min').equalTo(localUtcOffsetMin).once('value');
-//     //save empty array of tokens
-//     let fcmTokens = [];
+  //return promise of users who are in their local noon time
+  let fcmTokenFetchPromise = await admin.database().ref('users').orderByChild('utc_offset_min').equalTo(localUtcOffsetMin).once('value');
+    //save empty array of tokens
+    let fcmTokens = [];
 
-//     //for each returned user, put their token into an array.
-//     fcmTokenFetchPromise.forEach(user => {
-//       //handle when fcmToken is null by excluding from array and also check if user has permission to send notifications
-//       if(user.val().fcmToken && user.val().notifications_daily_match == true){
-//         //push fcmToken to fcmTokens array
-//         fcmTokens.push(user.val().fcmToken);
-//       }
+    //for each returned user, put their token into an array.
+    fcmTokenFetchPromise.forEach(user => {
+      //handle when fcmToken is null by excluding from array and also check if user has permission to send notifications
+      if(user.val().fcmToken && user.val().notifications_daily_match == true){
+        //push fcmToken to fcmTokens array
+        fcmTokens.push(user.val().fcmToken);
+      }
 
-//       console.log('fcmTokens are: '+fcmTokens);
+      console.log('fcmTokens are: '+fcmTokens);
 
-//       //update swipe count to 0 sine it's noon for userday. 
-//        admin.database().ref('/users/' + user.val().userid).update({
-//         swipe_count: 0,
-//       }).catch(reason => {
-//         console.log(reason);
-//         res.status(500).send('error: '+reason)
-//       });   
-//     })
+      //update swipe count to 0 sine it's noon for userday. 
+       admin.database().ref('/users/' + user.val().userid).update({
+        swipe_count: 0,
+      }).catch(reason => {
+        console.log(reason);
+        res.status(500).send('error: '+reason)
+      });   
+    })
 
-//     //construct the payload for the Multicast function.
-//     const payload = {
-//       data: {
-//         title: 'Hello again.',
-//         body: 'Your daily matches have arrived',
-//         VIEW: 'swipes'
-//       },
-//       apns: {
-//         payload: {
-//           aps: {
-//             alert: {
-//               title: 'Hello again',
-//               body: 'Your daily matches have arrived. \uD83D\uDE0D',    
-//             },
-//             //badge: 0,
-//             sound: 'default',
-//           },
-//         },
-//       },
-//       tokens: fcmTokens
-//     };
+    //construct the payload for the Multicast function.
+    const payload = {
+      data: {
+        title: 'Hello again.',
+        body: 'Your daily matches have arrived',
+        VIEW: 'swipes'
+      },
+      apns: {
+        payload: {
+          aps: {
+            alert: {
+              title: 'Hello again',
+              body: 'Your daily matches have arrived. \uD83D\uDE0D',    
+            },
+            //badge: 0,
+            sound: 'default',
+          },
+        },
+      },
+      tokens: fcmTokens
+    };
 
 
 
-//     // send message to each token in the payload
-//     return admin.messaging().sendMulticast(payload)
-//       .then((response) => {
-//         if (response.failureCount > 0) {
-//           const failedTokens = [];
-//           response.responses.forEach((resp, idx) => {
-//             if (!resp.success) {
-//               failedTokens.push(fcmTokens[idx]);              
-//             }
-//           });
-//           console.log('List of tokens that caused failures: ' + failedTokens);
-//         }
-//         console.log('response:', JSON.stringify(response));
-//       });
-//     })
+    // send message to each token in the payload
+    // return admin.messaging().sendMulticast(payload)
+    //   .then((response) => {
+    //     if (response.failureCount > 0) {
+    //       const failedTokens = [];
+    //       response.responses.forEach((resp, idx) => {
+    //         if (!resp.success) {
+    //           failedTokens.push(fcmTokens[idx]);              
+    //         }
+    //       });
+    //       console.log('List of tokens that caused failures: ' + failedTokens);
+    //     }
+    //     console.log('response:', JSON.stringify(response));
+    //   });
+    })
   
 
     //clean up codes that have bever been sent, first of the month at 9am 
