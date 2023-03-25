@@ -1418,7 +1418,7 @@ class ManageAboutMe extends Component {
                 },
                 shadowOpacity: 0.29,
                 shadowRadius: 4.65,}}> 
-                <Text style={{color: btnTextColor, fontFamily:'HelveticaNeue'}}>Continue</Text>
+                <Text style={{color: btnTextColor, fontFamily:'HelveticaNeue'}}>Save</Text>
               </Button> 
 
               {(this.props.navigation.getParam("from") !== 'Intro') &&
@@ -1428,7 +1428,7 @@ class ManageAboutMe extends Component {
               onPress = {() => this.props.navigation.getParam("goback") ? this.props.navigation.navigate("Profile", {profile: this.state.profile}) : this.props.navigation.navigate("ManagePreferences")}
               style={{ justifyContent: 'center', width: 300, 
                }}> 
-                <Text style={{color: btnTextColor, fontFamily:'HelveticaNeue'}}>Go Back</Text>
+                <Text style={{color: btnTextColor, fontFamily:'HelveticaNeue'}}>Close</Text>
               </Button> 
               }
 
@@ -1726,7 +1726,7 @@ class ManageAboutMe extends Component {
                       },
                       shadowOpacity: 0.29,
                       shadowRadius: 4.65,}}> 
-                      <Text style={{color: btnTextColor, fontFamily:'HelveticaNeue',}}>Continue</Text>
+                      <Text style={{color: btnTextColor, fontFamily:'HelveticaNeue',}}>Save</Text>
                   </Button> 
 
 
@@ -1737,7 +1737,7 @@ class ManageAboutMe extends Component {
                   onPress = {() => this.props.navigation.getParam("goback") ? this.props.navigation.navigate("Profile", {profile: this.state.profile}) : this.props.navigation.navigate("ManagePreferences")}
                   style={{  justifyContent: 'center', width: 300, 
                   }}> 
-                    <Text style={{color: btnTextColor, fontFamily:'HelveticaNeue'}}>Go Back</Text>
+                    <Text style={{color: btnTextColor, fontFamily:'HelveticaNeue'}}>Close</Text>
                   </Button> 
                 }
                 
