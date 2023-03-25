@@ -1103,20 +1103,22 @@ class Profile extends Component {
                   { this.props.navigation.state.params.flow =='edit' && //editing profile, show Add Prompt
                     <Button  
                       rounded
+                      transparent
                       onPress = {() =>  this.props.navigation.navigate("ManageConversationPromptsModal", {profile: this.state.profile, from: 'editProfile', goback: true})  }
                       style={{  
-                        marginTop: 30,
+                        //marginTop: 30,
                         justifyContent: 'center',
-                        shadowColor: "#000",
-                        backgroundColor: primaryColor,
-                        shadowOffset: {
-                          width: 0,
-                          height: 3,
-                        },
-                        shadowOpacity: 0.29,
-                        shadowRadius: 4.65, }}
+                        // shadowColor: "#000",
+                        // //backgroundColor: primaryColor,
+                        // shadowOffset: {
+                        //   width: 0,
+                        //   height: 3,
+                        // },
+                        // shadowOpacity: 0.29,
+                        // shadowRadius: 4.65, 
+                      }}
                       >
-                          <Text style={{color: 'white'}}>Talk to me about</Text>            
+                          <Text style={{color: primaryColor}}>Talk to me about</Text>            
                     </Button>  
                   }
 
