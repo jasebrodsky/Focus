@@ -1,0 +1,11 @@
+{"users": [
+
+
+]}
+
+firebase auth:import new_AUTH.json    
+    --hash-algo=SCRYPT         
+    --hash-key=SCRYPT                     
+    --rounds=8                    
+    --mem-cost=14                
+    --block-size=8            
