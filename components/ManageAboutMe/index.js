@@ -520,18 +520,23 @@ class ManageAboutMe extends Component {
                       )
                     } >
               <Image 
-                style={{
-                  width: 90, 
-                  height: 90,
-                  shadowColor: "#000",
-                  shadowOffset: {
-                    width: 0,
-                    height: 3,
-                  },
-                  shadowOpacity: 0.29,
-                  shadowRadius: 4.65,
-                  
-                  }} 
+               style={{  
+                //borderWidth: 0.6, 
+                //backgroundColor: 'white', 
+                //borderColor: '#d6d7da', 
+                //margin: 5,
+                marginBottom: 3,
+                borderRadius: 4,
+                width: 90, 
+                height: 130, 
+                justifyContent: 'center',
+                shadowColor: "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 3,
+                },
+                shadowOpacity: 0.29,
+                shadowRadius: 4.65, }}
                 source={image} />
           </TouchableOpacity>
   }
@@ -961,7 +966,9 @@ class ManageAboutMe extends Component {
     if (true) {
 
         //calculate if first iamge is default image, if so we'll need 6 additional placeholder iamges, if not we'll need 5. 
-        let placeholderImagesNeeded = this.state.profile.images['0'].url == "https://focusdating.co/images/user.jpg" ? 10 : 9
+        //let placeholderImagesNeeded = this.state.profile.images['0'].url == "https://focusdating.co/images/user.jpg" ? 10 : 9
+        let placeholderImagesNeeded = this.state.profile.images['0'].url == "https://focusdating.co/images/user.jpg" ? 7 : 6
+
 
         //calculate images to render based off how many real images are uploaded to state. 
         let placeholderImagesToRender = placeholderImagesNeeded - this.state.profile.images.length;
@@ -979,20 +986,25 @@ class ManageAboutMe extends Component {
                 })  
               }                    
               style={{  
-                borderWidth: 0.6, 
-                backgroundColor: 'white', 
-                borderColor: '#d6d7da', 
+                //borderWidth: 0.6, 
+                backgroundColor: 'black', 
+                //borderColor: 'black', 
                 margin: 5,
+                borderStyle: 'dashed',
+                borderRadius: 10,
+                borderWidth: 2,
+                borderColor: 'lightgrey',
                 width: 90, 
-                height: 90, 
+                height: 130, 
                 justifyContent: 'center',
-                shadowColor: "#000",
-                shadowOffset: {
-                  width: 0,
-                  height: 3,
-                },
-                shadowOpacity: 0.29,
-                shadowRadius: 4.65, }}>
+                // shadowColor: "#000",
+                // shadowOffset: {
+                //   width: 0,
+                //   height: 3,
+                // },
+                // shadowOpacity: 0.29,
+                // shadowRadius: 4.65, 
+              }}>
               <FontAwesomeIcon size={ 40 } style={{ color: 'lightgrey'}} icon={ faCamera } />
             </Button>);
         }
@@ -1559,7 +1571,39 @@ class ManageAboutMe extends Component {
                   }
 
 
+                <Button 
+                  transparent
+                  onPress={
 
+                    ()=> ActionSheet.show
+                    (
+                      {
+                        options: GENDER_OPTIONS,
+                        cancelButtonIndex: CANCEL_INDEX,
+                        destructiveButtonIndex: DESTRUCTIVE_INDEX,
+                        title: 'Gender Identity'
+                      },
+                      (buttonIndex) => {
+                        Keyboard.dismiss();
+                        if ((buttonIndex) === 3) {
+                              console.log(GENDER_OPTIONS[buttonIndex]);
+                              
+                        } else {
+                          this.setState({
+                            profile: { ...this.state.profile, gender: GENDER_OPTIONS[buttonIndex]}
+                        }, () => {
+                            this.updateGenderOrInterested('gender');
+                            this.updateData('gender', userId, GENDER_OPTIONS[buttonIndex]);
+                            this.setState({ forceUpdate: true}); //force update set to true, so that swipes will update if settings are changes and new matches need to be reflected. 
+                        })
+                      } 
+                    }
+                  )
+
+                  }
+                  style={{
+                    width: deviceWidth-130
+                  }}>
                 <TextInput 
                       disabled
                       editable={true}
@@ -1595,6 +1639,8 @@ class ManageAboutMe extends Component {
                     }                        
                     >
                   </TextInput>
+                </Button>
+
 
               </InputGroup> 
               <Text style={{

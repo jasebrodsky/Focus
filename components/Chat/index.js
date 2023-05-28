@@ -896,89 +896,69 @@ class Chat extends Component {
 
   }
 
-
-  //render time left based off difference btw expiration date and current date. then update state to reflect for the UI. 
-  //Call this function every second until componetn is unmounted
   _renderCountdownTimer = () => {
     const { state, navigate } = this.props.navigation;
-
-    //save expiration date sent via messages, into let, for calculating timeLeft
     let expiration_date = this.state.expirationDate;
-
-    //calculate time left based off difference btw expiration date and current date. 
-    let timeLeft = expiration_date - new Date().getTime();
-           
-    //if theres time left update the time, if not turn chat off 
-    if (timeLeft > 0){
-
-      //format text for days, hours, minutes, and seconds
-      let daysLeft = Math.floor( timeLeft/(1000*60*60*24)) //days
-      let hoursLeft = Math.floor( (timeLeft/(1000*60*60)) % 24 ) //hours
-      let minutesLeft = Math.floor( (timeLeft/1000/60) % 60 ) //minutes
-      let secondsLeft = Math.floor( (timeLeft/1000) % 60 ) //seconds
-
-      console.log('days left are: '+ daysLeft);
-      console.log('hours left are: '+ hoursLeft);
-      console.log('minutes left are: '+minutesLeft);
-      console.log('seconds left are: '+secondsLeft);
-
-
-      let timeRemainingText = '';
-
-      //if theres more than 6 days, just show 1 week left
-      if (daysLeft == 6) {
-        timeRemainingText = '1 week';
+  
+    // Function to update the countdown timer
+    const updateTimer = () => {
+      let timeLeft = expiration_date - new Date().getTime();
+  
+      if (timeLeft > 0) {
+        // Calculate time components: days, hours, minutes, seconds
+        let daysLeft = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        let hoursLeft = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+        let minutesLeft = Math.floor((timeLeft / (1000 * 60)) % 60);
+        let secondsLeft = Math.floor((timeLeft / 1000) % 60);
+  
+        let timeRemainingText = '';
+  
+        if (daysLeft >= 7) {
+          // If more than or equal to 7 days, display 1 week
+          timeRemainingText = '1 week';
+        } else if (daysLeft > 0) {
+          // If more than 0 days, display the number of days
+          timeRemainingText = `${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}`;
+        } else if (hoursLeft > 0) {
+          // If 0 days and more than 0 hours, display the number of hours
+          timeRemainingText = `${hoursLeft} ${hoursLeft === 1 ? 'hour' : 'hours'}`;
+        } else if (minutesLeft > 0) {
+          // If 0 days, 0 hours, and more than 0 minutes, display the number of minutes
+          timeRemainingText = `${minutesLeft} ${minutesLeft === 1 ? 'minute' : 'minutes'}`;
+        } else if (secondsLeft > 0) {
+          // If 0 days, 0 hours, 0 minutes, and more than 0 seconds, display the number of seconds
+          timeRemainingText = `${secondsLeft} ${secondsLeft === 1 ? 'second' : 'seconds'}`;
+        }
+  
+        this.setState({ timeRemaining: timeRemainingText });
+      } else {
+        // Set state to expired and disable the chat with matchActive = false
+        this.setState({ matchActive: false, timeRemaining: 'Expired' });
+  
+        // Update the unread status of the matches and conversation in the database
+        let firebaseRef = firebase.database().ref('/conversations/' + conversationId + '/');
+        let firebaseMatchesRef1 = firebase.database().ref('/matches/' + userId + '/' + state.params.match_userid + '/');
+        let firebaseMatchesRef2 = firebase.database().ref('/matches/' + state.params.match_userid + '/' + userId + '/');
+  
+        firebaseMatchesRef1.update({ active: false });
+        firebaseMatchesRef2.update({ active: false });
+        firebaseRef.update({ active: false });
+  
+        clearInterval(interval); // Clear the interval when the timer expires
       }
-      //if theres more than 1 day, just show the days left
-      else if (daysLeft > 0) {
-        timeRemainingText = daysLeft == 1 ? daysLeft+' day' : daysLeft+' days';
-      }
-      //if theres less than one day but more than 0 hours, just show hours left
-      else if(daysLeft == 0 && hoursLeft > 0){
-        timeRemainingText = hoursLeft == 1 ? hoursLeft+' hour' : hoursLeft+' hours';
-      }
-      //if theres less than one hour, just show minutes left
-      else if(daysLeft == 0 && hoursLeft == 0 && minutesLeft > 0){
-        timeRemainingText = minutesLeft == 1 ? minutesLeft+' minute' : minutesLeft+' minutes';
-
-      } 
-      //if theres less than one min, just show seconds left
-      else if(daysLeft == 0 && hoursLeft == 0 && minutesLeft == 0 && secondsLeft > 0){
-        timeRemainingText = secondsLeft == 1 ? secondsLeft+' second' : secondsLeft+' seconds';
-      }          
-      
-      //set state with text for UI to reference
-      this.setState({ timeRemaining: timeRemainingText  })//set state with new timeLeft
-
-    }else{
-      
-      //set state to expired and disable the chat with matchActive = false
-      //INVESTIGATE WHY THIS CONDITION IS BEING CALLED AFTER MESSAGE IS SENT?
-      this.setState({ matchActive: false, timeRemaining: 'Expired'})
-
-      //save refs to db for conversation and matches, to reflect new status
-      let firebaseRef = firebase.database().ref('/conversations/'+conversationId+'/');
-      let firebaseMatchesRef1 = firebase.database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
-      let firebaseMatchesRef2 = firebase.database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
-
-      //update the unread of my's match obj
-      firebaseMatchesRef1.update({
-        active: false,
-      });
-
-      //update the unread of my's match obj
-      firebaseMatchesRef2.update({
-        active: false
-      });
-
-      //update the conversation with active = false 
-      firebaseRef.update({
-        active: false
-      });
-
-    }
-
+    };
+  
+    updateTimer(); // Initial call to update the timer immediately
+  
+    // Call updateTimer every second using setInterval
+    const interval = setInterval(updateTimer, 1000);
+  
+    // Clean up the interval when the component is unmounted
+    return () => {
+      clearInterval(interval);
+    };
   }
+
 
   render() {
     const { state, navigate } = this.props.navigation;
@@ -1013,12 +993,23 @@ class Chat extends Component {
     let modalSecondaryCTA = 'Chat first'
 
     console.log('state.params.match_userid: '+state.params.match_userid);
-
     //if date is in the passed (proposed or confirmed), go to flow createNewProposal
-    if( (this.state.date.proposedTime < new Date().getTime() && this.state.date.status !== 'accepted') || (this.state.date.confirmedTime < new Date().getTime() && this.state.date.status == 'accepted') ){
-      flow = 'createNewProposal' ;
-    }else{
-      //configuration for date button
+    
+    //get current date and set other variables
+    const currentDate = new Date().getTime();
+    const { proposedTime, confirmedTime, status } = this.state.date;
+
+    // Floor proposedTime to the beginning of the day
+    const proposedDate = new Date(proposedTime);
+    proposedDate.setHours(24, 0, 0, 0);
+    const proposedTimeEndOfDay = proposedDate.getTime();
+
+
+    if ((proposedTimeEndOfDay < currentDate && status !== 'accepted') || (confirmedTime < currentDate && status === 'accepted')) {
+      flow = 'createNewProposal';
+    } else {
+      // Configuration for date button
+      // date is not expired yet
       switch (this.state.date.status) {
         case 'pending': 
           datePrimaryButtonCopy = (userId == this.state.date.waitingOnId) ? 'Blind date requested' : 'Blind date requested' ;
@@ -1047,7 +1038,7 @@ class Chat extends Component {
         case 'accepted': 
           datePrimaryButtonCopy = 'Blind date details';
           //flow = (true) ? 'detailsHide' : 'detailsShow' ; //1642837974 //1642833434708
-          flow = (this.state.date.proposedTime < Date.now()+(86400000*1)) ? 'detailsHide' : 'detailsShow' ; //show details when 24 hours before proposedTime
+          flow = (this.state.date.proposedTime + 86400000 < Date.now()+(86400000*1)) ? 'detailsHide' : 'detailsShow' ; //show details when 24 hours before proposedTime
           type = this.state.date.type;
           modalHeadline = "Blind date accepted.";
           modalPrimaryCTA = 'Blind date details';
@@ -1066,9 +1057,71 @@ class Chat extends Component {
         default:
           datePrimaryButtonCopy = 'Go on a blind date';
           flow = 'createNewProposal' ;
-
       }
     }
+  
+
+
+
+    
+    // if( (this.state.date.proposedTime + 86400000 < new Date().getTime() && this.state.date.status !== 'accepted') || (this.state.date.confirmedTime + 86400000 < new Date().getTime() && this.state.date.status == 'accepted') ){
+    //   flow = 'createNewProposal' ;
+      
+    // }else{
+    //   //configuration for date button
+    //   //alert(this.state.date.status);
+    //   switch (this.state.date.status) {
+    //     case 'pending': 
+    //       datePrimaryButtonCopy = (userId == this.state.date.waitingOnId) ? 'Blind date requested' : 'Blind date requested' ;
+    //       flow = (userId == this.state.date.waitingOnId) ? 'approveNewProposal' : 'waitingAcceptanceNewProposal' ;
+    //       type = this.state.date.type;
+    //       modalHeadline = 'Blind date requested.';
+    //       modalPrimaryCTA = 'Blind date details';
+    //       modalSecondaryCTA = 'Chat first'
+    //       break;
+    //     case 'pendingUpdate': 
+    //       datePrimaryButtonCopy = (userId == this.state.date.waitingOnId) ? 'Blind date requested' : 'Blind date requested' ;
+    //       flow = (userId == this.state.date.waitingOnId) ? 'approveUpdatedProposal' : 'waitingAcceptanceUpdatedProposal' ;
+    //       type = this.state.date.type;
+    //       modalHeadline = 'Blind date requested.';
+    //       modalPrimaryCTA = 'Blind date details';
+    //       modalSecondaryCTA = 'Chat first'
+    //       break;
+    //     case 'fulfill': 
+    //       datePrimaryButtonCopy = 'Blind date coordinating';
+    //       flow = 'proposalAccepted' ; //go to proposal Acccepted flow
+    //       type = this.state.date.type;
+    //       modalHeadline = "Personalizing your date now.";
+    //       modalPrimaryCTA = 'Blind date details';
+    //       modalSecondaryCTA = 'Chat first';
+    //       break;
+    //     case 'accepted': 
+    //       datePrimaryButtonCopy = 'Blind date details';
+    //       //flow = (true) ? 'detailsHide' : 'detailsShow' ; //1642837974 //1642833434708
+    //       flow = (this.state.date.proposedTime + 86400000 < Date.now()+(86400000*1)) ? 'detailsHide' : 'detailsShow' ; //show details when 24 hours before proposedTime
+    //       type = this.state.date.type;
+    //       modalHeadline = "Blind date accepted.";
+    //       modalPrimaryCTA = 'Blind date details';
+    //       modalSecondaryCTA = 'Chat first';
+    //       break;
+    //     case 'declined':
+    //       datePrimaryButtonCopy = 'Go on a blind date';
+    //       flow = 'createNewProposal' ;
+    //       type = this.state.date.type;
+    //       break;
+    //     case 'none':
+    //       datePrimaryButtonCopy = 'Go on a blind date';
+    //       flow = 'createNewProposal' ;
+    //       type = this.state.date.type;
+    //       //type = 'park';
+    //       break;
+    //     default:
+    //       datePrimaryButtonCopy = 'Go on a blind date';
+    //       flow = 'createNewProposal' ;
+          
+
+    //   }
+    // }
 
     
 
@@ -1188,12 +1241,9 @@ class Chat extends Component {
                               seen: true
                             });
 
-                            //if match is active or date has been set up (in status fulfill or accepted) go to blindDate module, if it's expired alert that chat needs to be extended first
-                            if(matchActive || (this.state.date.status == 'fulfill' || this.state.date.status == 'accepted')){
-
-
                               this.props.navigation.navigate('BlindDate', {
                                 //status: this.state.date.status, 
+                                matchActive: matchActive,
                                 flow: flow,
                                 //dateType: type, 
                                 dateId: conversationId, //dateId is the conversation id
@@ -1221,20 +1271,8 @@ class Chat extends Component {
                                 placeImage: date.imageUrl,
                                 placeName: date.placeName,
                                 priceMax: date.priceMax,
-                              })}else{
-                                Alert.alert(
-                                  "Conversation expired",
-                                  "You'll need to extend the Conversation in order to go on a blind date.",
-                                  [
-                                    {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-                                  ],
-                                  { cancelable: false }
-                                )  
-                              }
-                            }
+                              })}
 
-
-                        
                       }
 
                         style={{
@@ -1330,10 +1368,13 @@ class Chat extends Component {
                 onPress={() => 
                   
                   { 
-                    //if match is active or date has been set up (in status fulfill or accepted) go to blindDate module, if it's expired alert that chat needs to be extended first
-                    if(matchActive || (this.state.date.status == 'fulfill' || this.state.date.status == 'accepted')){
+                    // //if match is active or date has been set up (in status fulfill or accepted) go to blindDate module, if it's expired alert that chat needs to be extended first
+                    // if(matchActive || (this.state.date.status == 'fulfill' || this.state.date.status == 'accepted')){
+                     
+                     
                       this.props.navigation.navigate('BlindDate', {
                         //status: this.state.date.status, 
+                        matchActive: matchActive,
                         flow: flow,
                         //dateType: type, 
                         dateId: conversationId, //dateId is the conversation id
@@ -1361,21 +1402,23 @@ class Chat extends Component {
                         placeImage: date.imageUrl,
                         placeName: date.placeName,
                         priceMax: date.priceMax,
-                      })}else{
-                        Alert.alert(
-                          "Conversation expired",
-                          "You'll need to extend the Conversation in order to go on a blind date.",
-                          [
-                            {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-                          ],
-                          { cancelable: false }
-                        )  
-                      }
+                      })}
+                      
+                      // else{
+                      //   Alert.alert(
+                      //     "Conversation expired",
+                      //     "You'll need to extend the Conversation in order to go on a blind date.",
+                      //     [
+                      //       {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+                      //     ],
+                      //     { cancelable: false }
+                      //   )  
+                      // }
                     }
 
 
                 
-              }
+             // }
                 
 
                 >
@@ -1544,6 +1587,8 @@ class Chat extends Component {
     //firebase.database().ref('example').child(this.state.somethingDyamic).off('value');
 
     firebase.database().ref('/matches/' + userId).off('child_changed');
+    firebase.database().ref('/matches/' + userId).orderByChild('showNotification').off('child_changed', this.state.listener);
+
 
   }
 

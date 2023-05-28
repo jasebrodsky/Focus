@@ -211,6 +211,26 @@ class Messages extends Component {
     let notifyUser = object.date_waiting_on == userId ? true : false; //check if current user needs is being waited on
     let dateStatus = (((object.date_status == 'pending') && notifyUser)  || ((object.date_status == 'pendingUpdate') && notifyUser) || object.date_status == 'accepted') ? true : false ; //dateStatus as true, if status is pending/pendingUpdate (and user needs is being waited on), or accepted
     let dateExpired = ((object.proposed_time - (6 * 3600000)) < this.state.currentDate.getTime()) ? true : false; 
+    //let dateExpired = ( object.proposed_time < this.state.currentDate.getTime()) ? true : false; 
+
+
+
+    // const currentDate = new Date().getTime();
+    // const { proposedTime, confirmedTime, date_status } = object;
+
+    // // Floor proposedTime to the beginning of the day
+    // const proposedDate = new Date(proposedTime);
+    // proposedDate.setHours(24, 0, 0, 0);
+    // const proposedTimeEndOfDay = proposedDate.getTime();
+
+
+    // if ((proposedTimeEndOfDay < currentDate && date_status !== 'accepted') || (confirmedTime < currentDate && date_status === 'accepted')) {
+    //   dateExpired = true;
+    // }else{
+    //   dateExpired = false;
+    // }
+
+
 
     if (type == 'active' && match_state == 'active'){
       
@@ -264,28 +284,59 @@ class Messages extends Component {
     }else if (type == 'expired' && match_state == 'expired'){
       
       return(
-        <ListItem key={match_id} onPress={() => navigate("Chat", {profile: object, seen: seen, reservationFirstName: reservationFirstName, reservationLastName: reservationLastName, blur: blur, time_remaining: timeRemaining, expiration_date: expiration_date , match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, reviews: reviews })}>        
-          
-          
-          <ProgressCircle
-              blur={blur}
-              matchStatus = {match_state}
-              percent={percent_left}
-              radius={35}
-              borderWidth={5}
-              color = {percent_left>50 ? '#3399FF' : percent_left>20 ? 'orange' : 'red'}
-              shadowColor="#999"
-              bgColor="#fff"
-          >
-              <Thumbnail blurRadius={blur} round size={80} source={{uri: url}} />
-            </ProgressCircle>
-          <Body>
-            <Text>{name}</Text>
-            <Text note numberOfLines={1} style={{fontWeight: bold}}>
+        
+        
+        <ListItem key={match_id} onPress={() => navigate("Chat", {profile: object, seen: seen, reservationFirstName: reservationFirstName, reservationLastName: reservationLastName,  blur: blur, time_remaining: timeRemaining, expiration_date: expiration_date , match_id: match_id, match_state: match_state, match_userid: match_userid, about: about, name: name, birthday: birthday, gender: gender, city_state: city_state, education: education, work: work, images:images, reviews: reviews })}>        
+        <ProgressCircle
+            matchStatus = {match_state}
+            blur={blur}
+            percent={percent_left}
+            radius={35}
+            borderWidth={5}
+            color = {percent_left>50 ? '#3399FF' : percent_left>20 ? 'orange' : 'red'}
+            shadowColor="#999"
+            bgColor="#fff"
+        >
+            <Thumbnail blurRadius={blur} round size={80} source={{uri: url, cache: 'force-cache'}} />
+          </ProgressCircle>
+        <Body style={{flex: 1, padding: 5, flexDirection: 'row'}}>
+          <View style={{flex: 1}}>
+            <Text style={{fontWeight: bold, fontFamily:'Helvetica-Light' }} >{name}</Text>
+            <Text note numberOfLines={1} style={{fontWeight: bold, fontFamily:'Helvetica-Light',  }}>
               {last_message}
             </Text>
-          </Body>
-        </ListItem>
+          </View>
+
+          { (dateStatus && !dateExpired) &&
+          <View style={{
+            flex: 1, 
+            padding: 5,
+            borderRadius: 20, 
+            backgroundColor: primaryColor, 
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 3,
+              },
+              shadowOpacity: 0.29,
+              shadowRadius: 4.65,
+            }}>
+              <Text style={{color: 'white', fontSize: 16}}>Blind Date</Text>
+          </View>
+
+          }
+
+
+        </Body>
+      </ListItem>
+        
+        
+        
+        
+        
+    
         )
     }
 

@@ -490,6 +490,7 @@ handleSignUp = () => {
         longitude: -73.98527588801655, //default to NYC
         city_state: 'NYC', //default to NYC
         gender: 'Select',
+        genderOnProfile: true,
         //gender_pref: (gender == 'male') ? 'male_straight' : 'female_straight', //default gender_pref to straight to have less required field to validate.
         //interested: (gender == 'male') ? 'female' : 'male', //default interested in to straight to have less required field to validate.         
         //code_accepted: (gender == 'female') ? true : false, //if new user is female set code accepted to true, check this before letting user (men) in next time. 
@@ -682,6 +683,7 @@ onLoginOrRegister = () => {
                     longitude: longitude,
                     city_state: city_state,
                     gender: gender,
+                    genderOnProfile: true,
                     gender_pref: (gender == 'male') ? 'male_straight' : (gender == 'female') ? 'female_straight' : 'select', //default to straight
                     interested: (gender == 'male') ? 'female' : (gender == 'female') ? 'male' : 'select', //default to straight
                     birthday: birthday,

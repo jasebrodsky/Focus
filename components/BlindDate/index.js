@@ -10,6 +10,7 @@ import {
   Modal,
   Dimensions, 
   Vibration,
+  Alert,
   TouchableHighlight} from 'react-native';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 
@@ -207,6 +208,9 @@ class BlindDate extends Component {
     let status = this.context.deepLinkParams ? this.context.deepLinkParams.flow: this.props.navigation.getParam('status');
     let dateId = this.context.deepLinkParams ? this.context.deepLinkParams.dateId : this.props.navigation.getParam('dateId');
     let dateType = this.context.deepLinkParams ? this.context.deepLinkParams.dateType : this.props.navigation.getParam('dateType');
+    let matchActive = this.context.deepLinkParams ? this.context.deepLinkParams.matchActive : this.props.navigation.getParam('matchActive');
+
+    
 //    let dateType = this.props.navigation.getParam('dateType') ? this.props.navigation.getParam('dateType') : this.state.dateType;
 
 // WHEN CLICKING NEXT BUTTON, and getting to the confirm page, dateType is rendering as current saved dateType instead of lastest from state. Since this data is checked from nav first. Problem when a date exists but is changed (deleted/proposed new time) and the wrong/expired dateType is shown
@@ -309,6 +313,7 @@ class BlindDate extends Component {
           profile: profile, 
           dateId: dateId,
           dateType: dateType,
+          matchActive: matchActive, 
           confirmedTime: confirmedTime,
           proposedLong: proposedLong,
           proposedLat: proposedLat,
@@ -358,8 +363,16 @@ class BlindDate extends Component {
       //if a date exists, update ux state to match updated date in real time. 
       if (dateSnap.val()){
 
-        //if date is in the passed (proposed or confirmed), go to flow createNewProposal
-        if( (dateSnap.val().proposedTime < new Date().getTime() && dateSnap.val().status !== 'accepted') || (dateSnap.val().confirmedTime < new Date().getTime() && dateSnap.val().status == 'accepted') ){
+        //save current date
+        const currentDate = new Date().getTime();
+        
+        // Floor proposedTime to the end of the day
+        const proposedDate = new Date(dateSnap.val().proposedTime);
+        proposedDate.setHours(24, 0, 0, 0);
+        const proposedTimeEndOfDay = proposedDate.getTime();
+
+        if ((proposedTimeEndOfDay < currentDate && dateSnap.val().status !== 'accepted') || (dateSnap.val().confirmedTime < currentDate && dateSnap.val().status === 'accepted')) {
+
           flow = 'createNewProposal' ;
         }else{ //date is in the future configure flow. 
           switch (dateSnap.val().status) {
@@ -975,6 +988,9 @@ get pagination () {
 
     let deviceWidth = Dimensions.get('window').width
 
+    const { state, navigate } = this.props.navigation;
+
+    //alert(this.state.matchActive);
 
     // convert priceMax into dollar sign string -- CONVERT TO INLINE FOR LOOP
     switch (this.state.priceMax) {
@@ -1117,10 +1133,38 @@ get pagination () {
                           bordered
                           onPress={() => 
                             { 
-                              this._manageBlindDate('fulfill'), this.setState({flow: 'proposalAccepted', confetti: true, showModal: false})
-                              //if match is active or date has been set up (in status fulfill or accepted) go to blindDate module, if it's expired alert that chat needs to be extended first
+                                  
+                              //check if match is active or not, if it is accept the date. If it's not go to Refer/subscribe flow. 
+                              if(this.state.matchActive){
+                                this._manageBlindDate('fulfill'), this.setState({flow: 'proposalAccepted', confetti: true, showModal: false})
+                              }else{
+                                        
+                                Alert.alert(
+                                  "Conversation expired",
+                                  "You'll need to extend the conversation in order to go on a blind date.",
+                                  [
+                                    {
+                                      text: 'Extend',
+                                      onPress: () => {
+                                        navigate("Intersitial", {
+                                          flow: 'extendConversation1',
+                                          from: 'conversations',
+                                          match_userid: this.state.userIdMatch,
+                                          conversationId: conversationId,
+                                        });
+                                        this.setState({showModal: false});
+                                      },
+                                      style: 'cancel'
+                                    },
+                                  ],
+                                  { cancelable: false }
+                                );
+
+                              }
+                              
                             }
                           }
+                            
 
                           style={{
                             //marginLeft: deviceWidth/5,
@@ -1587,7 +1631,12 @@ get pagination () {
 
                               }
                             />
-                                <Text style={{fontFamily: 'Helvetica-Light', textAlign: 'center', color: 'grey', fontSize: 16, marginBottom: 5}}>{new Date(this.state.proposedTimeTimeStamp).toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</Text>  
+                                {/* <Text style={{fontFamily: 'Helvetica-Light', textAlign: 'center', color: 'grey', fontSize: 16, marginBottom: 5}}>{new Date(this.state.proposedTimeTimeStamp).toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</Text>   */}
+                                
+                                <Text style={{fontFamily: 'Helvetica-Light', textAlign: 'center', color: 'grey', fontSize: 16, marginBottom: 5}}>
+                                  {this.state.proposedTimeTimeStamp + 86400000 > new Date().getTime() ? new Date(this.state.proposedTimeTimeStamp).toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : new Date(new Date().getTime() + (86400000 * 3)).toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                                </Text>
+                                
                                 <Text style={{fontFamily: 'Helvetica-Light', textAlign: 'center', color: 'grey', fontSize: 16}}>Sometime between {this.state.dateTypeTime[this.state.dateType].timeRange}</Text>  
 
                           </View>
@@ -2006,18 +2055,30 @@ get pagination () {
                       shadowOpacity: 0.29,
                       shadowRadius: 4.65, }} 
                       onPress={() => {
-                        this._manageBlindDate('accepted')
-                        // this.setState({
-                        //   flow: 'detailsShow', 
-                        //   confetti: true
+
+                        //check if match is active or not, if it is accept the date. If it's not go to Refer/subscribe flow. 
+                        if(this.state.matchActive){
+                          this._manageBlindDate('accepted')
+                        }else{
+                                   
+                          Alert.alert(
+                            "Conversation expired",
+                            "You'll need to extend the conversation in order to go on a blind date.",
+                            [
+                              {text: 'Extend', onPress: () => navigate("Intersitial", { 
+                                flow: 'extendConversation1',
+                                from: 'conversations',
+                                match_userid: this.state.userIdMatch,
+                                conversationId: conversationId,
+                              }), style: 'cancel'},
+                            ],
+                            { cancelable: false }
+                          )  
                         
-                        // }) 
-
-
-
-
-
-                      }}
+                        }
+                        
+                      }
+                    }
 
                       //onPress={() => this.setState({flow: 'approveNewProposalPickTime' })}
 
@@ -2115,7 +2176,9 @@ get pagination () {
                                   () => {
                                     this.setState({
                                       flow: 'updateProposal',
-                                      createNewProposalStep: 'date', 
+                                      // createNewProposalStep: 'date',
+                                      createNewProposalStep: 'type', 
+ 
                                     })
                                   }
                                 }                            >
@@ -2243,7 +2306,7 @@ get pagination () {
                                   () => {
                                     this.setState({
                                       flow: 'updateProposal',
-                                      createNewProposalStep: 'date', 
+                                      createNewProposalStep: 'type', 
                                     })
                                   }
                                 }
