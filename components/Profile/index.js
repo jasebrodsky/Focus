@@ -833,7 +833,7 @@ class Profile extends Component {
                         {this.props.navigation.state.params.flow == 'edit' &&
                         <View style={{ flex: 1, alignItems: 'center' }}>
                           <Button transparent 
-                            onPress = {() => this.props.navigation.navigate("ManageAboutMeModal", {profile: this.state.profile, step: 6, from: 'editProfile', goback: true})}
+                            onPress = {() => this.props.navigation.navigate("ManageAboutMeModal", {profile: this.state.profile, step: 5, from: 'editProfile', goback: true})}
                             style={{                     
                               position: 'absolute',
                               bottom: (deviceHeight-240)/2,
@@ -961,8 +961,8 @@ class Profile extends Component {
                                     },
                                     (buttonIndex) => {
                                       if ((buttonIndex) === 0) {
-                                        //open refer module
-                                        this.props.navigation.navigate("Refer", {flow: 'endorse' });
+                                        //open intersitial module -> Refer module
+                                        this.props.navigation.navigate("Intersitial", { flow: 'refer'})
                                         }
                           
                                       if ((buttonIndex) === 1) {

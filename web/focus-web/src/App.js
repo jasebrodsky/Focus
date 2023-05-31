@@ -325,7 +325,7 @@ class App extends React.Component {
   }
   
   //function to handle acceptance off waitlist
-  handleAccept = (userid) => {
+  handleAccept = (user) => {
     //update status field of user to active
 
 
@@ -353,10 +353,33 @@ class App extends React.Component {
 
 
     //update status field of user to active
-    usersRefFbDb.child(userid).update({
+    usersRefFbDb.child(user.userid).update({
       status: 'active',
       intialUser: 'false'
     });
+
+    // Trigger custom notification request now
+    const payload = {
+      fcmToken: user.fcmToken,
+      messageTitle: 'Welcome to Focus Blind Dating \uD83D\uDE4C',
+      messageTxt: 'You are off the waitlist!',
+      view: 'swipes',
+    };
+
+
+    // Make an HTTP request to trigger the custom notification
+    fetch('https://us-central1-blurred-195721.cloudfunctions.net/sendCustomNotification?fcmToken=' + payload.fcmToken +
+      '&messageTitle=' + payload.messageTitle +
+      '&messageTxt=' + payload.messageTxt +
+      '&view=' + payload.view)
+      .then(response => {
+        // Handle the response from the custom notification request if needed
+        console.log('Custom notification request response:', response);
+      })
+      .catch(error => {
+        // Handle any errors that occur during the request
+        console.error('Custom notification request error:', error);
+      });
 
     
     //close modal if it's opened
@@ -1034,7 +1057,7 @@ class App extends React.Component {
       return (
         <tr key={index}  >
           <td>
-          <Button onClick={() => this.handleAccept(user.userid)}  variant="outline-primary">Accept</Button>
+          <Button onClick={() => this.handleAccept(user)}  variant="outline-primary">Accept</Button>
           </td>
           <td>
             <div >
@@ -1153,7 +1176,7 @@ class App extends React.Component {
         <WaitlistModal
           images={this.state.images}
           user={this.state.user}
-          handleAccept={() => this.handleAccept(this.state.user.userid)}
+          handleAccept={() => this.handleAccept(this.state.user)}
           show={this.state.waitlistModalShow}
           onHide={() => this.setState({waitlistModalShow: false})}
         />

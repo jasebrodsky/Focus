@@ -208,6 +208,28 @@ class Refer extends Component {
             notifyFcmToken: notifyFcmToken,
           });
 
+          // Trigger custom notification request now
+          const payload = {
+            fcmToken: notifyFcmToken,
+            messageTitle: 'Conversation Extended',
+            messageTxt: 'The conversation has been extended.',
+            view: 'messages',
+          };
+
+          // Make an HTTP request to trigger the custom notification
+          fetch('https://us-central1-blurred-195721.cloudfunctions.net/sendCustomNotification?fcmToken=' + payload.fcmToken +
+            '&messageTitle=' + payload.messageTitle +
+            '&messageTxt=' + payload.messageTxt +
+            '&view=' + payload.view)
+            .then(response => {
+              // Handle the response from the custom notification request if needed
+              console.log('Custom notification request response:', response);
+            })
+            .catch(error => {
+              // Handle any errors that occur during the request
+              console.error('Custom notification request error:', error);
+            });
+
           //update match to true status and set new expiration date
           firebaseMatchesRef1.update({
             active: true,

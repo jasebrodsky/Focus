@@ -1219,6 +1219,7 @@ class ManageAboutMe extends Component {
             <ImageViewer 
               backgroundColor={'#13131A'}
               renderHeader={() => null}
+              renderIndicator = {() => null}
               imageUrls={this.state.selectedImage}
               onSwipeDown = {() => this.setState({ imageViewerVisible: false})}
               onClick = {() => this.setState({ imageViewerVisible: false})}

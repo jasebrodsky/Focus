@@ -100,7 +100,8 @@ class Intro extends Component {
         {
           key: '2',
           subtext: "Only people you've swiped right on.",
-          title: 'With your type.',
+          //title: 'With your type.',
+          title: "Someone you're into.",
           // text: 'as photos re-focus while chatting.', //'With each message, photos will re-focus.',
           icon: faHeartbeat,
           image: require('./assets/banner-chat.jpg'),
@@ -111,7 +112,7 @@ class Intro extends Component {
         {
           key: '3',
           title: "We'll coordinate it.",
-          subtext:  "When you're both ready, we’ll coordinate your date.", //'Only gentlemen', 'Invite a friend',
+          subtext:  "When you're both ready, we’ll set it up.", //'Only gentlemen', 'Invite a friend',
           // text:  "and connections are made with you not your photos.", //'Spread the word.',
           icon:   faCheckDouble, //faBolt, //faUserLock, //faUnlockAlt, //faRestroom //faShield
           colors: [primaryColor, secondaryColor],

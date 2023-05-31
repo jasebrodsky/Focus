@@ -501,7 +501,9 @@ class Dashboard extends Component {
     let firebaseRef = firebase.database().ref('/users/' + userId);
 
     //check that all required fields are present.
-    let profileComplete = this.profileComplete();
+    //let profileComplete = this.profileComplete();
+    let profileComplete = true;
+
 
     //if one of gender,interested, birthday is false, ask to update. Else, go to swipes. 
     if (!profileComplete){
@@ -2279,8 +2281,6 @@ class Dashboard extends Component {
               </ListItem>
 
                <Item fixedLabel onPress = {() => navigate("Intersitial", { flow: 'refer'})}>
-
-            
 
                 <Label style={styles.subtitle}>Refer Friend</Label>
                 <Input disabled />

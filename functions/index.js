@@ -482,7 +482,7 @@ const Elo = require('arpad');
 
     //schedule create date for all dates in fulfill status every x time. 
     //create reservations for all dates in fulfill,  make a non normative time to feel personalized
-    exports.createDateSchedule = functions.pubsub.schedule('every 1 minutes').onRun(async ( context ) => {
+    exports.createDateSchedule = functions.pubsub.schedule('every 13 minutes').onRun(async ( context ) => {
     
         //return promise of all dates that have been created status fulfill
         let datesFulfill = await admin.database().ref('dates').orderByChild('status').equalTo('fulfill').once('value');
@@ -637,91 +637,91 @@ const Elo = require('arpad');
 //   })
 
 
-//function to send notification when user is off waitlist.
-exports.notifyOffWaitlist = functions.database.ref('/users/{userId}').onUpdate((change, context) => {
+// //function to send notification when user is off waitlist.
+// exports.notifyOffWaitlist = functions.database.ref('/users/{userId}').onUpdate((change, context) => {
   
-  //create empty array of fcmTokens
-  let fcmTokens = [];
+//   //create empty array of fcmTokens
+//   let fcmTokens = [];
   
-  //check if user is updated from waitlist to active status
-  if(change.before.val().status == 'waitlist' && change.after.val().status == 'active' ){
-    console.log('user is off waitlist.');
-    //save data of message
-    const fcmToken = change.after.val().fcmToken;
-    //push fcmToken to fcmTokens array
-    fcmTokens.push(fcmToken); 
-    const messageTitle = 'Welcome to Focus Blind Dating \uD83D\uDE4C';
-    const messageTxt = 'You are off the waitlist!';
+//   //check if user is updated from waitlist to active status
+//   if(change.before.val().status == 'waitlist' && change.after.val().status == 'active' ){
+//     console.log('user is off waitlist.');
+//     //save data of message
+//     const fcmToken = change.after.val().fcmToken;
+//     //push fcmToken to fcmTokens array
+//     fcmTokens.push(fcmToken); 
+//     const messageTitle = 'Welcome to Focus Blind Dating \uD83D\uDE4C';
+//     const messageTxt = 'You are off the waitlist!';
     
-    //build media messages notification
-    // const payload = {
-    //   notification: {
-    //       title: messageTitle,
-    //       body: messageTxt,
-    //       sound : "default"
-    //   },
-    //   data: {
-    //       VIEW: 'swipes'
-    //   }
-    // };
+//     //build media messages notification
+//     // const payload = {
+//     //   notification: {
+//     //       title: messageTitle,
+//     //       body: messageTxt,
+//     //       sound : "default"
+//     //   },
+//     //   data: {
+//     //       VIEW: 'swipes'
+//     //   }
+//     // };
 
-      //build media match notification
-      const payload = {
-        notification: {
-          title: messageTitle,
-          body: messageTxt,
-        },
-        data: {
-          title: messageTitle,
-          body: messageTxt,
-          VIEW: 'swipes'
-        },
-        apns: {
-          payload: {
-            aps: {
-              alert: {
-                title: messageTitle,
-                body: messageTxt,    
-              },
-              badge: 0,
-              sound: 'default',
-            },
-          },
-        },
-        tokens: fcmTokens//end data
-      }//end payload
+//       //build media match notification
+//       const payload = {
+//         notification: {
+//           title: messageTitle,
+//           body: messageTxt,
+//         },
+//         data: {
+//           title: messageTitle,
+//           body: messageTxt,
+//           VIEW: 'swipes'
+//         },
+//         apns: {
+//           payload: {
+//             aps: {
+//               alert: {
+//                 title: messageTitle,
+//                 body: messageTxt,    
+//               },
+//               badge: 0,
+//               sound: 'default',
+//             },
+//           },
+//         },
+//         tokens: fcmTokens//end data
+//       }//end payload
 
 
     
 
 
-    // Send a message to the device corresponding to the provided registration token.
+//     // Send a message to the device corresponding to the provided registration token.
 
-    // send message to each token in the payload
-    return admin.messaging().sendMulticast(payload)
-      .then((response) => {
-        if (response.failureCount > 0) {
-          const failedTokens = [];
-          response.responses.forEach((resp, idx) => {
-            if (!resp.success) {
-              failedTokens.push(fcmTokens[idx]);              
-            }
-          });
-          console.log('List of tokens that caused failures: ' + failedTokens);
-        }
-        console.log('response:', JSON.stringify(response));
-      });
+//     // send message to each token in the payload
+//     return admin.messaging().sendMulticast(payload)
+//       .then((response) => {
+//         if (response.failureCount > 0) {
+//           const failedTokens = [];
+//           response.responses.forEach((resp, idx) => {
+//             if (!resp.success) {
+//               failedTokens.push(fcmTokens[idx]);              
+//             }
+//           });
+//           console.log('List of tokens that caused failures: ' + failedTokens);
+//         }
+//         console.log('response:', JSON.stringify(response));
+//       });
 
 
-    // return admin.messaging().sendToDevice(fcmToken, payload)
-    //   .then((response) => {
-    //     console.log('Successfully sent message:', response);
-    //   })
-    //   .catch((error) => {
-    //     console.log('Error sending message:', error);
-    //   });
-  }
-})
+//     // return admin.messaging().sendToDevice(fcmToken, payload)
+//     //   .then((response) => {
+//     //     console.log('Successfully sent message:', response);
+//     //   })
+//     //   .catch((error) => {
+//     //     console.log('Error sending message:', error);
+//     //   });
+//   }
+// })
 
 //function to send notification after blindDate is created, accepted, proposed a new time.
 exports.notifyBlindDate = functions.database.ref('/dates/{dateId}').onWrite( async (change, context) => {
@@ -850,58 +850,46 @@ exports.notifyBlindDate = functions.database.ref('/dates/{dateId}').onWrite( asy
   }
 )
 
-//function to send notification when conversation is extended.
-exports.notifyConversationExtended = functions.database.ref('/conversations/{conversationId}').onUpdate((change, context) => {
+// new request function to send custom notification. payload is fcmToken to send noti to and the message title and text
+exports.sendCustomNotification = functions.https.onRequest((req, res) => {
   
+  //test query
+  //https://us-central1-blurred-195721.cloudfunctions.net/sendCustomNotification?fcmToken=fSRSxVrSiL8:APA91bGASXoxK7Gh2-RFpgUnRYosVszoI7xAoJYiKvz5fRap5K258vKyQfjz9WAOd3wDGsfyZ-ORhIOB_PTcKZ_5EJDLPm47ztGLCO4pfqHD35QVZ4UazrdzbCSUtUYFQrYivdhjK1_I&messageTitle=testTitle&messageTxt=testTxt&view=messages
+
   let fcmTokens = [];
 
-  console.log('conversation has been updated');
-  //check if user has an extended conversation 
-  if((change.before.val().active == false) && (change.after.val().active == true)){
-    
-    console.log('conversation is extended.');
-    //save data of message
-    const fcmToken = change.after.val().notifyFcmToken;
-    fcmTokens.push(fcmToken);
-    const messageTitle = 'Conversation Extended \uD83D\uDE0D';
-    const messageTxt = 'Open to find out who.';
-    
-    //build media messages notification
-    // const payload = {
-    //   notification: {
-    //       title: messageTitle,
-    //       body: messageTxt,
-    //       sound : "default"
-    //   },
-    //   data: {
-    //       VIEW: 'messages'
-    //   }
-    // };
+  //save query params into variableas
+  const fcmToken = req.query.fcmToken;
+  fcmTokens.push(fcmToken); //push fcmToken into fcmTokens array to use later
+  const messageTitle = req.query.messageTitle;
+  const messageTxt = req.query.messageTxt;
+  const view = req.query.view; //'messages' or 'swipes'
 
-      const payload = {
-        notification: {
-          title: messageTitle,
-          body: messageTxt,
-        },
-        data: {
-          title: messageTitle,
-          body: messageTxt,
-          VIEW: 'messages'
-        },
-        apns: {
-          payload: {
-            aps: {
-              alert: {
-                title: messageTitle,
-                body: messageTxt,    
-              },
-              badge: 0,
-              sound: 'default',
-            },
+  const payload = {
+    notification: {
+      title: messageTitle,
+      body: messageTxt,
+    },
+    data: {
+      title: messageTitle,
+      body: messageTxt,
+      VIEW: view
+    },
+    apns: {
+      payload: {
+        aps: {
+          alert: {
+            title: messageTitle,
+            body: messageTxt,    
           },
+          badge: 0,
+          sound: 'default',
         },
-        tokens: fcmTokens//end data
-      }//end payload
+      },
+    },
+    tokens: fcmTokens//end data
+  }//end payload
+
 
     // Send a message to the device corresponding to the provided registration token.
     // send message to each token in the payload
@@ -918,15 +906,89 @@ exports.notifyConversationExtended = functions.database.ref('/conversations/{con
       }
       console.log('response:', JSON.stringify(response));
     });
-    // return admin.messaging().sendToDevice(fcmToken, payload)
-    //   .then((response) => {
-    //     console.log('Successfully sent message:', response);
-    //   })
-    //   .catch((error) => {
-    //     console.log('Error sending message:', error);
-    //   });
-  }
+
+  
 })
+
+
+
+// //function to send notification when conversation is extended.
+// exports.notifyConversationExtended = functions.database.ref('/conversations/{conversationId}').onUpdate((change, context) => {
+
+//   let fcmTokens = [];
+
+//   console.log('conversation has been updated');
+//   //check if user has an extended conversation 
+//   if((change.before.val().active == false) && (change.after.val().active == true)){
+    
+//     console.log('conversation is extended.');
+//     //save data of message
+//     const fcmToken = change.after.val().notifyFcmToken;
+//     fcmTokens.push(fcmToken);
+//     const messageTitle = 'Conversation Extended \uD83D\uDE0D';
+//     const messageTxt = 'Open to find out who.';
+    
+//     //build media messages notification
+//     // const payload = {
+//     //   notification: {
+//     //       title: messageTitle,
+//     //       body: messageTxt,
+//     //       sound : "default"
+//     //   },
+//     //   data: {
+//     //       VIEW: 'messages'
+//     //   }
+//     // };
+
+//       const payload = {
+//         notification: {
+//           title: messageTitle,
+//           body: messageTxt,
+//         },
+//         data: {
+//           title: messageTitle,
+//           body: messageTxt,
+//           VIEW: 'messages'
+//         },
+//         apns: {
+//           payload: {
+//             aps: {
+//               alert: {
+//                 title: messageTitle,
+//                 body: messageTxt,    
+//               },
+//               badge: 0,
+//               sound: 'default',
+//             },
+//           },
+//         },
+//         tokens: fcmTokens//end data
+//       }//end payload
+
+//     // Send a message to the device corresponding to the provided registration token.
+//     // send message to each token in the payload
+//     return admin.messaging().sendMulticast(payload)
+//     .then((response) => {
+//       if (response.failureCount > 0) {
+//         const failedTokens = [];
+//         response.responses.forEach((resp, idx) => {
+//           if (!resp.success) {
+//             failedTokens.push(fcmTokens[idx]);              
+//           }
+//         });
+//         console.log('List of tokens that caused failures: ' + failedTokens);
+//       }
+//       console.log('response:', JSON.stringify(response));
+//     });
+//     // return admin.messaging().sendToDevice(fcmToken, payload)
+//     //   .then((response) => {
+//     //     console.log('Successfully sent message:', response);
+//     //   })
+//     //   .catch((error) => {
+//     //     console.log('Error sending message:', error);
+//     //   });
+//   }
+// })
 
 
 
