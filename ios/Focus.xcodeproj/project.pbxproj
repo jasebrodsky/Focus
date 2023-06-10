@@ -19,7 +19,7 @@
 		4A6ABC2DFDAB4B1298A49643 /* Roboto_medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9EDD041E59C243E69B1D5EFD /* Roboto_medium.ttf */; };
 		5258AD9EB5C1882C7395EF94 /* libPods-Focus-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D1425806C4C2FADC8955B224 /* libPods-Focus-tvOS.a */; };
 		5A2615B123B6BB20009EDCE5 /* images in Resources */ = {isa = PBXBuildFile; fileRef = 5A2615B023B6BB20009EDCE5 /* images */; };
-		5A2E1D4C23DCCF56002C463A /* AppCenter-Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A2E1D4B23DCCF55002C463A /* AppCenter-Config.plist */; };
+		5A26BED72A34626B00399FB8 /* AppCenter-Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A26BED62A34626B00399FB8 /* AppCenter-Config.plist */; };
 		5A67DBE823B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
 		5A67DBEA23B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
 		5A67DBEB23B685A400EDBC47 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */; };
@@ -71,7 +71,7 @@
 		416AD033A8C243643BAC4DB6 /* Pods-Focus Dating.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Focus Dating.debug.xcconfig"; path = "Target Support Files/Pods-Focus Dating/Pods-Focus Dating.debug.xcconfig"; sourceTree = "<group>"; };
 		5A2615AE23B6BADD009EDCE5 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = images; path = ../images; sourceTree = "<group>"; };
 		5A2615B023B6BB20009EDCE5 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = images; path = ../images; sourceTree = "<group>"; };
-		5A2E1D4B23DCCF55002C463A /* AppCenter-Config.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "AppCenter-Config.plist"; sourceTree = "<group>"; };
+		5A26BED62A34626B00399FB8 /* AppCenter-Config.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "AppCenter-Config.plist"; path = "Focus/AppCenter-Config.plist"; sourceTree = "<group>"; };
 		5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../Other/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		5A67DBEC23B68C2000EDBC47 /* Focus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Focus.entitlements; path = Focus/Focus.entitlements; sourceTree = "<group>"; };
 		5A7F935F28B20D5500CEA954 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
@@ -191,7 +191,6 @@
 				5A67DBEC23B68C2000EDBC47 /* Focus.entitlements */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
-				5A2E1D4B23DCCF55002C463A /* AppCenter-Config.plist */,
 				5A67DBE723B685A400EDBC47 /* GoogleService-Info.plist */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -231,6 +230,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				5A26BED62A34626B00399FB8 /* AppCenter-Config.plist */,
 				5A2615AE23B6BADD009EDCE5 /* images */,
 				5A2615B023B6BB20009EDCE5 /* images */,
 				13B07FAE1A68108700A75B9A /* Focus */,
@@ -388,9 +388,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				5A2615B123B6BB20009EDCE5 /* images in Resources */,
+				5A26BED72A34626B00399FB8 /* AppCenter-Config.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
-				5A2E1D4C23DCCF56002C463A /* AppCenter-Config.plist in Resources */,
 				5AC564BF26AE8777004E5BEE /* LaunchScreen.storyboard in Resources */,
 				4A6ABC2DFDAB4B1298A49643 /* Roboto_medium.ttf in Resources */,
 				E9623F6FFA2845F5B90A82BC /* Roboto.ttf in Resources */,
