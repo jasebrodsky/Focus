@@ -673,7 +673,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 2.02;
+				MARKETING_VERSION = 1.70;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
@@ -701,7 +701,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 2.02;
+				MARKETING_VERSION = 1.70;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lc++",
