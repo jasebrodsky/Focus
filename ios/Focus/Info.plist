@@ -89,8 +89,8 @@
 	<string>1</string>
     <key>CodePushPublicKey</key>
 	<string>wZuJFMmEH9LyRat11rW84h5qdkwpu7gVb_5z_</string>
-	<!-- <key>CodePushDeploymentKey</key>
-	<string>wZuJFMmEH9LyRat11rW84h5qdkwpu7gVb_5z_</string> -->
+	<key>CodePushDeploymentKey</key>
+	<string>wZuJFMmEH9LyRat11rW84h5qdkwpu7gVb_5z_</string>
 	<key>FacebookAppID</key>
 	<string>1610398089049172</string>
 	<key>FacebookDisplayName</key>
