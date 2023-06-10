@@ -86,7 +86,7 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>CodePushDeploymentKey</key>
-	<string>GXAQ1Op1A8MYEgAXNrfLsBeDWEm8RWdbYCeW9</string>
+	<string>wZuJFMmEH9LyRat11rW84h5qdkwpu7gVb_5z_</string>
 	<key>FacebookAppID</key>
 	<string>1610398089049172</string>
 	<key>FacebookDisplayName</key>
@@ -148,6 +148,10 @@
 		<string>rubicon-icon-font.ttf</string>
 		<string>SimpleLineIcons.ttf</string>
 		<string>Zocial.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

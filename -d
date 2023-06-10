@@ -1,0 +1,1 @@
+Error: Command 'codepush patch -a FocusDating Production' failed with exception "'FocusDating' is not a valid application id"

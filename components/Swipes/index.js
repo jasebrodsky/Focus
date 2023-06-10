@@ -1236,15 +1236,22 @@ class Swipes extends Component {
                           /> 
                         </View>
                       </CardItem>                  
-                      <CardItem style={{backgroundColor: '#13131A'}}>
+                      <CardItem style={{backgroundColor: '#13131A', minHeight: 97}}>
                           <Body >
                             <Text style={{fontSize: 20, fontFamily:'HelveticaNeue-Bold', textTransform: 'capitalize', color: primaryColor}} numberOfLines={1} >{this.calculateAge(card.birthday) + genderOnProfile} </Text>
-
-
                             <Text style={{color: 'white', fontSize: 15, fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.city_state} </Text>
-                            <Text style={{color: 'white', fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.education} </Text>
-                            <Text style={{color: 'white', fontFamily:'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>{card.work} </Text>
-                            {/* <Text style={{marginTop: 10}} numberOfLines={1} note>{card.about} </Text>                            */}
+                            {card.education.length > 0 && (
+                                <Text style={{color: 'white', fontFamily: 'HelveticaNeue', textTransform: 'capitalize'}} numberOfLines={1}>
+                                  {card.education}
+                                </Text>
+                            )}
+                            {card.work.length > 0 && (
+                              <Text style={{ color: 'white', fontFamily: 'HelveticaNeue', textTransform: 'capitalize' }} numberOfLines={1}>
+                                {card.work}
+                              </Text>
+                            )}
+                          
+                          
                           </Body>
                       </CardItem>            
                     </Card>)

@@ -293,7 +293,7 @@ forgotPassword = (email) => {
 
   Alert.prompt(
     'Enter email',
-    'We will you an email to reset your password',
+    'We will send you an email to reset your password',
     [
       {
         text: 'Cancel',

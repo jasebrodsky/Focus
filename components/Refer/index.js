@@ -307,7 +307,7 @@ class Refer extends Component {
             title: "Download Focus",
             descriptionText: "Go on Blind Dates. With your type. We'll coodinate it.",
             //descriptionText: this.state.user_name + 'says: '+this.state.reason,
-            imageUrl: 'https://focusdating.co/images/share.png'
+            imageUrl: 'https://focusdating.co/images/share2.png'
           },     
           ios: {
             bundleId: 'com.helm.focus',
