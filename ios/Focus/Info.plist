@@ -87,8 +87,16 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-    <key>CodePushPublicKey</key>
-	<string>wZuJFMmEH9LyRat11rW84h5qdkwpu7gVb_5z_</string>
+	<key>CodePushPublicKey</key>
+	<string>-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3bsnYK6eV0eG0+9yWRcA
+87E8YuSeJQO2MJrNNbvhzKdGp88RZTTi/SqOlyIpqFU6X9IQNHUUlBcv++YEldsL
+2t4EP4Yu4CNzxeqHnVcsF1AJVKXtwXiv5EWUbyfElpYEZqdQFxpUT9j6uSGp8lXh
+LbZ5thjyt0zC/hZw82SRZ5i28BP30HTrDsVpI4zB1mHFkfJdxW3hv/r8Brp4dqqf
+vU/YU/NN1+fAQtW/GZsfpu7lC+KyuNmSh2I9RL/HvqLam3n337OWu/AgqLeOAIOu
+w3lqgu6m7rQ31NPeh66RvkzerIk8wlek3XVjlJjzK1rokNj28srE3KZTxwrW5Aii
+6QIDAQAB
+-----END PUBLIC KEY-----</string>
 	<key>CodePushDeploymentKey</key>
 	<string>wZuJFMmEH9LyRat11rW84h5qdkwpu7gVb_5z_</string>
 	<key>FacebookAppID</key>
