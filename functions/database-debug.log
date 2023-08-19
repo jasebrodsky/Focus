@@ -1,0 +1,14 @@
+00:58:08.215 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+00:58:08.307 [main] INFO com.firebase.server.forge.App$ - Listening at localhost:9000
+00:58:12.650 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO com.firebase.core.namespace.NamespaceActor - blurred-195721 successfully activated FBKV (SurveyIdle(0)) wait: 64ms, init: 0ms
+00:58:12.675 [NamespaceSystem-blocking-namespace-operation-dispatcher-6:blurred-195721$-1228005263:] INFO com.firebase.core.namespace.StateManager - Namespace blurred-195721 status Active to Active
+00:58:12.691 [NamespaceSystem-blocking-namespace-operation-dispatcher-7:blurred-195721$-862119525:] INFO com.firebase.core.namespace.StateManager - Namespace blurred-195721 status Active to Active
+00:58:12.696 [NamespaceSystem-blocking-namespace-operation-dispatcher-7:blurred-195721$-2014557157:] INFO com.firebase.core.namespace.StateManager - Namespace blurred-195721 status Active to Active
+00:58:12.701 [NamespaceSystem-blocking-namespace-operation-dispatcher-6:blurred-195721$84384916:] INFO com.firebase.core.namespace.StateManager - Namespace blurred-195721 status Active to Active
+00:58:12.706 [NamespaceSystem-blocking-namespace-operation-dispatcher-6:blurred-195721$1208179955:] INFO com.firebase.core.namespace.StateManager - Namespace blurred-195721 status Active to Active
+00:58:12.710 [NamespaceSystem-blocking-namespace-operation-dispatcher-7:blurred-195721$-1659876237:] INFO com.firebase.core.namespace.StateManager - Namespace blurred-195721 status Active to Active
+00:58:12.716 [NamespaceSystem-blocking-namespace-operation-dispatcher-6:blurred-195721$355613970:] INFO com.firebase.core.namespace.StateManager - Namespace blurred-195721 status Active to Active
+22:48:57.025 [Thread-0] INFO com.firebase.server.forge.App$ - Attempting graceful shutdown.
+22:48:57.096 [NamespaceSystem-akka.actor.default-dispatcher-55] INFO com.firebase.core.namespace.Terminator$Terminator - 1 actors left to terminate: blurred-195721
+22:48:57.106 [NamespaceSystem-akka.actor.default-dispatcher-56] INFO com.firebase.core.namespace.NamespaceActor - stopped namespace actor for blurred-195721
+22:48:57.111 [Thread-0] INFO com.firebase.server.forge.App$ - Graceful shutdown complete.

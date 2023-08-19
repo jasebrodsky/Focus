@@ -1,7 +1,12 @@
 import React, { Component } from 'react';
 import { Alert, ScrollView, Animated, TouchableOpacity, Image, ImageBackground, StyleSheet, Dimensions, StatusBar } from 'react-native';
-import RNfirebase from 'react-native-firebase';
-import * as firebase from "firebase";
+// import RNfirebase from 'react-native-firebase';
+// import * as firebase from "firebase";
+import firebase from '@react-native-firebase/app';
+import auth from '@react-native-firebase/auth';
+import database from '@react-native-firebase/database';
+import analytics from '@react-native-firebase/analytics';
+
 import { Modal, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
@@ -68,6 +73,7 @@ class Chat extends Component {
       removed: false,
       timeLeft: null,
       matchDate: null,
+      sneakPeekCount: 0,
       expirationDate: state.params.expiration_date,
       matchActive: true,
       chatActive: true,
@@ -140,9 +146,14 @@ class Chat extends Component {
       ),
       
       headerRight: () => (
-        <Button transparent style={{width: 100, flex: 1, justifyContent: 'flex-end' }} onPress={navigation.getParam('handleSneekPeek')}>
-          <FontAwesomeIcon size={ 32 } style={{right: 16, color: primaryColor}} icon={ faEye } />
-       </Button>
+        <Button transparent style={{ width: 100, flex: 1, justifyContent: 'flex-end', right: 16 }} onPress={navigation.getParam('handleSneakPeek')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginRight: 4, color: primaryColor }}>
+            {(navigation.getParam('sneakPeekCount') !== undefined ) && (navigation.getParam('sneakPeekCount') < 3 ) ? 3 - navigation.getParam('sneakPeekCount') : ''}
+            </Text>
+            <FontAwesomeIcon size={32} style={{ color: primaryColor }} icon={faEye} />
+          </View>
+        </Button>
       ),
     };
   };
@@ -153,7 +164,7 @@ class Chat extends Component {
     const { state, navigate } = this.props.navigation;
     conversationId = state.params.match_id;
 
-    this.messageRef = firebase.database().ref('/conversations/'+conversationId+'/messages/');
+    this.messageRef = database().ref('/conversations/'+conversationId+'/messages/');
     this.messageRef.off();
     const onReceive = (data) => {
       const message = data.val();
@@ -175,8 +186,7 @@ class Chat extends Component {
   componentWillMount() {
 
     const { state, navigate } = this.props.navigation;
-    const userId = firebase.auth().currentUser.uid;
-    let Analytics = RNfirebase.analytics();
+    const userId = auth().currentUser.uid;
     let conversationId = state.params.match_id;
     let images = state.params.images; //might make more sense to pull from db instead of previous componnet, since now won't be able to deeplink into chat
     let about = state.params.about; //might make more sense to pull from db instead of previous componnet, since now won't be able to deeplink into chat
@@ -194,25 +204,27 @@ class Chat extends Component {
     let match_state = state.params.match_state;
     let time_remaining = state.params.time_remaining;
 
-    //update state with subscribed, if user is susbscribed. listen on changes if subscribes changes in db.
-    firebase.database().ref('/users/'+userId+'/').on("value", profile =>{
-      let subscribed = profile.val().subscribed;
-      this.setState({'subscribed': subscribed })
+    //update state with subscribed and sneakPeekCount, if user is susbscribed. listen on changes if subscribes changes in db.
+    database().ref('/users/'+userId+'/').on("value", profile =>{
+      this.setState({'subscribed': profile.val().subscribed, 'sneakPeekCount': profile.val().sneakPeekCount  })
+      this.props.navigation.setParams({ 
+        sneakPeekCount: profile.val().sneakPeekCount
+      });
     })
 
 
     //update state with most recent match data, so that can render modal when date needs approval. 
-    firebase.database().ref('matches/'+userId+'/'+match_userid).on("value", matchSnap =>{
+    database().ref('matches/'+userId+'/'+match_userid).on("value", matchSnap =>{
       this.setState({showModal: !matchSnap.val().seen })
     })
     
 
 
     //save fb ref for quering conversation data
-    let firebaseRef = firebase.database().ref('/conversations/'+conversationId+'/');
+    let firebaseRef = database().ref('/conversations/'+conversationId+'/');
 
     //firebase ref for user in context match obj, used to flag all messages have been read
-    let firebaseMatchesRef2 = firebase.database().ref('/matches/'+userId+'/'+match_userid+'/');
+    let firebaseMatchesRef2 = database().ref('/matches/'+userId+'/'+match_userid+'/');
 
     //update the unread of my's match obj
     firebaseMatchesRef2.update({
@@ -313,12 +325,14 @@ class Chat extends Component {
             userIdMatch: participantUserId,
             images: imagesArray,
             removed: dataSnapshot.val().removed
-          }),
-          //run analytics
-            Analytics.setAnalyticsCollectionEnabled(true);
-            Analytics.setCurrentScreen('Chat', 'Chat');
-            Analytics.setUserId(userId);
-
+          }),      
+          //Run analytics
+          analytics().logScreenView({
+            screen_name: 'Chat',
+            screen_class: 'Chat'
+          });
+          analytics().setUserId(userId)
+  
       })
 
   }
@@ -329,14 +343,13 @@ class Chat extends Component {
 
     const { state, navigate } = this.props.navigation;
     conversationId = state.params.match_id;
-    let Analytics = RNfirebase.analytics();
 
-    let firebaseMessagesRef = firebase.database().ref('/conversations/'+conversationId+'/messages/');
-    let firebaseConversationsRef = firebase.database().ref('/conversations/'+conversationId+'/');
+    let firebaseMessagesRef = database().ref('/conversations/'+conversationId+'/messages/');
+    let firebaseConversationsRef = database().ref('/conversations/'+conversationId+'/');
     
     //save firebase refs to update matches with last messages
-    let firebaseMatchesRef1 = firebase.database().ref('/matches/'+this.state.userIdMatch+'/'+userId+'/');
-    let firebaseMatchesRef2 = firebase.database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/');
+    let firebaseMatchesRef1 = database().ref('/matches/'+this.state.userIdMatch+'/'+userId+'/');
+    let firebaseMatchesRef2 = database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/');
 
     //loop through new messages and push back to firebase, which will call loadmessages again. 
     for (let i = 0; i < message.length; i++) {
@@ -345,7 +358,7 @@ class Chat extends Component {
         user: message[i].user, 
         userTo: this.state.userIdMatch,
         notify: true,
-        createdAt: firebase.database.ServerValue.TIMESTAMP
+        createdAt: database.ServerValue.TIMESTAMP
       });
 
       //update the blur
@@ -417,7 +430,7 @@ class Chat extends Component {
     
     //this.setState({ matchUseridExclude: matchUseridExclude });
 
-    let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+    let query = database().ref('/matches/' + userId).orderByChild('showNotification');
 
     let listener = query.on('child_changed', (notifySnapshot) => {
       
@@ -476,7 +489,7 @@ class Chat extends Component {
         }
 
         //turn off notificationShow bool so it doesn't show again. 
-        firebase.database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
+        database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
           'showNotification': false
         }); 
         
@@ -488,26 +501,6 @@ class Chat extends Component {
 
   }
 
-  //function to toggle profile show/hide
-  toggleProfile = () => {
-
-    //if profileMaxHeight is 50%, then change to 15%, else change to 50%
-    if (this.state.profileMaxHeight == '15%'){
-      this.setState({
-        profileMaxHeight: "50%"
-      });
-    }else{
-      this.setState({
-        profileMaxHeight: "15%"
-      });
-    }
-
-    //Add event for message being sent here. 
-    RNfirebase.analytics().logEvent('profileViewChat', {
-      testParam: 'testParam',
-    });
-
-  }
 
 
   //function to show profile viewer modal
@@ -580,8 +573,8 @@ class Chat extends Component {
   excludeUsers = (useridExcluded, useridExcluder) => {
 
     //save ref to users to exclude from eachother
-    let firebaseRefUseridExcluded = firebase.database().ref('/users/' + useridExcluded +'/excludedUsers');
-    let firebaseRefUseridExcluder = firebase.database().ref('/users/' + useridExcluder +'/excludedUsers');
+    let firebaseRefUseridExcluded = database().ref('/users/' + useridExcluded +'/excludedUsers');
+    let firebaseRefUseridExcluder = database().ref('/users/' + useridExcluder +'/excludedUsers');
 
     //add excluded data to profile of the excluded user
     firebaseRefUseridExcluded.push({
@@ -606,22 +599,22 @@ class Chat extends Component {
     //let userId = firebase.auth().currentUser.uid;
     //hide (unmatched user)
     if (action == 'hide' || action == 'hideAndReport') {
-      this.excludeUsers(this.state.userIdMatch, firebase.auth().currentUser.uid);
+      this.excludeUsers(this.state.userIdMatch, auth().currentUser.uid);
     }
 
     //unmatch user
     if (action == 'unmatch' || action == 'unmatchAndReport') {
-      this.excludeUsers(this.state.userIdMatch, firebase.auth().currentUser.uid);
+      this.excludeUsers(this.state.userIdMatch, auth().currentUser.uid);
       
       // disable matches anddisable conversation
       //create ref to set new match object with match_id associated with conversation_id generated above. 
-      let matchesRef1 = firebase.database().ref('matches/'+firebase.auth().currentUser.uid+'/'+this.state.userIdMatch+'/');
+      let matchesRef1 = database().ref('matches/'+ auth().currentUser.uid+'/'+this.state.userIdMatch+'/');
 
       //create ref to set new match object with match_id associated with conversation_id generated above. 
-      let matchesRef2 = firebase.database().ref('matches/'+this.state.userIdMatch+'/'+firebase.auth().currentUser.uid+'/');
+      let matchesRef2 = database().ref('matches/'+this.state.userIdMatch+'/'+ auth().currentUser.uid+'/');
 
       //save fb ref for quering conversation data
-      let convoRef = firebase.database().ref('/conversations/'+conversationId+'/');
+      let convoRef = database().ref('/conversations/'+conversationId+'/');
 
       //add removed property to match
       matchesRef1.update({removed: true});
@@ -637,15 +630,15 @@ class Chat extends Component {
     //report user
     if (action == 'hideAndReport' || action == 'unmatchAndReport') {
       //first exclude users from eachother
-      this.excludeUsers(this.state.userIdMatch, firebase.auth().currentUser.uid);
+      this.excludeUsers(this.state.userIdMatch, auth().currentUser.uid);
 
       //save ref to users to involved in report
-      let firebaseRefUseridReported = firebase.database().ref('/users/' + this.state.userIdMatch +'/report');
-      let firebaseRefUseridReporter = firebase.database().ref('/users/' + firebase.auth().currentUser.uid +'/report');
+      let firebaseRefUseridReported = database().ref('/users/' + this.state.userIdMatch +'/report');
+      let firebaseRefUseridReporter = database().ref('/users/' + auth().currentUser.uid +'/report');
 
       //push data report to profile of user who is being reported
       firebaseRefUseridReported.push({
-          useridReporter: firebase.auth().currentUser.uid, 
+          useridReporter: auth().currentUser.uid, 
           useridReported: this.state.userIdMatch, 
           //reason: '',
           time: Date.now()
@@ -653,7 +646,7 @@ class Chat extends Component {
       
       //push data report to profile of user who is reporting
       firebaseRefUseridReporter.push({
-        useridReporter: firebase.auth().currentUser.uid, 
+        useridReporter: auth().currentUser.uid, 
         useridReported: this.state.userIdMatch,
         //reason: '', 
         time: Date.now()
@@ -735,65 +728,114 @@ class Chat extends Component {
         }.bind(this),time);  
     }
 
-    //handle when sneakpeek is pushed. Unblur photos for n time or show payments modal if user is not subscribed. 
-    _handleSneekPeek = () => {
 
 
+    //handle sneak peeks. If user i
+    //    1. active (unsubscribed)
+		// 			- Can only be used after match expires. Send messages to focus photos. 
+		// 		2. expired (unsubsribed)
+		// 			- Show them you're intrigued by catching a quick glimpse. Pick wisely, you'll only have 3 per month.
+		// 		3. expired + no more peeks (unsubsribed)
+		// 				- You've used up all your Sneak Peeks. Send messages to focus photos..
+		// 		4. subscribed
+		// 			- Show them you're intrigued by catching a quick glimpse.
+    _handleSneakPeek = () => {
+      const { navigate } = this.props.navigation;
+      const isSubscribed = this.state.subscribed;
+      const sneakPeekCount = this.state.sneakPeekCount;
+      const isMatchActive = this.state.matchActive;
+      const canUseSneakPeek = isSubscribed || (!isMatchActive && sneakPeekCount < 3);
+    
+      console.log('isSubscribed:'+isSubscribed);
+      console.log('sneakPeekCount:'+sneakPeekCount);
+      console.log('isMatchActive:'+isMatchActive);
+      console.log('canUseSneakPeek:'+canUseSneakPeek);
 
-        const { state, navigate } = this.props.navigation;
+      //can user use sneak peek bc they're subscribed or using it on expired match with remaining sneakPeekCount?
+      if (canUseSneakPeek) {
+        // compute Sneak Peek text, based off subscribed or not. 
+        const sneakPeekText = isSubscribed
+          ? "Catch a quick glimpse."
+          : "Catch a quick glimpse. Pick wisely, you'll only have 3 per month.";
+        
+        Alert.alert(
+          'Sneak Peek',
+          sneakPeekText,
+          [
+            { text: 'Close', onPress: () => console.log('Cancel Pressed') },
+            { text: 'Use Sneak Peek', onPress: () => {
+            
+              // Unblur photos
+            for (let blurValue = 100; blurValue >= 0; blurValue -= 10) {
+              this.deBlur(blurValue.toString(), 1000 - blurValue * 10);
+            }
+       
+              // Update sneakPeekCount ++
+              database().ref('/users/' + userId + '/').update({
+                sneakPeekCount: this.state.sneakPeekCount + 1,
+              });
 
-        //if match is expired, deblur photos when sneekpeek is clicked. 
-        if (this.state.matchActive == false){
-          //set blur to 0 if subscribed
-            //this.setState({blur:'0'});
-            this.deBlur('100',0)
-            this.deBlur('90',100)
-            this.deBlur('80',200)
-            this.deBlur('70',300)
-            this.deBlur('50',400)
-            this.deBlur('40',500)
-            this.deBlur('30',550)
-            this.deBlur('20',600)
-            this.deBlur('10',650)
-            this.deBlur('0',700)
+            }},
+          ],
+          { cancelable: false }
+        );
 
-          //update images in imageViewer to blurRadious of 0 as well. 
-            let newImages = this.state.images.map(image => (
-                { ...image, props: {...this.props, blurRadius: 0} }
-              )
-            );
-          
-          this.setState({images: newImages});
+      } else if (isMatchActive) {
 
-          //Add event for sneak peek being used. 
-          RNfirebase.analytics().logEvent('sneakPeek', {
-            matchExpired: true,
-          });
+        // user is not subscribed and using on Active match, so can't use Sneak Peek yet
+        Alert.alert(
+          'Sneak Peek',
+          "Can only be used after match expires. Remember, sending messages will bring their photos into focus.",
+          [
+            { 
+              text: 'Close', 
+              onPress: () => console.log('Cancel Pressed'), 
+              style: 'cancel' 
+            },
+          ],
+          { cancelable: false }
+        );
 
-        }else{
+      } else {
+        // Expired match, and no more peeks available
+        //console.log('isMatchActive:'+isMatchActive);
 
-          //match must be active, alert user what button will do after expiration. 
-          //alert("Send a message to focus their photos. After this conversation expires, you'll be able use this button to focus their photos.");
+        Alert.alert(
+          'Limit Reached',
+          "You've used up all your Sneak Peeks. Send messages to focus photos.",
+          [
+            { 
+              text: 'Close', 
+              onPress: () => console.log('Cancel Pressed'), 
+              style: 'cancel' 
+            },
+            { 
+              text: 'Unlimited Sneak Peeks', 
+              onPress: () => {
+                // Navigate to upsell screen
+                navigate("Payments", { flow: 'peek' });
+                // Log event for triggering upsell
+                analytics().logEvent('sneakPeek_upsell', {
+                  action: 'triggered',
+                });
+              },
+              style: 'default', // Using 'default' style for the primary CTA
+            }
+          ],
+          { cancelable: false }
+        );
+      
+      }
 
-          Alert.alert(
-            '',
-            "Sending messages will focus their photos. After expiration, this button will reveal who they were.",
-            [
-              {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-            ],
-            { cancelable: false }
-          )  
-
-          //navigate to payments component, since user is not subscribed.
-          //navigate("Payments", { flow: 'peek'});
-
-          //Add event for sneak peek being used. 
-          RNfirebase.analytics().logEvent('sneakPeek', {
-            matchExpired: true,
-          });
-
-        }
+      //Add event for sneak peek being used. 
+      analytics().logEvent('sneakPeek', {
+        isSubscribed: isSubscribed,
+        isMatchActive: isMatchActive,
+        sneakPeekCount: sneakPeekCount,
+      });
+    
     }
+    
 
     //handle when extend conversation is pushed. Reset. 
     //ADD SYSTEM MESSAGE AS LATEST MESSAGE, SO THAT USER WILL SEE THIS USER ON TOP. 
@@ -804,19 +846,19 @@ class Chat extends Component {
       if (this.state.subscribed == true){
        
           //save refs to db for conversation and matches, to reflect new status
-          let firebaseRef = firebase.database().ref('/conversations/'+conversationId+'/');
-          let firebaseMatchesRef1 = firebase.database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
-          let firebaseMatchesRef2 = firebase.database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
+          let firebaseRef = database().ref('/conversations/'+conversationId+'/');
+          let firebaseMatchesRef1 = database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
+          let firebaseMatchesRef2 = database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
           
           //save system message that blind date status has changed. 
-          let conversationsRef = firebase.database().ref('/conversations/'+conversationId+'/messages/');
+          let conversationsRef = database().ref('/conversations/'+conversationId+'/messages/');
 
           //86000000 - 1 day in ms
           let extendTimeBy = 86000000 * 7; //in ms
           let newExpirationDate = (new Date().getTime() + extendTimeBy);
 
           //query for fcmToken used for triggering notification in the cloud. 
-          firebase.database().ref('/users/'+state.params.match_userid+'/').once("value", profile =>{
+          database().ref('/users/'+state.params.match_userid+'/').once("value", profile =>{
 
             let notifyFcmToken = profile.val().fcmToken;
 
@@ -856,7 +898,7 @@ class Chat extends Component {
               system: true,
               user: this.state.userId, 
               userTo: state.params.match_userid,
-              createdAt: firebase.database.ServerValue.TIMESTAMP
+              createdAt: database.ServerValue.TIMESTAMP
             });
 
           })
@@ -867,7 +909,7 @@ class Chat extends Component {
           this.setState({  matchActive: true, chatActive: true, expirationDate: newExpirationDate })
           
           //Add event extending conversation. 
-          RNfirebase.analytics().logEvent('extendConversation', {
+          analytics().logEvent('extendConversation', {
             subscribed: true,
           });
 
@@ -875,17 +917,19 @@ class Chat extends Component {
         //navigate to payments component, since user is not subscribed.
 
           //Add event extending conversation. 
-          RNfirebase.analytics().logEvent('extendConversation', {
+          analytics().logEvent('extendConversation', {
             subscribed: false,
           });
 
-         //navigate("Payments", { flow: 'peek'});
-         navigate("Intersitial", { 
-           flow: 'extendConversation1',
-           from: 'conversations',
-           match_userid: state.params.match_userid,
-           conversationId: conversationId,
-          })
+        //go to payments ... or go to Refer flow??? 
+         navigate("Payments", { flow: 'peek'});
+        
+         //  navigate("Intersitial", { 
+        //    flow: 'extendConversation1',
+        //    from: 'conversations',
+        //    match_userid: state.params.match_userid,
+        //    conversationId: conversationId,
+        //   })
 
          //USE THE BELOW TO REMOVE THE REFER OPTION. 
          //navigate("Intersitial", { flow: 'extendConversation2'})
@@ -936,9 +980,9 @@ class Chat extends Component {
         this.setState({ matchActive: false, timeRemaining: 'Expired' });
   
         // Update the unread status of the matches and conversation in the database
-        let firebaseRef = firebase.database().ref('/conversations/' + conversationId + '/');
-        let firebaseMatchesRef1 = firebase.database().ref('/matches/' + userId + '/' + state.params.match_userid + '/');
-        let firebaseMatchesRef2 = firebase.database().ref('/matches/' + state.params.match_userid + '/' + userId + '/');
+        let firebaseRef = database().ref('/conversations/' + conversationId + '/');
+        let firebaseMatchesRef1 = database().ref('/matches/' + userId + '/' + state.params.match_userid + '/');
+        let firebaseMatchesRef2 = database().ref('/matches/' + state.params.match_userid + '/' + userId + '/');
   
         firebaseMatchesRef1.update({ active: false });
         firebaseMatchesRef2.update({ active: false });
@@ -1157,7 +1201,7 @@ class Chat extends Component {
                         this.setState({ showModal: false }); //dont see this modal again
 
                         //update db to never see modal again. 
-                        firebase.database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/').update({
+                        database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/').update({
                           seen: true
                         });
 
@@ -1237,7 +1281,7 @@ class Chat extends Component {
                             this.setState({ showModal: false }) //dont see this modal again
 
                             //update db to never see modal again. 
-                            firebase.database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/').update({
+                            database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/').update({
                               seen: true
                             });
 
@@ -1267,7 +1311,7 @@ class Chat extends Component {
                                 confirmedLong: date.confirmedLong,
                                 location: date.location,
                                 placeAddress: date.placeAddress,
-                                placeUrl: date.url, 
+                                placeUrl: date.placeUrl, 
                                 placeImage: date.imageUrl,
                                 placeName: date.placeName,
                                 priceMax: date.priceMax,
@@ -1299,7 +1343,7 @@ class Chat extends Component {
                               this.setState({ showModal: false }) //dont see this modal again
 
                               //update db to never see modal again. 
-                              firebase.database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/').update({
+                              database().ref('/matches/'+userId+'/'+this.state.userIdMatch+'/').update({
                                 seen: true
                               });
                           
@@ -1329,19 +1373,19 @@ class Chat extends Component {
 
         
                 
-          <View style={{padding:0,  alignItems:'center', flexDirection:'row', justifyContent: 'space-around', paddingLeft: 15, paddingRight: 20}}>
+          <View style={{padding:0, height: 50, alignItems:'center',  flexDirection:'row', justifyContent: 'center', }}>
             <Text style={{fontFamily:'Helvetica-Light', marginRight: 10,  fontWeight:'600', color: primaryColor}}>TIME REMAINING: </Text>
-            <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', width:200}}>        
+            <Text numberOfLines ={1} style={{fontWeight:'400', color:'#888', }}>        
               {this.state.timeRemaining} 
             </Text> 
     
-            <Button 
+            {/* <Button 
               transparent 
               style={{width: 100, flex: 1, justifyContent: 'flex-end', }} 
               onPress = {() =>  this.blockReportFlow('Chat') } 
             >
-            <FontAwesomeIcon size={ 20 } style={{ color: 'lightgrey'}} icon={ faFlag } />
-        </Button>
+              <FontAwesomeIcon size={ 20 } style={{ color: 'lightgrey'}} icon={ faFlag } />
+            </Button> */}
         </View>
 
         <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
@@ -1398,7 +1442,7 @@ class Chat extends Component {
                         confirmedLong: date.confirmedLong,
                         location: date.location,
                         placeAddress: date.placeAddress,
-                        placeUrl: date.url, 
+                        placeUrl: date.placeUrl, 
                         placeImage: date.imageUrl,
                         placeName: date.placeName,
                         priceMax: date.priceMax,
@@ -1536,8 +1580,9 @@ class Chat extends Component {
     this.props.navigation.setParams({ 
       block: this.blockOrReport, 
       showProfile: this.showProfile,
-      handleSneekPeek: this._handleSneekPeek,
-      blur: this.state.blur 
+      handleSneakPeek: this._handleSneakPeek,
+      blur: this.state.blur,
+      sneakPeekCount: this.state.sneakPeekCount
     });
     
     this.loadMessages((message) => {
@@ -1565,7 +1610,7 @@ class Chat extends Component {
         'didBlur',
       payload => {
             
-        let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+        let query = database().ref('/matches/' + userId).orderByChild('showNotification');
 
         //remove listener when leaving. 
         query.off('child_changed', this.state.listener);
@@ -1586,8 +1631,8 @@ class Chat extends Component {
 
     //firebase.database().ref('example').child(this.state.somethingDyamic).off('value');
 
-    firebase.database().ref('/matches/' + userId).off('child_changed');
-    firebase.database().ref('/matches/' + userId).orderByChild('showNotification').off('child_changed', this.state.listener);
+    database().ref('/matches/' + userId).off('child_changed');
+    database().ref('/matches/' + userId).orderByChild('showNotification').off('child_changed', this.state.listener);
 
 
   }

@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { StyleSheet, Alert, Share, StatusBar, Keyboard, KeyboardAvoidingView, Dimensions } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEye, faHistory, faUsers, faAddressCard } from '@fortawesome/free-solid-svg-icons';import * as firebase from "firebase";
-import RNfirebase from 'react-native-firebase';
+import { faEye, faHistory, faUsers, faAddressCard } from '@fortawesome/free-solid-svg-icons';
+import firebase from '@react-native-firebase/app';
+import analytics from '@react-native-firebase/analytics';
 import dynamicLinks from '@react-native-firebase/dynamic-links';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 
@@ -75,12 +76,14 @@ class Intersitial extends Component {
 
 
     //run analytics
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setCurrentScreen('Intersitial', 'Intersitial');
-    //RNfirebase.analytics().setUserId(userId);
+    analytics().logScreenView({
+      screen_name: 'Intersitial',
+      screen_class: 'Intersitial'
+    });
+    analytics().setUserId(userId)
     
     //record in analytics that which flow intersitial is in.  
-    RNfirebase.analytics().logEvent('flow',{
+    analytics().logEvent('flow',{
         flow: flow
     });
     
@@ -313,7 +316,7 @@ class Intersitial extends Component {
                 () => (!this.state.name) ?           
                     Alert.alert(
                     'Missing Name',
-                    "Enter your friends name.",
+                    "Enter your friend's name.",
                     [
                       {text: 'Ok', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
                     ],
@@ -335,6 +338,7 @@ class Intersitial extends Component {
                   transparent 
                   style={{
                     paddingTop: 20,
+                    alignSelf: 'center',
                     textAlign: 'center',
                     shadowOffset: {
                     width: 0,
@@ -353,8 +357,10 @@ class Intersitial extends Component {
 
               <Button transparent  
                 style={{ 
+                  alignSelf: 'center',
                   textAlign: 'center',
                   fontFamily:'HelveticaNeue',
+                  alignSelf: 'center',
                   shadowOffset: {
                   width: 0,
                   height: 3,
@@ -410,6 +416,7 @@ class Intersitial extends Component {
               <Button 
                 transparent 
                 style={{
+                  alignSelf: 'center',
                   paddingTop: 20,
                   textAlign: 'center',
                   shadowOffset: {
@@ -425,6 +432,7 @@ class Intersitial extends Component {
              
               <Button transparent  
                 style={{ 
+                  alignSelf: 'center',
                   textAlign: 'center',
                   shadowOffset: {
                   width: 0,
@@ -461,6 +469,7 @@ class Intersitial extends Component {
   
   <Button transparent  
     style={{ 
+      
       textAlign: 'center',
       shadowOpacity: 0.29,
       shadowRadius: 4.65, 

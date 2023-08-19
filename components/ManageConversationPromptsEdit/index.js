@@ -4,8 +4,13 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faRestroom, faHeart,  faCog, faCommentDots, faCoffee, faDoorOpen, faLockAlt,  faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faBolt,  faEye, faUserLock } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
-import RNfirebase from 'react-native-firebase';
-import * as firebase from "firebase";
+// import RNfirebase from 'react-native-firebase';
+// import * as firebase from "firebase";
+import firebase from '@react-native-firebase/app';
+import analytics from '@react-native-firebase/analytics';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+
 import AppIntroSlider from 'react-native-app-intro-slider';
 
 
@@ -71,7 +76,7 @@ class ManageConversationPromptsEdit extends Component {
 
     this.state = {
       loading: true,
-      userId: firebase.auth().currentUser.uid,
+      userId: auth().currentUser.uid,
       promptObj: {
         question: '',
         answer: ''
@@ -196,11 +201,14 @@ class ManageConversationPromptsEdit extends Component {
 
     //update state with updatedPrompts array
     this.setState({ prompts: updatedPrompts, existingPrompts: existingPrompts });
-  
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setCurrentScreen('ManageConversationPromptsEdit', 'ManageConversationPromptsEdit');
-    RNfirebase.analytics().setUserId(userId);
-  
+
+    //run analytics
+    analytics().logScreenView({
+      screen_name: 'ManageConversationPromptsEdit',
+      screen_class: 'ManageConversationPromptsEdit'
+    });
+    analytics().setUserId(userId)
+      
   }
 
 
@@ -268,18 +276,18 @@ class ManageConversationPromptsEdit extends Component {
     updateData = (type, userid, payload) => {
 
       //record in analytics the event that a profile was updated successfully 
-      RNfirebase.analytics().logEvent('profileUpdated', {
+      analytics().logEvent('profileUpdated', {
         type: payload
       });
                                 
       //create ref to list of coversations for userid
-      const userConversations = firebase.database().ref('users/'+userid+'/conversations/');
+      const userConversations = database().ref('users/'+userid+'/conversations/');
   
       //create ref to list of matches for userid
-      const userMatches = firebase.database().ref('matches/'+userid+'/');
+      const userMatches = database().ref('matches/'+userid+'/');
   
       //save ref for reviews current user created
-      const userReviews = firebase.database().ref('codes').orderByChild("created_by").equalTo(userId);
+      const userReviews = database().ref('codes').orderByChild("created_by").equalTo(userId);
   
       //create empty placeholder object for all paths to update
       let updateObj = {};
@@ -348,7 +356,7 @@ class ManageConversationPromptsEdit extends Component {
   
   
             //query firebase for each users matches. 'friend.userid'
-            firebase.database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
+            database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
             
               //convert friend objects into array of friend id's, so that can loop over them. . 
               let friendsMatches = Object.keys(friendMatchesSnap.val());
@@ -370,7 +378,7 @@ class ManageConversationPromptsEdit extends Component {
                });
   
                //update all paths in multi-path update on udateObj2 array.
-               firebase.database().ref().update(updateObj2, function(error) {
+               database().ref().update(updateObj2, function(error) {
                 if (error) {
                   // The write failed...
                   console.log('write failed updateObj2')
@@ -470,7 +478,7 @@ class ManageConversationPromptsEdit extends Component {
             console.log(updateObj);
             //return firebase.database().ref().update(updateObj);
   
-            firebase.database().ref().update(updateObj, function(error) {
+            database().ref().update(updateObj, function(error) {
               if (error) {
                 // The write failed...
                 console.log('write failed')
@@ -563,10 +571,8 @@ _renderButton  =  ()  => {
         flex: 1,
         alignSelf: 'center',
         justifyContent: 'center',
-        alignItems: 'center',
         padding: 70,
-        //width: deviceWidth,
-        top: 50,    
+        top: 50, 
         }}
         colors={[primaryColor, primaryColor]}
         start={{ x: 0, y: 0 }}
@@ -596,6 +602,7 @@ _renderButton  =  ()  => {
         </Button>
         <Button 
           transparent
+          style={{width: 300, borderRadius: 20, justifyContent: 'center',}}
           onPress={() => this.props.navigation.goBack()}>
           <Text style={{ color: 'white', textAlign: 'center', fontFamily:'HelveticaNeue'}}>Close</Text>
         </Button>

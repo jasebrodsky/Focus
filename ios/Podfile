@@ -1,31 +1,64 @@
 platform :ios, '11.0'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
+# use_modular_headers!
+use_frameworks! :linkage => :static
+
 target 'Focus Dating' do
-  # Pods for Focus
-  pod 'Firebase/Core', '~> 6.13.0'
-
-  # add the Firebase pod for Google Analytics
-  pod 'Firebase/Analytics'  
-  pod 'Firebase/Messaging'
-  pod 'RNFirebase', :path => '../node_modules/react-native-firebase/ios'
-  pod 'RNFBApp', :path => '../node_modules/@react-native-firebase/app'
 
 
+  # # Pods for Focus
+  # pod 'Firebase/Core', '~> 6.13.0'
 
+  # # add the Firebase pod for Google Analytics
+  # pod 'Firebase/Analytics'  
+  # pod 'Firebase/Messaging'
+  # pod 'RNFirebase', :path => '../node_modules/react-native-firebase/ios'
+  # pod 'RNFBApp', :path => '../node_modules/@react-native-firebase/app'
+
+  # pod 'Firebase/Analytics', '10.10.0'
+  # pod 'BoringSSL-GRPC', '0.0.24', :modular_headers => false
+  # # pod 'gRPC-Core', '= 1.21.0', :modular_headers => false
+  # pod 'gRPC-Core', '1.50.1', :modular_headers => false
+
+  # pod 'BoringSSL-GRPC', '0.0.24'
+  # pod 'gRPC-Core', '1.44.0'
+  # pod 'BoringSSL-GRPC', '= 0.0.3', :modular_headers => false
+  # pod 'gRPC-Core', '= 1.44.0', :modular_headers => false
+
+
+  pod 'Firebase/Core', '~> 8.15.0'
+  pod 'Firebase/Firestore', '~> 8.15.0'
+  pod 'gRPC-Core', '= 1.44.0', :modular_headers => false
+  pod 'BoringSSL-GRPC', '~> 0.0.24', :modular_headers => false
+
+
+  pod 'nanopb', '~> 2.30908.0'
+
+  pod 'Firebase/DynamicLinks', '8.15.0'
+  pod 'Firebase/Analytics', '8.15.0'
+  pod 'Firebase/Messaging', '8.15.0'
+  pod 'GoogleAppMeasurement', '8.15.0'
 
  # Point to the installed version
   pod 'RNDateTimePicker', :path => '../node_modules/@react-native-community/datetimepicker/RNDateTimePicker.podspec'
 
-  pod 'GoogleAppMeasurement', '~> 6.1.6'
   pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
   pod 'FBReactNativeSpec', :path => "../node_modules/react-native/Libraries/FBReactNativeSpec"
   pod 'RCTRequired', :path => "../node_modules/react-native/Libraries/RCTRequired"
   pod 'RCTTypeSafety', :path => "../node_modules/react-native/Libraries/TypeSafety"
   pod 'React', :path => '../node_modules/react-native/'
   pod 'React-Core', :path => '../node_modules/react-native/'
+  
+  pod 'FirebaseCore', '8.15.0'
+
+  # pod 'FirebaseCoreExtension', :modular_headers => true
+  # pod 'FirebaseAppCheckInterop', :modular_headers => true
+  # pod 'FirebaseAuthInterop', :modular_headers => true
+  # pod 'FirebaseMessagingInterop', :modular_headers => true
+  # pod 'GTMSessionFetcher', :modular_headers => true
+
   pod 'React-CoreModules', :path => '../node_modules/react-native/React/CoreModules'
-  pod 'React-Core/DevSupport', :path => '../node_modules/react-native/'
   pod 'React-RCTActionSheet', :path => '../node_modules/react-native/Libraries/ActionSheetIOS'
   pod 'React-RCTAnimation', :path => '../node_modules/react-native/Libraries/NativeAnimation'
   pod 'React-RCTBlob', :path => '../node_modules/react-native/Libraries/Blob'
@@ -41,16 +74,18 @@ target 'Focus Dating' do
   pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
   pod 'React-jsiexecutor', :path => '../node_modules/react-native/ReactCommon/jsiexecutor'
   pod 'React-jsinspector', :path => '../node_modules/react-native/ReactCommon/jsinspector'
-  pod 'ReactCommon/jscallinvoker', :path => "../node_modules/react-native/ReactCommon"
+  # pod 'ReactCommon/jscallinvoker', :path => "../node_modules/react-native/ReactCommon"
+  # pod 'React-callinvoker', :path => '../node_modules/react-native/ReactCommon/jscallinvoker'
+
   pod 'ReactCommon/turbomodule/core', :path => "../node_modules/react-native/ReactCommon"
   pod 'Yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
 
-  pod 'react-native-fbsdk', :path => '../node_modules/react-native-fbsdk'
-  pod 'FBSDKCoreKit'
-  pod 'FBSDKLoginKit'
-  pod 'FBSDKShareKit'
+  # pod 'react-native-fbsdk', :path => '../node_modules/react-native-fbsdk'
+  # pod 'FBSDKCoreKit'
+  # pod 'FBSDKLoginKit'
+  # pod 'FBSDKShareKit'
 
-  pod 'QBImagePickerController', :path => '../node_modules/react-native-image-crop-picker/ios/QBImagePicker/QBImagePickerController.podspec'
+  # pod 'QBImagePickerController', :path => '../node_modules/react-native-image-crop-picker/ios/QBImagePicker/QBImagePickerController.podspec'
 
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
@@ -61,7 +96,12 @@ target 'Focus Dating' do
 
   pod 'CodePush', :path => '../node_modules/react-native-code-push'
 
-  pod 'react-native-appearance', :path => '../node_modules/react-native-appearance'
+  # pod 'react-native-fetch-blob', :path => '../node_modules/react-native-fetch-blob'
+  pod 'react-native-blob-util', :path => '../node_modules/react-native-blob-util'
+  
+
+  
+
   pod 'BVLinearGradient', :path => '../node_modules/react-native-linear-gradient'
   
   # pod 'appcenter', path: '../node_modules/appcenter/ios'
@@ -120,6 +160,8 @@ post_install do |installer|
       installer.pods_project.targets.each do |target|
         target.build_configurations.each do |config|
          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '9.0'
+         config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64 i386"
+
         end
        end
 

@@ -1,10 +1,13 @@
 import React, { Component, useState, useEffect } from 'react';
 import { StyleSheet, Alert, Dimensions, Platform, TouchableOpacity, ScrollView } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import RNfirebase from 'react-native-firebase';
-import * as firebase from "firebase";
+import firebase from '@react-native-firebase/app';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+import analytics from '@react-native-firebase/analytics';
+
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEye, faHistory, faUtensils, faPeopleCarry,  } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faHistory, faUtensils, faPeopleCarry, faEyeSlash, faMehRollingEyes  } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
 import IAP, { purchaseUpdatedListener } from "react-native-iap";
 import Carousel, { Pagination } from 'react-native-snap-carousel';
@@ -42,20 +45,32 @@ class Payments extends Component {
       activeIndex:0,
       carouselItems: [
         {
+            //icon:faUtensils,
             icon:faUtensils,
             title:"Unlimited Blind Dates",
-            text: "More blind date expirences.",
+            text: "Explore more blind date experiences.",
         },
         {
             icon:faHistory,
             title:"Unlimited Chat Extends",
-            text: "More time to make connections.",
+            text: "Have more time to make connections.",
         },
         {
             icon:faPeopleCarry,
             title:"Unlimited Matches",
-            text: "More people to connect with.",
+            text: "Even more people to connect with.",
         },
+        {
+          icon:faEye,
+          title:"Unlimited Sneak Peeks",
+          text: "anonymous sneak peeks.",
+        },
+        
+        // {
+        //     icon:faPeopleCarry,
+        //     title:"20% cash back on dates",
+        //     text: "Up to $14.99/month cash back",
+        // },      
       ],
       initalProducts: [      
         {
@@ -142,7 +157,7 @@ class Payments extends Component {
       })
     })
   
-    let userId = firebase.auth().currentUser.uid;
+    let userId = auth().currentUser.uid;
     let flow = this.props.navigation.getParam('flow');
     //can be any one of the entry points. will eventually tie to the default image in slider, to make this module initial state relavent. 
 
@@ -154,23 +169,26 @@ class Payments extends Component {
     }
 
     //query for logged in users information needed and set state with it.     
-    firebase.database().ref('/users/' + userId).once('value', ((snapshot) => {
+    database().ref('/users/' + userId).once('value', ((snapshot) => {
         //set state with user data. 
         this.setState({ 
           userId: userId,
         });  
     }))
-      
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setUserId(userId);
-    RNfirebase.analytics().setCurrentScreen('Payments', 'Payments');
+
+    //run analytics
+    analytics().logScreenView({
+      screen_name: 'Payments',
+      screen_class: 'Payments'
+    });
+    analytics().setUserId(userId)
   
   }
   
   //validate receipt
   _validateReceipt = async (receipt) => {
 
-    let userid = firebase.auth().currentUser.uid;
+    let userid = auth().currentUser.uid;
 
     const receiptBody = {
       "receipt-data": receipt,
@@ -200,7 +218,7 @@ class Payments extends Component {
         if (!expired){
           console.log('Purchase history validated');
           //update firebase with subcription status, for logged in user
-         firebase.database().ref('/users/' + userid).update({subscribed: true})
+         database().ref('/users/' + userid).update({subscribed: true})
          .then(this.props.navigation.goBack())
          //.then(this.props.navigation.navigate("Chat", { expiration_date: newExpirationDate , match_state: 'active' }))
           
@@ -208,7 +226,7 @@ class Payments extends Component {
         }else{
           console.log('Purchase expired');
           //update firebase with subcription status, for logged in user
-          firebase.database().ref('/users/' + userid).update({subscribed: false})
+          database().ref('/users/' + userid).update({subscribed: false})
         }
 
       } catch (error) {
@@ -226,10 +244,10 @@ class Payments extends Component {
     IAP.requestSubscription(productId);
 
     //record in analytics that user was subscribed  
-    RNfirebase.analytics().setUserProperty('subscribed', 'true');
+    analytics().setUserProperty('subscribed', 'true');
 
     //record in analytics the event that user subscribed event
-    RNfirebase.analytics().logEvent('userSubscribed', {
+    analytics().logEvent('userSubscribed', {
       productId: productId
     });
   }
@@ -509,7 +527,8 @@ class Payments extends Component {
                 <View style={{ flex: 3, paddingBottom: 20, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', }}>
                     <Button 
                       style={{
-                        marginTop: 10, 
+                        marginTop: 10,
+                        alignSelf: 'center', 
                         width: deviceWidth-80,
                         backgroundColor: 'white', 
                         borderRadius: 20,

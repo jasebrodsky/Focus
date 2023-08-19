@@ -1,8 +1,12 @@
 import React, { Component } from 'react';
 import { StyleSheet, Dimensions, Alert, Share, StatusBar, Keyboard, KeyboardAvoidingView } from 'react-native';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
-import * as firebase from "firebase";
-import RNfirebase from 'react-native-firebase';
+// import * as firebase from "firebase";
+// import RNfirebase from 'react-native-firebase';
+import firebase from '@react-native-firebase/app';
+import analytics from '@react-native-firebase/analytics';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
 import dynamicLinks from '@react-native-firebase/dynamic-links';
 
 import LinearGradient from 'react-native-linear-gradient';
@@ -66,7 +70,7 @@ class Refer extends Component {
 
   componentDidMount() {
 
-    let userId = firebase.auth().currentUser.uid;
+    let userId = auth().currentUser.uid;
     let onCancel = this.props.navigation.getParam('onCancel');
     let name = this.props.navigation.getParam('name');
     let flow = this.props.navigation.getParam('flow');
@@ -142,7 +146,7 @@ class Refer extends Component {
     this.setState({ name: name });  
 
     //query for logged in users information needed and set state with it.     
-    firebase.database().ref('/users/' + userId).once('value', ((snapshot) => {
+    database().ref('/users/' + userId).once('value', ((snapshot) => {
                 
         //set state with user data. 
         this.setState({ 
@@ -153,10 +157,12 @@ class Refer extends Component {
         });  
     }))
       
-    
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setUserId(userId);
-    RNfirebase.analytics().setCurrentScreen('Refer', 'Refer');
+    //run analytics
+    analytics().logScreenView({
+      screen_name: 'Refer',
+      screen_class: 'Refer'
+    });
+    analytics().setUserId(userId)
   
   }
 
@@ -171,7 +177,7 @@ class Refer extends Component {
     this.props.navigation.goBack();
 
     //record in analytics link was shared 
-    RNfirebase.analytics().logEvent('buttonClicked', {
+    analytics().logEvent('buttonClicked', {
       buttonClicked: 'go back',
     });
     
@@ -185,19 +191,19 @@ class Refer extends Component {
         //save userId into var
       
         //save refs to db for conversation and matches, to reflect new status
-        let firebaseRef = firebase.database().ref('/conversations/'+state.params.conversationId+'/');
-        let firebaseMatchesRef1 = firebase.database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
-        let firebaseMatchesRef2 = firebase.database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
+        let firebaseRef = database().ref('/conversations/'+state.params.conversationId+'/');
+        let firebaseMatchesRef1 = database().ref('/matches/'+userId+'/'+state.params.match_userid+'/');
+        let firebaseMatchesRef2 = database().ref('/matches/'+state.params.match_userid+'/'+userId+'/');
         
         //save system message that blind date status has changed. 
-        let conversationsRef = firebase.database().ref('/conversations/'+state.params.conversationId+'/messages/');
+        let conversationsRef = database().ref('/conversations/'+state.params.conversationId+'/messages/');
 
         //86000000 - 1 day in ms
         let extendTimeBy = 86000000 * 7; //in ms
         let newExpirationDate = (new Date().getTime() + extendTimeBy);
 
         //query for fcmToken used for triggering notification in the cloud. 
-        firebase.database().ref('/users/'+state.params.match_userid+'/').once("value", profile =>{
+        database().ref('/users/'+state.params.match_userid+'/').once("value", profile =>{
 
           let notifyFcmToken = profile.val().fcmToken;
 
@@ -258,7 +264,7 @@ class Refer extends Component {
             system: true,
             user: this.state.userId, 
             userTo: state.params.match_userid,
-            createdAt: firebase.database.ServerValue.TIMESTAMP
+            createdAt: database.ServerValue.TIMESTAMP
           });
 
         })
@@ -315,7 +321,7 @@ class Refer extends Component {
           },
         })
         //record in analytics link was created 
-        RNfirebase.analytics().logEvent('linkCreated', {
+        analytics().logEvent('linkCreated', {
           linkCreated: true
         });
         
@@ -345,13 +351,13 @@ class Refer extends Component {
               console.log('shared! check if code was ');
 
               //record in analytics link was shared 
-              RNfirebase.analytics().logEvent('referShareSent', {
+              analytics().logEvent('referShareSent', {
                 activityType: result.activityType,
                 reason: this.state.reason
               });
 
               //add shared to true, for cleaning up later. 
-             let codeRef = firebase.database().ref('codes/' + this.state.codeDelete+'/');
+             let codeRef = database().ref('codes/' + this.state.codeDelete+'/');
 
               //update ref
              codeRef.update({  
@@ -360,7 +366,7 @@ class Refer extends Component {
               });
             
               //update swipeCount in firebase, so that cloud function will return fresh batch of matches. 
-              let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+              let userRef = database().ref('users/'+this.state.userId+'/');
               
               //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
               userRef.update({  
@@ -403,10 +409,10 @@ class Refer extends Component {
             console.log('shared dismissed');
 
             //delete unsent code from db
-            firebase.database().ref('codes/' + this.state.codeDelete).remove();
+            database().ref('codes/' + this.state.codeDelete).remove();
 
             //record in analytics the event that a share was cancelled  
-            RNfirebase.analytics().logEvent('referShareDismissed', {
+            analytics().logEvent('referShareDismissed', {
               reason: this.state.reason
             });
           }
@@ -624,8 +630,11 @@ class Refer extends Component {
                 <Text style={{color: primaryColor, textAlign:'center'}}>{this.state.primaryCTA}</Text>
             </Button>
 
-            <Button transparent full onPress={() => {this._onCancel();}} >
-              <Text style={{color: primaryColor}}>{this.state.secondaryCTA}</Text>
+            <Button 
+               transparent
+               full 
+               onPress={() => {this._onCancel();}} >
+              <Text style={{color: primaryColor, }}>{this.state.secondaryCTA}</Text>
             </Button>
           </View>
 

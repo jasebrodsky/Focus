@@ -1,6 +1,7 @@
     
-    import RNFirebase from "react-native-firebase";
-    import * as firebase from "firebase";
+    // import RNFirebase from "react-native-firebase";
+    // import * as firebase from "firebase";
+    import firebase from '@react-native-firebase/app';
     import {Toast} from "native-base";
     import {Dimensions, Vibration} from "react-native";
 

@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import { Linking, StyleSheet,TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Image, Alert, Dimensions, Modal, ScrollView, Platform, TextInput, TouchableOpacity } from 'react-native';
-import RNfirebase from 'react-native-firebase';
+import firebase from '@react-native-firebase/app';
+import analytics from '@react-native-firebase/analytics';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+import storage from '@react-native-firebase/storage';
+
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import DatePicker from 'react-native-datepicker';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -10,8 +15,9 @@ import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import Geocoder from 'react-native-geocoding';
 import * as Progress from 'react-native-progress';
 import Geolocation from '@react-native-community/geolocation';
-import RNFetchBlob from 'react-native-fetch-blob';
-import * as firebase from "firebase";
+// import RNFetchBlob from 'react-native-fetch-blob';
+import ReactNativeBlobUtil from 'react-native-blob-util'
+
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCog, faUsers, faPlus,faArrowAltCircleLeft,  faChevronLeft, faImage, faCamera } from '@fortawesome/free-solid-svg-icons';
@@ -48,7 +54,7 @@ import {
 } from "native-base";
 
 //shortcut to Analytics
-// let Analytics = RNfirebase.analytics();
+// let Analytics = RNanalytics();
 
 // const primaryColor = "#8A6077";
 // const secondaryColor = "#EF8275";
@@ -236,8 +242,8 @@ class Registration extends Component {
   componentWillMount() {
 
   //save intial data for user
-   userId = firebase.auth().currentUser.uid;
-   firebaseRef = firebase.database().ref('/users/' + userId);
+   userId = auth().currentUser.uid;
+   firebaseRef = database().ref('/users/' + userId);
 
     //save data snapshot from firebaseRef
     firebaseRef.on('value', (dataSnapshot) => {
@@ -246,28 +252,29 @@ class Registration extends Component {
         profile: dataSnapshot.val()
       }), this.validateCurrentStep('name'), //validate the first after state loads.
 
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setCurrentScreen('Registration', 'Registration');
-    RNfirebase.analytics().setUserId(userId);
-    //trigger these user property functions when user updates each of their settings
-    RNfirebase.analytics().setUserProperty('name', dataSnapshot.val().first_name+' '+dataSnapshot.val().last_name);
-    RNfirebase.analytics().setUserProperty('about', dataSnapshot.val().about);
-    RNfirebase.analytics().setUserProperty('birthday', (dataSnapshot.val().birthday ? dataSnapshot.val().birthday : 'empty' ));
-    RNfirebase.analytics().setUserProperty('education', dataSnapshot.val().education);
-    RNfirebase.analytics().setUserProperty('gender', dataSnapshot.val().gender);
-    RNfirebase.analytics().setUserProperty('gender_pref', dataSnapshot.val().gender_pref);
-    RNfirebase.analytics().setUserProperty('interested', dataSnapshot.val().interested);
-    RNfirebase.analytics().setUserProperty('status', dataSnapshot.val().status);
-    RNfirebase.analytics().setUserProperty('work', dataSnapshot.val().work);
-   //convert the below numbers to strings
-    RNfirebase.analytics().setUserProperty('last_conversation_count', dataSnapshot.val().last_conversation_count.toString());
-    RNfirebase.analytics().setUserProperty('swipe_count', dataSnapshot.val().swipe_count.toString());
-    RNfirebase.analytics().setUserProperty('max_age', dataSnapshot.val().max_age.toString());
-    RNfirebase.analytics().setUserProperty('max_distance', dataSnapshot.val().max_distance.toString());
-    RNfirebase.analytics().setUserProperty('min_age', dataSnapshot.val().min_age.toString());
-    RNfirebase.analytics().setUserProperty('last_login', dataSnapshot.val().last_login.toString());
-    RNfirebase.analytics().setUserProperty('notifications_match', dataSnapshot.val().notifications_match.toString());
-    RNfirebase.analytics().setUserProperty('notifications_message', dataSnapshot.val().notifications_message.toString());
+      console.log('analytics here');
+  //   RNanalytics().setAnalyticsCollectionEnabled(true);
+  //   RNanalytics().setCurrentScreen('Registration', 'Registration');
+  //   RNanalytics().setUserId(userId);
+  //   //trigger these user property functions when user updates each of their settings
+  //   RNanalytics().setUserProperty('name', dataSnapshot.val().first_name+' '+dataSnapshot.val().last_name);
+  //   RNanalytics().setUserProperty('about', dataSnapshot.val().about);
+  //   RNanalytics().setUserProperty('birthday', (dataSnapshot.val().birthday ? dataSnapshot.val().birthday : 'empty' ));
+  //   RNanalytics().setUserProperty('education', dataSnapshot.val().education);
+  //   RNanalytics().setUserProperty('gender', dataSnapshot.val().gender);
+  //   RNanalytics().setUserProperty('gender_pref', dataSnapshot.val().gender_pref);
+  //   RNanalytics().setUserProperty('interested', dataSnapshot.val().interested);
+  //   RNanalytics().setUserProperty('status', dataSnapshot.val().status);
+  //   RNanalytics().setUserProperty('work', dataSnapshot.val().work);
+  //  //convert the below numbers to strings
+  //   RNanalytics().setUserProperty('last_conversation_count', dataSnapshot.val().last_conversation_count.toString());
+  //   RNanalytics().setUserProperty('swipe_count', dataSnapshot.val().swipe_count.toString());
+  //   RNanalytics().setUserProperty('max_age', dataSnapshot.val().max_age.toString());
+  //   RNanalytics().setUserProperty('max_distance', dataSnapshot.val().max_distance.toString());
+  //   RNanalytics().setUserProperty('min_age', dataSnapshot.val().min_age.toString());
+  //   RNanalytics().setUserProperty('last_login', dataSnapshot.val().last_login.toString());
+  //   RNanalytics().setUserProperty('notifications_match', dataSnapshot.val().notifications_match.toString());
+  //   RNanalytics().setUserProperty('notifications_message', dataSnapshot.val().notifications_message.toString());
     })
 
     
@@ -303,7 +310,7 @@ class Registration extends Component {
 
   // check if permission for notification has been granted previously, then getToken. 
   async checkPermission() {
-    const enabled = await RNfirebase.messaging().hasPermission();
+    const enabled = await messaging().requestPermission();
     if (enabled) {
         this.getToken();
     } else {
@@ -314,12 +321,12 @@ class Registration extends Component {
 
   // getToken if permission has been granted previously
   async getToken() {
-    fcmToken = await RNfirebase.messaging().getToken();
+    fcmToken = await messaging().getToken();
     firebaseRef.update({fcmToken: fcmToken});
     // try {
     //   let fcmToken = await AsyncStorage.getItem('fcmToken');
     //   if (!fcmToken) {
-    //       fcmToken = await RNfirebase.messaging().getToken();
+    //       fcmToken = await RNmessaging().getToken();
     //       if (fcmToken) {
     //           // user has a device token
 
@@ -344,7 +351,7 @@ class Registration extends Component {
   // if permission has not been granted, request for permission. 
   async requestPermission() {
     try {
-        await RNfirebase.messaging().requestPermission();
+        await messaging().requestPermission();
         // User has authorised
         this.getToken();
     } catch (error) {
@@ -359,7 +366,7 @@ class Registration extends Component {
     let bool = this.state.profile.notifications_message == true ? false : true;
 
     //record in analytics that user was doesn't want notifications 
-    RNfirebase.analytics().setUserProperty('notifications_message', this.state.profile.notifications_message.toString());
+    // RNanalytics().setUserProperty('notifications_message', this.state.profile.notifications_message.toString());
 
     //update firebase with new value, then update state
     firebaseRef.update({notifications_message: bool})
@@ -373,7 +380,7 @@ class Registration extends Component {
     let bool = this.state.profile.notifications_match == true ? false : true;
 
     //record in analytics that user was doesn't want notifications 
-    RNfirebase.analytics().setUserProperty('notifications_match', this.state.profile.notifications_match.toString());
+    // RNanalytics().setUserProperty('notifications_match', this.state.profile.notifications_match.toString());
 
     //update firebase with new value, then update state
     firebaseRef.update({notifications_match: bool})
@@ -386,7 +393,7 @@ class Registration extends Component {
   getLocation = () => {
 
     //save ref to current user in db. 
-    firebaseRefCurrentUser = firebase.database().ref('/users/' + userId);
+    firebaseRefCurrentUser = database().ref('/users/' + userId);
 
     //request authorization to location services
     Geolocation.requestAuthorization();
@@ -467,7 +474,7 @@ class Registration extends Component {
   validateSettings = () => {
 
     const { state, navigate } = this.props.navigation;
-    let firebaseRef = firebase.database().ref('/users/' + userId);
+    let firebaseRef = database().ref('/users/' + userId);
 
     //check that all required fields are present.
     let profileComplete = this.profileComplete();
@@ -493,7 +500,7 @@ class Registration extends Component {
   finishRegistration = () => {
 
     const { state, navigate } = this.props.navigation;
-    let firebaseRef = firebase.database().ref('/users/' + userId);
+    let firebaseRef = database().ref('/users/' + userId);
 
     //update db to intialUser = false, if not already. This will move user to swipes on login and they will appear in matches
     firebaseRef.update({intialUser: false});
@@ -524,11 +531,11 @@ class Registration extends Component {
 
       try {
           //record in analytics that user was logged out successfully 
-          RNfirebase.analytics().logEvent('userLoggedOut', {
-            testParam: 'testParamValue1'
-          });
+          // RNanalytics().logEvent('userLoggedOut', {
+          //   testParam: 'testParamValue1'
+          // });
           navigate("Login");
-          await firebase.auth().signOut();
+          await auth().signOut();
       } catch (e) {
           console.log(e);
       }
@@ -579,7 +586,7 @@ class Registration extends Component {
   deleteUser = async () => {
       const { navigate } = this.props.navigation;
 
-      var user = firebase.auth().currentUser;
+      var user = auth().currentUser;
 
       //alert user for confirmation. On ok delete user's authentication
       Alert.alert(
@@ -601,9 +608,9 @@ class Registration extends Component {
           user.delete().then(function() {
 
           //record in analytics that user was deleted successfully 
-          RNfirebase.analytics().logEvent('userDeleted', {
-            testParam: 'testParamValue1'
-          });
+          // RNanalytics().logEvent('userDeleted', {
+          //   testParam: 'testParamValue1'
+          // });
 
           // User deleted.
           navigate("Login");
@@ -643,7 +650,7 @@ class Registration extends Component {
       }).then(image => {
           
             // Create a root reference to our storage bucket       
-            var storageRef = firebase.storage().ref(); 
+            var storageRef = storage().ref(); 
 
             // Create a unique key based off current timestamp
             var uniqueKey = new Date().getTime();
@@ -656,11 +663,11 @@ class Registration extends Component {
 
             // Set up properties for image
             let imagePath = image.path;
-            let Blob = RNFetchBlob.polyfill.Blob
-            let fs = RNFetchBlob.fs
+            let Blob = ReactNativeBlobUtil.polyfill.Blob
+            let fs = ReactNativeBlobUtil.fs
             const originalXMLHttpRequest = window.XMLHttpRequest;
             const originalBlob = window.Blob;
-            window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest
+            window.XMLHttpRequest = ReactNativeBlobUtil.polyfill.XMLHttpRequest
             window.Blob = Blob
             let mime = 'image/jpg'
             let uploadUri = Platform.OS === 'ios' ? imagePath.replace('file://', '') : imagePath
@@ -700,9 +707,9 @@ class Registration extends Component {
             })  
 
             // Record in analytics that photo was successfully uploaded and count of images user has thus far
-            RNfirebase.analytics().logEvent('photoUploaded', {
-              imageCount: Object.keys(this.state.profile.images).length
-            });
+            // RNanalytics().logEvent('photoUploaded', {
+            //   imageCount: Object.keys(this.state.profile.images).length
+            // });
 
             // Finally return the URL of saved image - to use in database and state. 
               return imagesRef.getDownloadURL()
@@ -792,9 +799,9 @@ class Registration extends Component {
                             ); 
                             
                             //record in analytics that photo was successfully swapped 
-                            RNfirebase.analytics().logEvent('newMainPhoto', {
-                              testParam: 'testParam'
-                            });
+                            // RNanalytics().logEvent('newMainPhoto', {
+                            //   testParam: 'testParam'
+                            // });
                           }
 
                           if ((buttonIndex) === 2) { //delete image
@@ -809,7 +816,7 @@ class Registration extends Component {
                               var profile_images = this.state.profile.images;                                                   
  
                               // Create a root reference to our storage bucket
-                              var storageRef = firebase.storage().ref(); 
+                              var storageRef = storage().ref(); 
 
                               //derive which image to delete via the key property on the image object
                               var image_delete = profile_images[key];
@@ -844,9 +851,9 @@ class Registration extends Component {
                               ); 
 
                               //record in analytics that photo was deleted successfully 
-                              RNfirebase.analytics().logEvent('photoDeleted', {
-                                testParam: 'testParamValue1'
-                              });
+                              // RNanalytics().logEvent('photoDeleted', {
+                              //   testParam: 'testParamValue1'
+                              // });
 
                             }
                           }
@@ -883,23 +890,23 @@ class Registration extends Component {
   updateData = (type, userid, payload) => {
 
     //record in analytics the event that a profile was updated successfully 
-    RNfirebase.analytics().logEvent('profileUpdated', {
-      type: payload
-    });
+    // RNanalytics().logEvent('profileUpdated', {
+    //   type: payload
+    // });
 
     // console.log('type: '+JSON.stringify(type) +'payload length is: '+JSON.stringify(payload.length.toString()));
     //THIS IS BREAKING SINCE WHEN PASSING TO DB OBJECT FOR CASE REVIEWS, IT CAN'T BE CONVERTED TO STRING. 
     // //record in analytics the updated user property 
-    // RNfirebase.analytics().setUserProperty(type, payload.length.toString());
+    // RNanalytics().setUserProperty(type, payload.length.toString());
                                                   
     //create ref to list of coversations for userid
-    const userConversations = firebase.database().ref('users/'+userid+'/conversations/');
+    const userConversations = database().ref('users/'+userid+'/conversations/');
 
     //create ref to list of matches for userid
-    const userMatches = firebase.database().ref('matches/'+userid+'/');
+    const userMatches = database().ref('matches/'+userid+'/');
 
     //save ref for reviews current user created
-    const userReviews = firebase.database().ref('codes').orderByChild("created_by").equalTo(userId);
+    const userReviews = database().ref('codes').orderByChild("created_by").equalTo(userId);
 
     //create empty placeholder object for all paths to update
     let updateObj = {};
@@ -968,7 +975,7 @@ class Registration extends Component {
 
 
           //query firebase for each users matches. 'friend.userid'
-          firebase.database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
+          database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
           
             //convert friend objects into array of friend id's, so that can loop over them. . 
             let friendsMatches = Object.keys(friendMatchesSnap.val());
@@ -990,7 +997,7 @@ class Registration extends Component {
              });
 
              //update all paths in multi-path update on udateObj2 array.
-             firebase.database().ref().update(updateObj2, function(error) {
+             database().ref().update(updateObj2, function(error) {
               if (error) {
                 // The write failed...
                 console.log('write failed updateObj2')
@@ -1083,9 +1090,9 @@ class Registration extends Component {
           //return statement with updating all the paths that need to be updated
 
           console.log(updateObj);
-          //return firebase.database().ref().update(updateObj);
+          //return database().ref().update(updateObj);
 
-          firebase.database().ref().update(updateObj, function(error) {
+          database().ref().update(updateObj, function(error) {
             if (error) {
               // The write failed...
               console.log('write failed')
@@ -1103,7 +1110,7 @@ class Registration extends Component {
   //generate the preferred age range of user based off users age
   preferredAgeRange = (birthday) => {
     
-    let firebaseRef = firebase.database().ref('/users/' + userId);
+    let firebaseRef = database().ref('/users/' + userId);
     let age = this.getAge(birthday);
     let gender = this.state.profile.gender;
     let maxAgePreferred = 70;
@@ -1250,9 +1257,9 @@ class Registration extends Component {
   _checkCode = (userCode) => {
 
     //save analytics in let
-    let Analytics = RNfirebase.analytics();
+    // let Analytics = RNanalytics();
     //call firebase if code exists and is not expired
-    firebase.database().ref("/codes").orderByChild("sharable_code").equalTo(userCode.toUpperCase()).once("value",codeSnap => {
+    database().ref("/codes").orderByChild("sharable_code").equalTo(userCode.toUpperCase()).once("value",codeSnap => {
         //check if code exists
         if (codeSnap.exists()){
 
@@ -1272,9 +1279,9 @@ class Registration extends Component {
             console.log('sorry code is expired already. Ask your friend for another.');
             
             //record in analytics that code was expired 
-            Analytics.logEvent('codeExpired', {
-              codeData: 'codeData'
-            });
+            // Analytics.logEvent('codeExpired', {
+            //   codeData: 'codeData'
+            // });
 
             Alert.alert('Whoops!','Code: '+userCode+' has already been used. Please ask your friend for another.');
 
@@ -1285,15 +1292,15 @@ class Registration extends Component {
             console.log('code exists and is valid!');
             
             //record in analytics that code was expired 
-            Analytics.logEvent('codeValid', {
-              codeData: 'codeData'
-            });
+            // Analytics.logEvent('codeValid', {
+            //   codeData: 'codeData'
+            // });
 
             //update code to expired at the specific code key and add created_for as well, to reference later. 
-            firebase.database().ref('/codes/'+key).update({expired_date: new Date().getTime(), expired: true, created_for: userId });
+            database().ref('/codes/'+key).update({expired_date: new Date().getTime(), expired: true, created_for: userId });
             
             // save reference to where to save the new review object 
-            firebaseProfileRefReviews = firebase.database().ref('/users/'+userId+'/reviews/'+key);
+            firebaseProfileRefReviews = database().ref('/users/'+userId+'/reviews/'+key);
 
             //build review object to update db with. 
             let reviewObj = {name: name_creator, photo: photo_creator, reason: reason, code_key: key[0]}
@@ -1308,9 +1315,9 @@ class Registration extends Component {
           //handle that code doesnt exist. 
           console.log('sorry code doesnt exist. ask your friend for another');
            //record in analytics that code was expired 
-          Analytics.logEvent('codeInvalid', {
-            codeData: 'codeData'
-          });         
+          // Analytics.logEvent('codeInvalid', {
+          //   codeData: 'codeData'
+          // });         
           
           //alert user that code does not exist. 
           Alert.alert('Whoops!','Code: '+userCode+' does not exist. Please ask your friend for another.');
@@ -1509,9 +1516,9 @@ class Registration extends Component {
               this.updateData('reviews', userId, userReviewsObject );
 
               //record in analytics that review was deleted successfully 
-              RNfirebase.analytics().logEvent('reviewDeleted', {
-                testParam: 'testParamValue1'
-              });
+              // RNanalytics().logEvent('reviewDeleted', {
+              //   testParam: 'testParamValue1'
+              // });
             }
           }                       
         )}>
@@ -1702,7 +1709,7 @@ class Registration extends Component {
 
 
       //handle scroll of profile by growing/shrinking container when user scrolls and expects that. 
-      _handleScroll = (event: Object) => {
+      _handleScroll = (event) => {
 
         var currentOffset = event.nativeEvent.contentOffset.y;
         var direction = currentOffset > this.offset ? 'down' : 'up';
@@ -2005,7 +2012,7 @@ class Registration extends Component {
                   onChangeText={(newname) => this.setState({ profile: { ...this.state.profile, first_name: newname} }, () => {
                     this.validateCurrentStep();
                   })}  
-                  onEndEditing={(e: any) => this.updateData('name', userId, e.nativeEvent.text)}                         
+                  onEndEditing={(e) => this.updateData('name', userId, e.nativeEvent.text)}                         
                 />
             </InputGroup> 
 
@@ -2106,7 +2113,7 @@ class Registration extends Component {
                   this.validateCurrentStep();
                   }) 
                 }            
-                onEndEditing={(e: any) => this.updateData('work', userId, e.nativeEvent.text)}  
+                onEndEditing={(e) => this.updateData('work', userId, e.nativeEvent.text)}  
                           
               />
             </InputGroup> 
@@ -2127,7 +2134,7 @@ class Registration extends Component {
               onChangeText={(neweducation) => this.setState({ profile: { ...this.state.profile, education: neweducation} }, () => {
                 this.validateCurrentStep();
               })}  
-              onEndEditing={(e: any) => this.updateData('education', userId, e.nativeEvent.text)}                                              
+              onEndEditing={(e) => this.updateData('education', userId, e.nativeEvent.text)}                                              
             />
           </InputGroup> 
 
@@ -2151,7 +2158,7 @@ class Registration extends Component {
                     this.validateCurrentStep();
                   })}
                   value={this.state.profile.about}
-                  onEndEditing={(e: any) => this.updateData('about', userId, e.nativeEvent.text)}             
+                  onEndEditing={(e) => this.updateData('about', userId, e.nativeEvent.text)}             
                   placeholderTextColor = "white"
                   onFocus={()=>{this.setState({aboutMeRows: 9})}}
                   style={{ 

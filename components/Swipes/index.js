@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import { Dimensions, StatusBar, SafeAreaView, Animated, ActivityIndicator, Image, ImageBackground, TouchableOpacity, Modal,ScrollView,Share } from 'react-native'
-import RNFirebase from "react-native-firebase";
-import 'firebase/firestore';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+import analytics from '@react-native-firebase/analytics';
+import firestore from '@react-native-firebase/firestore';
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
-import * as firebase from "firebase";
+
 import ImageViewer from 'react-native-image-zoom-viewer';
 import Swiper from 'react-native-deck-swiper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -87,7 +89,7 @@ class Swipes extends Component {
 
     return {      
       headerLeft: () => (
-        <Button transparent style={{left: 16, }} onPress={() => navigation.navigate({routeName: 'Dashboard', transitionStyle: 'inverted'}) }>              
+        <Button transparent style={{left: 16,  }} onPress={() => navigation.navigate({routeName: 'Dashboard', transitionStyle: 'inverted'}) }>              
           <FontAwesomeIcon size={ 30 } style={{ color: primaryColor}} icon={ faCog } />
        </Button>
       ),
@@ -143,7 +145,7 @@ class Swipes extends Component {
           this.setState({ loading: true, cardIndex: 0});
 
           //when force update is needed, call for updated user data and put trigger getMatches to update state with it. 
-          firebase.database().ref('/users/' + userId).once('value', (snapshot) => {  
+          database().ref('/users/' + userId).once('value', (snapshot) => {  
             this.getMatches(snapshot.val())
           })
             
@@ -151,25 +153,25 @@ class Swipes extends Component {
       } 
     );
 
-    //leaving, stop listtending for notifications.
-    const didBlur = this.props.navigation.addListener(
-      'didBlur',
-      payload => {
+    // //leaving, stop listtending for notifications.
+    // const didBlur = this.props.navigation.addListener(
+    //   'didBlur',
+    //   payload => {
                 
-        let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+    //     let query = database().ref('/matches/' + userId).orderByChild('showNotification');
 
-        let query2 = firebase.database().ref('/users/' + userId);
+    //     let query2 = database().ref('/users/' + userId);
 
-        //remove listener when leaving. 
-        query.off('child_changed', this.state.listener);
+    //     //remove listener when leaving. 
+    //     query.off('child_changed', this.state.listener);
         
-        //remove listener when leaving. 
-        query2.off('value', this.state.listener);
-      }
-    );
+    //     //remove listener when leaving. 
+    //     query2.off('value', this.state.listener);
+    //   }
+    // );
 
     //save userId of logged in user, to use for later db queries. 
-    const userId = firebase.auth().currentUser.uid;
+    const userId = auth().currentUser.uid;
     this.setState({ userId: userId });
 
 
@@ -179,7 +181,7 @@ class Swipes extends Component {
 
     //query for logged in users information needed and set state with it.     
     //firebase.database().ref('/users/' + userId).on('value', ((snapshot) => {
-    firebase.database().ref('/users/' + userId).once('value', (snapshot) => {
+    database().ref('/users/' + userId).once('value', (snapshot) => {
             
         //set state with user data. 
         this.setState({
@@ -206,13 +208,19 @@ class Swipes extends Component {
             //swipeCountStart: snapshot.val().swipe_count,
             showInstructionsSwipes: false,
         }), 
-            RNFirebase.analytics().setAnalyticsCollectionEnabled(true);
-            RNFirebase.analytics().setCurrentScreen('Swipes', 'Swipes');
-            RNFirebase.analytics().setUserId(userId);
+
+            //run analytics
+            analytics().logScreenView({
+              screen_name: 'Swipes',
+              screen_class: 'Swipes'
+            });
+            analytics().setUserId(userId)
+            
+            //get matches
             this.getMatches(snapshot.val())
        })
 
-       firebase.database().ref('/users/' + userId).on('value', (snapshot) => {
+       database().ref('/users/' + userId).on('value', (snapshot) => {
         const user = snapshot.val();
       
         console.log('REALTIME -- user.swipe_count: '+user.swipe_count);
@@ -250,7 +258,7 @@ class Swipes extends Component {
 
     getUnreadChatCount = (userId) => {
 
-        firebase.database().ref('/matches/' + userId).orderByChild('unread_message').equalTo(true).on('value', ((chatSnapshot) => {
+        database().ref('/matches/' + userId).orderByChild('unread_message').equalTo(true).on('value', ((chatSnapshot) => {
 
          //console.log('unread chats are: '+JSON.stringify(chatSnapshot.val())) ; 
           // if chat count is not empty, update state with count and set flag to true. Else, make sure to set flag to false. 
@@ -322,7 +330,7 @@ class Swipes extends Component {
     //SAVE LOCATION GEOPOINT TO DB ON LOGIN
     //CONFIRM FIRESTORE QUERY CAN FILTER BY LOCATION
     //CAN IMPLEMENT PAGINATION HERE, TO ONLY READ DOCUMENTS UNTIL SWIPESREMAINING NUMBER IS FOUND   
-    const location = new firebase.firestore.GeoPoint(user.latitude, user.longitude);
+    const location = new firestore.GeoPoint(user.latitude, user.longitude);
 
     console.log('location is: '+ JSON.stringify(location));
 
@@ -415,7 +423,7 @@ class Swipes extends Component {
   //handle notifications
   handleNotification = (userId, screen, matchUseridExclude ) => {
     
-    let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+    let query = database().ref('/matches/' + userId).orderByChild('showNotification');
 
      //var listener = query.on("value", 
 
@@ -475,7 +483,7 @@ class Swipes extends Component {
         
 
         //turn off notificationShow bool so it doesn't show again. 
-        firebase.database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
+        database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
           'showNotification': false
         });  
         
@@ -498,7 +506,7 @@ class Swipes extends Component {
     let eligibleMatchesIds = eligibleMatches.map(match => match.userid);
 
     //define ref to users' swipe object
-    let swipesReceivedRef = firebase.database().ref('swipesReceived/'+this.state.userId+'/');
+    let swipesReceivedRef = database().ref('swipesReceived/'+this.state.userId+'/');
        
     swipesReceivedRef.limitToFirst(1).on('child_added', function(swipesRecievedSnapshot) {
 
@@ -544,7 +552,7 @@ class Swipes extends Component {
     user_reviews = this.state.user_reviews;
 
     //create ref to conversations obj
-    conversationRef = firebase.database().ref('conversations/');
+    conversationRef = database().ref('conversations/');
 
     //push new conversation obj for new match
     //make sure that users who already matched, don't show up in match queue. Otherwise duplicate conversations will occur.  
@@ -580,16 +588,16 @@ class Swipes extends Component {
           let match_id = newConversationRef.key;
 
           //create ref to set new match object with match_id associated with conversation_id generated above. 
-          let matchesRef1 = firebase.database().ref('matches/'+userid+'/'+userid_match+'/');
+          let matchesRef1 = database().ref('matches/'+userid+'/'+userid_match+'/');
 
           //create ref to set new match object with match_id associated with conversation_id generated above. 
-          let matchesRef2 = firebase.database().ref('matches/'+userid_match+'/'+userid+'/');
+          let matchesRef2 = database().ref('matches/'+userid_match+'/'+userid+'/');
 
           //create ref to set new conversations key/value pair witin users object.
-          let conversationsMatchesRef1 = firebase.database().ref('/users/'+userid+'/').child("conversations");
+          let conversationsMatchesRef1 = database().ref('/users/'+userid+'/').child("conversations");
 
           //create ref to set new conversations key/value pair witin users object.
-          let conversationsMatchesRef2 = firebase.database().ref('/users/'+userid_match+'/').child("conversations");
+          let conversationsMatchesRef2 = database().ref('/users/'+userid_match+'/').child("conversations");
 
           //console.log("reviews_match is: "+JSON.stringify(reviews_match));
           //console.log("user_reviews is: "+JSON.stringify(user_reviews));
@@ -658,7 +666,7 @@ class Swipes extends Component {
 
 
         // let Analytics = RNFirebase.analytics();
-        RNFirebase.analytics().logEvent('matchEvent', {
+        analytics().logEvent('matchEvent', {
           match: userid_match.toString()
         });
 
@@ -678,15 +686,16 @@ class Swipes extends Component {
 
     // Update the swipe colletion at user's document .
     // If the "swipes" array already exists, it will merge this new array with the existing array
-      firebase.firestore().collection('swipes').doc(userid).set({
+      firestore().collection('swipes').doc(userid).set({
           [userid_match]: {
               like: like, // like or dislike
               userid_match: userid_match,
-              swipe_date: new Date().getTime() // Time of swipe
+              swipe_date: new Date().getTime(), // Time of swipe
+              updateScoreNeeded: true
           }
       }, { merge: true })
     
-      firebase.firestore().collection('swipesReceived').doc(userid_match).set({
+      firestore().collection('swipesReceived').doc(userid_match).set({
         [userid]: {
             like: like, // like or dislike
             userid_match: userid,
@@ -719,7 +728,7 @@ class Swipes extends Component {
         //   .startAt(this.state.user_last_login)
         //   .endAt(new Date().getTime());
 
-        let likeGivenRef = firebase.firestore().collection('swipes')
+        let likeGivenRef = firestore().collection('swipes')
           .doc(userid_match)
           .collection('swipes')
           .where("userid", "==", userid)
@@ -745,8 +754,7 @@ class Swipes extends Component {
         // })
       }
 
-        // let Analytics = RNFirebase.analytics();
-        RNFirebase.analytics().logEvent('swipeEvent', {
+        analytics().logEvent('swipeEvent', {
           like: like.toString()
         });
 
@@ -756,7 +764,7 @@ class Swipes extends Component {
     getMoreMatches = (userid) => {
 
       //update swipeCount in firebase, so that cloud function will return fresh batch of matches. 
-      let userRef = firebase.database().ref('users/'+userid+'/');
+      let userRef = database().ref('users/'+userid+'/');
       
       //update swipe count in db to 0 and in callback call getMatches for fresh batch. 
       userRef.update({  
@@ -794,26 +802,7 @@ class Swipes extends Component {
       return age;
   }
 
-  //function to toggle profile show/hide
-  toggleProfile = () => {
 
-    //if profileMaxHeight is 50%, then change to 15%, else change to 50%
-    if (this.state.profileMaxHeight == '15%'){
-      this.setState({
-        profileMaxHeight: "50%"
-      });
-    }else{
-      this.setState({
-        profileMaxHeight: "15%"
-      });
-    }
-
-    // let Analytics = RNFirebase.analytics();
-    RNFirebase.analytics().logEvent('profileViewSwipes', {
-      testParam: 'testParamValue1'
-    });
-
-}
   //handle swipe events
   onSwiped = async (cardIndex, direction) => {
 
@@ -822,7 +811,7 @@ class Swipes extends Component {
 
     //MANAGE SWIPECOUNT IN CLIENT CACHE TO AVOID DB READS
     //save ref and perpare to update new swipeCount in db
-    let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+    let userRef = database().ref('users/'+this.state.userId+'/');
     
     await this.setState(prevState => ({
         user: {
@@ -928,7 +917,7 @@ class Swipes extends Component {
     const { navigate } = this.props.navigation;
     const dimensions = Dimensions.get('window');
     const height = dimensions.height;
-    let userRef = firebase.database().ref('users/'+this.state.userId+'/');
+    let userRef = database().ref('users/'+this.state.userId+'/');
 
     //determine width of device in order for custom margin between iphones
     let deviceWidth = Dimensions.get('window').width

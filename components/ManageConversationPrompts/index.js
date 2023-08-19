@@ -15,10 +15,12 @@ import {
   TouchableOpacity 
 } from 'react-native';
 
-import RNfirebase from 'react-native-firebase';
-import * as Progress from 'react-native-progress';
+import firebase from '@react-native-firebase/app';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+import analytics from '@react-native-firebase/analytics';
 
-import * as firebase from "firebase";
+import * as Progress from 'react-native-progress';
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faChevronLeft, faCamera, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
@@ -51,7 +53,6 @@ class ManageConversationPrompts extends Component {
 
   constructor(props, contexts){
     super(props, contexts)
-    //Analytics.setAnalyticsCollectionEnabled(true);
 
   this.state = {
       imageViewerVisible: false,
@@ -78,8 +79,8 @@ class ManageConversationPrompts extends Component {
   //before component mounts, update state with value from database
   componentWillMount() {
   //save intial data for user
-   userId = firebase.auth().currentUser.uid;
-   firebaseRef = firebase.database().ref('/users/' + userId);
+   userId = auth().currentUser.uid;
+   firebaseRef = database().ref('/users/' + userId);
 
     //save data snapshot from firebaseRef
     firebaseRef.on('value', (dataSnapshot) => {
@@ -88,9 +89,12 @@ class ManageConversationPrompts extends Component {
         profile: dataSnapshot.val()
       }),
 
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setCurrentScreen('ManageConversationPrompts', 'ManageConversationPrompts');
-    RNfirebase.analytics().setUserId(userId);
+    //run analytics
+    analytics().logScreenView({
+      screen_name: 'ManageConversationPrompts',
+      screen_class: 'ManageConversationPrompts'
+    });
+    analytics().setUserId(userId)
     })
   }  
 
@@ -99,18 +103,18 @@ class ManageConversationPrompts extends Component {
     updateData = (type, userid, payload) => {
 
       //record in analytics the event that a profile was updated successfully 
-      RNfirebase.analytics().logEvent('profileUpdated', {
+      analytics().logEvent('profileUpdated', {
         type: payload
       });
                                 
       //create ref to list of coversations for userid
-      const userConversations = firebase.database().ref('users/'+userid+'/conversations/');
+      const userConversations = database().ref('users/'+userid+'/conversations/');
   
       //create ref to list of matches for userid
-      const userMatches = firebase.database().ref('matches/'+userid+'/');
+      const userMatches = database().ref('matches/'+userid+'/');
   
       //save ref for reviews current user created
-      const userReviews = firebase.database().ref('codes').orderByChild("created_by").equalTo(userId);
+      const userReviews = database().ref('codes').orderByChild("created_by").equalTo(userId);
   
       //create empty placeholder object for all paths to update
       let updateObj = {};
@@ -179,7 +183,7 @@ class ManageConversationPrompts extends Component {
   
   
             //query firebase for each users matches. 'friend.userid'
-            firebase.database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
+            database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
             
               //convert friend objects into array of friend id's, so that can loop over them. . 
               let friendsMatches = Object.keys(friendMatchesSnap.val());
@@ -201,7 +205,7 @@ class ManageConversationPrompts extends Component {
                });
   
                //update all paths in multi-path update on udateObj2 array.
-               firebase.database().ref().update(updateObj2, function(error) {
+               database().ref().update(updateObj2, function(error) {
                 if (error) {
                   // The write failed...
                   console.log('write failed updateObj2')
@@ -301,7 +305,7 @@ class ManageConversationPrompts extends Component {
             console.log(updateObj);
             //return firebase.database().ref().update(updateObj);
   
-            firebase.database().ref().update(updateObj, function(error) {
+            database().ref().update(updateObj, function(error) {
               if (error) {
                 // The write failed...
                 console.log('write failed')
@@ -501,7 +505,7 @@ class ManageConversationPrompts extends Component {
                           this.updateData('prompts', this.state.profile.userid, updatedPrompts );
                       
                           //record in analytics that prompt was deleted successfully 
-                          RNfirebase.analytics().logEvent('promptDeleted', {
+                          analytics().logEvent('promptDeleted', {
                             testParam: 'testParamValue1'
                           });
                         }

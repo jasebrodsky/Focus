@@ -1,14 +1,20 @@
 import * as React from 'react';
 import 'react-native-gesture-handler';
-import RNfirebase from 'react-native-firebase';
-import * as firebase from "firebase";
+
+import firebase from '@react-native-firebase/app';
+import analytics from '@react-native-firebase/analytics';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+import dynamicLinks from '@react-native-firebase/dynamic-links';
 import { Button, View, Text, useEffect, Linking, StatusBar, PushNotificationIOS } from 'react-native';
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
+
 import { Root } from "native-base";
 import DeepLinkContext from "./components/DeepLinkContext"
 import {linkReview} from "./components/DeepLinkContext/functions.js"
+
 import Login from "./components/login/";
 import Intro from "./components/Intro";
 import Messages from "./components/Messages";
@@ -33,7 +39,7 @@ import Intersitial from "./components/Intersitial";
 
 import codePush from "react-native-code-push";
 import SplashScreen from  "react-native-splash-screen";
-import dynamicLinks from '@react-native-firebase/dynamic-links';
+
 
 import Toast from 'react-native-toast-message';
 
@@ -98,8 +104,8 @@ const MainStack = createStackNavigator(
 
     defaultNavigationOptions: {
       headerStyle: { 
-        paddingTop: getStatusBarHeight()+15,
-        paddingBottom: getStatusBarHeight()/2,
+         paddingTop: 45,
+         height: 75,
       },
       headerMode: 'screen',   
     },
@@ -160,11 +166,12 @@ const RootStack = createStackNavigator(
 
 
 const AppContainer = codePush(createAppContainer(RootStack));
+//const AppContainer = createAppContainer(RootStack);
 
-  //Hide Splash screen on app load.
-    setTimeout(() => {
-      SplashScreen.hide()
-    }, 2000)
+//Hide Splash screen on app load.
+setTimeout(() => {
+  SplashScreen.hide()
+}, 2000)
   
 
     
@@ -178,12 +185,10 @@ export default class App extends React.Component {
       reviewObj: {},
     }
   }
+  
 
 
   componentDidMount() {
-
-    //save analytics in let
-    let Analytics = RNfirebase.analytics();
 
     // get intial deeplink if present and send to handleDynamicLink
     dynamicLinks().getInitialLink(this.handleDynamicLink);
@@ -193,6 +198,7 @@ export default class App extends React.Component {
     
 
   }
+
 
 
   //handle when a dynamic link is used in app
@@ -208,13 +214,13 @@ export default class App extends React.Component {
     let type = searchParams.get('type');
 
     // save currentUser (to use for linking a review to this user ...)
-    let currentUser = firebase.auth().currentUser;
+    let currentUser = auth().currentUser.uid;
 
 
     //if flow is refer. 
     if ( type == 'refer' ) {
       //save name and photo of friend who referred user, into state
-      let firebaseRef = firebase.database().ref('/users/' + searchParams.get('user_id_creator'));
+      let firebaseRef = database().ref('/users/' + searchParams.get('user_id_creator'));
       //save data snapshot from firebaseRef
       firebaseRef.on('value', (dataSnapshot) => {
         //put search Params into obj
@@ -225,7 +231,7 @@ export default class App extends React.Component {
       })
 
       //Check if code in deeplink is exists or not
-      firebase.database().ref("/codes").orderByChild("sharable_code").equalTo(searchParams.get('code').toUpperCase()).once("value",codeSnap => {
+      database().ref("/codes").orderByChild("sharable_code").equalTo(searchParams.get('code').toUpperCase()).once("value",codeSnap => {
         //check if code exists first
         if (codeSnap.exists() ){
           // save link params 
@@ -287,16 +293,15 @@ export default class App extends React.Component {
 
   render() {
 
-
-    return <DeepLinkContext.Provider value={this.state}>
-              <Root><AppContainer />
-                
-              </Root>
-            </DeepLinkContext.Provider>;
-
-  }
+    return (
+      <DeepLinkContext.Provider value={this.state}>
+        
+        
+          <AppContainer />
+        
+      </DeepLinkContext.Provider>
+    );
 
   
-}
-
-
+    }
+  }

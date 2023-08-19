@@ -82,6 +82,13 @@ export class Props {
   public doubleClickInterval?: number;
 
   /**
+   * Min and Max scale for zooming
+   */
+  public minScale?: number;
+
+  public maxScale?: number;
+
+  /**
    * 是否预加载图片
    */
   public enablePreload?: boolean = false;
@@ -228,6 +235,11 @@ export class State {
    * 当前显示第几个
    */
   public currentShowIndex?: number = 0;
+
+  /**
+   * Used to detect if parent component applied new index prop
+   */
+  public prevIndexProp?: number = 0;
 
   /**
    * 图片拉取是否完毕了

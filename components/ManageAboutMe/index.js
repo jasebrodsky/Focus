@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import {TouchableWithoutFeedback, Keyboard, StatusBar, KeyboardAvoidingView, Image, Alert, Dimensions, Modal, ScrollView, Platform, TextInput, TouchableOpacity, Switch } from 'react-native';
-import RNfirebase from 'react-native-firebase';
+import { utils } from '@react-native-firebase/app';
+import messaging from '@react-native-firebase/messaging';
+import database from '@react-native-firebase/database';
+import storage from '@react-native-firebase/storage';
+import analytics from '@react-native-firebase/analytics';
+import auth from '@react-native-firebase/auth';
 import DatePicker from 'react-native-datepicker';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -8,14 +13,14 @@ import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import Geocoder from 'react-native-geocoding';
 import * as Progress from 'react-native-progress';
 import Geolocation from '@react-native-community/geolocation';
-import RNFetchBlob from 'react-native-fetch-blob';
-import * as firebase from "firebase";
+import ActionSheet from 'react-native-actionsheet';
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faChevronLeft, faCamera } from '@fortawesome/free-solid-svg-icons';
 
 import {
-  ActionSheet,
+  // ActionSheet,
+  Container,
   Form,
   Text,
   Button,
@@ -54,7 +59,6 @@ class ManageAboutMe extends Component {
 
   constructor(props, contexts){
     super(props, contexts)
-    //Analytics.setAnalyticsCollectionEnabled(true);
 
   this.state = {
       imageViewerVisible: false,
@@ -157,13 +161,15 @@ class ManageAboutMe extends Component {
   //before component mounts, update state with value from database
   componentWillMount() {
     //save intial data for user
-    userId = firebase.auth().currentUser.uid;
-    firebaseRef = firebase.database().ref('/users/' + userId);
-
+    userId = auth().currentUser.uid;
+    firebaseRef = database().ref('/users/' + userId);
+    
     //run analytics
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setCurrentScreen('ManageAboutMe', 'ManageAboutMe');
-    RNfirebase.analytics().setUserId(userId);
+    analytics().logScreenView({
+      screen_name: 'ManageAboutMe',
+      screen_class: 'ManageAboutMe'
+    });
+    analytics().setUserId(userId)
 
 
     //update stepIndex to value passed from nav. 
@@ -194,11 +200,15 @@ class ManageAboutMe extends Component {
   componentDidMount() {
     //check permissions
     this.checkPermission();
+
+    // Assign references to the ActionSheet components
+    this.genderIdentityActionSheetRef = this.refs.genderIdentityActionSheet;
+    this.imageManagementActionSheetRef = this.refs.imageManagementActionSheet;
   }  
 
   // check if permission for notification has been granted previously, then getToken. 
   async checkPermission() {
-    const enabled = await RNfirebase.messaging().hasPermission();
+    const enabled = await messaging().requestPermission();
     if (enabled) {
         this.getToken();
     } else {
@@ -208,14 +218,14 @@ class ManageAboutMe extends Component {
 
   // getToken if permission has been granted previously
   async getToken() {
-    fcmToken = await RNfirebase.messaging().getToken();
+    fcmToken = await messaging().getToken();
     firebaseRef.update({fcmToken: fcmToken});
   }
 
   // if permission has not been granted, request for permission. 
   async requestPermission() {
     try {
-        await RNfirebase.messaging().requestPermission();
+        await messaging().requestPermission();
         // User has authorised
         this.getToken();
     } catch (error) {
@@ -228,7 +238,7 @@ class ManageAboutMe extends Component {
   getLocation = () => {
 
     //save ref to current user in db. 
-    firebaseRefCurrentUser = firebase.database().ref('/users/' + userId);
+    firebaseRefCurrentUser = database().ref('/users/' + userId);
     //request authorization to location services
     Geolocation.requestAuthorization();
     //convert location geo data into location data
@@ -290,115 +300,82 @@ class ManageAboutMe extends Component {
 // 2. UPDATE DB: update users/images obj's URI of stored images in realtime db
 // 3. REFLECT: when images in db changes, update component state
 
-  pickImage() {
-    let imagesLength = Object.keys(this.state.profile.images).length;
-    console.log('images length is: '+imagesLength);
+pickImage = () => {
+  const imagesLength = this.state.profile.images.length;
+  console.log('user picked images');
+  console.log('images length is: ' + imagesLength);
 
-    if(imagesLength < 10){
-      ImagePicker.openPicker({
-        compressImageQuality: 0.6,
-        multiple: false,
-        forceJpg: true,
-        cropping: true,
-        width: 600,
-        height: 800,
-        showCropGuidelines: true,
-        mediaType: 'photo',
-        includeBase64: true,
-        waitAnimationEnd: false,
-        includeExif: true,
-      }).then(image => {
-          
-            // Create a root reference to our storage bucket       
-            var storageRef = firebase.storage().ref(); 
+  if (imagesLength < 7) {
+    console.log('under 7 images');
+    ImagePicker.openPicker({
+      compressImageQuality: 0.5,
+      // cropperChooseColor: primaryColor,
+      // cropperCancelColor: primaryColor,
+      multiple: false,
+      forceJpg: true,
+      cropping: true,
+      width: 600,
+      height: 800,
+      showCropGuidelines: true,
+      mediaType: 'photo',
+      includeBase64: true,
+      waitAnimationEnd: false,
+      includeExif: true,
+    })
+      .then((image) => {
+        // Create a unique key based on the current timestamp
+        const uniqueKey = new Date().getTime();
+        const path = 'images/' + userId + '/' + uniqueKey + '.jpg';
+        const imagesRef = storage().ref(path);
 
-            // Create a unique key based off current timestamp
-            var uniqueKey = new Date().getTime();
+        // Save a copy of existing images into imagesObj to manipulate and eventually update in the database and state
+        const imagesObj = [...this.state.profile.images];
 
-            // Create a reference to 'images/userid/uniqueKey.jpg' - where to save new image in storage bucket
-            var imagesRef = storageRef.child('images/'+userId+'/'+uniqueKey+'.jpg');
-    
-            // Save copy of exisiting images into imagesObj - to manipulate, then eventually push back to database and state. 
-            var imagesObj = this.state.profile.images;
+        // Set up properties for the image
+        const imagePath = image.path;
+        const uploadUri = Platform.OS === 'ios' ? imagePath.replace('file://', '') : imagePath;
 
-            // Set up properties for image
-            let imagePath = image.path;
-            let Blob = RNFetchBlob.polyfill.Blob
-            let fs = RNFetchBlob.fs
-            const originalXMLHttpRequest = window.XMLHttpRequest;
-            const originalBlob = window.Blob;
-            window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest
-            window.Blob = Blob
-            let mime = 'image/jpg'
-            let uploadUri = Platform.OS === 'ios' ? imagePath.replace('file://', '') : imagePath
-                        
-            // Create file metadata specific to caching.
-            let newMetadata = {
-              cacheControl: 'public,max-age=31536000',
-              contentType: 'image/jpeg'
-            }
+        // Upload the file
+        imagesRef
+          .putFile(uploadUri)
+          .then(() => {
+            // Get the download URL of the uploaded image
+            imagesRef
+              .getDownloadURL()
+              .then((url) => {
+                // If the first image in state is the default image, remove it from the imagesObj
+                if (imagesObj[0].url === 'https://focusdating.co/images/user.jpg') {
+                  imagesObj.splice(0, 1);
+                }
+                // Push the new image object into imagesObj
+                imagesObj.push({ url: url, file: uniqueKey, cache: 'force-cache', type: 'image' });
 
-            // Read selected image          
-            fs.readFile(imagePath, 'base64')
-              
-            // then build blob
-            .then((data) => {
-                //console.log(data);
-                return Blob.build(data, { type: `${mime};BASE64` })
-            })
-            // Then upload blob to firebase storage
-            .then((blob) => {
-                uploadBlob = blob;
-                return imagesRef.put(blob, { contentType: mime })
+                // Call the updateData function with the new URIs to perform a multi-path update
+                this.updateData('images', userId, imagesObj);
+
+                // Record in analytics that the photo was successfully uploaded and the count of images the user has so far
+                analytics().logEvent('photoUploaded', {
+                  imageCount: imagesObj.length,
+                });
               })
-            
-            // Then close blob and set blob back to original values (for bug with fetching later)
-            .then(() => {
-              uploadBlob.close();
-              window.XMLHttpRequest = originalXMLHttpRequest
-              window.Blob = originalBlob;
+              .catch((error) => {
+                console.log('Error getting download URL of the image:', error);
+              });
+          })
+          .catch((error) => {
+            console.error('Error uploading file:', error);
+            // Handle the error
+          });
 
-              // Update metadata properties to image reference
-              imagesRef.updateMetadata(newMetadata)
-            
-            .catch(function(error) {
-              // Uh-oh, an error occurred!
-              console.log(error);
-            })  
-
-            // Record in analytics that photo was successfully uploaded and count of images user has thus far
-            RNfirebase.analytics().logEvent('photoUploaded', {
-              imageCount: Object.keys(this.state.profile.images).length
-            });
-
-            // Finally return the URL of saved image - to use in database and state. 
-              return imagesRef.getDownloadURL()
-            })               
-            
-            // Then update all image references for user in multi-path update
-            .then((url) => {
-
-              //if first image in state is the default image, then delete that default image from the images object. then continue and add the new image to the object. 
-              if (imagesObj[0].url ==  "https://focusdating.co/images/user.jpg" ){
-                imagesObj.splice(0,1);
-              }
-              
-              // push new image object into imagesObj 
-              imagesObj.push({url: url, file: uniqueKey, cache: 'force-cache', type: 'image'});
-
-              //call updateData function with new URI's to pass in multi-path update
-              this.updateData('images', userId, imagesObj );
-            
-            })
-            .catch(console.error);                  
-        } 
-      ).catch(e => console.log(e));
-    }else{
-
-      Alert.alert('Sorry','Please delete a photo first');
-    }
-
+      })
+      .catch((error) => {
+        console.log('Error picking image:', error);
+      });
+  } else {
+    Alert.alert('Sorry', 'Please delete a photo first');
   }
+};
+
 
   //funtion to scale height of image
   scaledHeight(oldW, oldH, newW) {
@@ -411,114 +388,146 @@ class ManageAboutMe extends Component {
     //hide default image if user only has the default image Otherise breaks UI. Should fix in data flow to have accurate images in state/db. 
     let displayImages =  this.state.profile.images['0'].url == 'https://focusdating.co/images/user.jpg' ? 'none' : 'flex'
 
-    // console.log('image is: '+JSON.stringify(image));
-    return <TouchableOpacity style = {{display: displayImages}} onPress={()=> ActionSheet.show
-                      (
-                        {
-                          options: PHOTO_OPTIONS,
-                          cancelButtonIndex: 3,
-                          destructiveButtonIndex: 3,
-                          title: 'Photo'
-                        },
-                        (buttonIndex) => {
-                          if ((buttonIndex) === 0) {
-                              //view image 
-                              this.setState({
-                                //set image viewer visibility on
-                                imageViewerVisible: true,
-                                // save to state the selected image to view 
-                                selectedImage: [{url: image.url, cache: 'force-cache'}]  
-                              })
-                            }
 
-                          if ((buttonIndex) === 1) { //make main image 
+    return <TouchableOpacity style = {{display: displayImages}} 
+      
+    //showManageImagesActionSheet
+    //save selected image into state
+    //new methods to handle each button in actionSheet accessing the selected image in state. 
+    
+    onPress={() => {
+      this.setState({
+          // save to state the selected image for use by user later 
+          selectedImage: [{ key: key, url: image.url, cache: 'force-cache' }],
+        }, //then open the image action sheet
+        () => {
+          this.showImageManagementActionSheet();
+        }
+      );
+    }}
 
-                            //save original state of images array
-                            var arrayImages = [...this.state.profile.images];
+    //     //show showManageImagesActionSheet
+    //     this.showImageManagementActionSheet;
+            
+    // }}  
+    // onPress={
+    //   //this.showImageManagementActionSheet(image)
+    //   // this.setState({
+    //   //   // save to state the selected image for use by user later 
+    //   //     selectedImage: [{url: image.url, cache: 'force-cache'}]  
+    //   //  })
+    // }
+    
+    
+    
+    // onPress={(image)=> ActionSheet.show
+    //                   (
+    //                     {
+    //                       options: PHOTO_OPTIONS,
+    //                       cancelButtonIndex: 3,
+    //                       destructiveButtonIndex: 3,
+    //                       title: 'Photo'
+    //                     },
+    //                     (buttonIndex) => {
+    //                       if ((buttonIndex) === 0) {
+    //                           //view image 
+    //                           this.setState({
+    //                             //set image viewer visibility on
+    //                             imageViewerVisible: true,
+    //                             // save to state the selected image to view 
+    //                             selectedImage: [{url: image.url, cache: 'force-cache'}]  
+    //                           })
+    //                         }
+
+    //                       if ((buttonIndex) === 1) { //make main image 
+
+    //                         //save original state of images array
+    //                         var arrayImages = [...this.state.profile.images];
                             
-                            // save selected image to new variable to re-insert into images later
-                            let main_image = arrayImages[key];
-                            //console.log('profile images are first: '+JSON.stringify(arrayImages));
+    //                         // save selected image to new variable to re-insert into images later
+    //                         let main_image = arrayImages[key];
+    //                         //console.log('profile images are first: '+JSON.stringify(arrayImages));
 
-                            //save the index of image to remove
-                            var index = arrayImages.indexOf(key)
+    //                         //save the index of image to remove
+    //                         var index = arrayImages.indexOf(key)
                             
-                            //remove image at index
-                            arrayImages.splice(key, 1);
+    //                         //remove image at index
+    //                         arrayImages.splice(key, 1);
 
-                            //insert new main image into first position of profile images
-                            arrayImages.unshift(main_image);
+    //                         //insert new main image into first position of profile images
+    //                         arrayImages.unshift(main_image);
 
-                            //set state to new image array
-                            this.setState({profile: { ...this.state.profile, images: arrayImages}},
+    //                         //set state to new image array
+    //                         this.setState({profile: { ...this.state.profile, images: arrayImages}},
                               
-                              //in callback (after state is set), use multi-path update with new array of images from state. 
-                              () => this.updateData('images', userId, this.state.profile.images )
+    //                           //in callback (after state is set), use multi-path update with new array of images from state. 
+    //                           () => this.updateData('images', userId, this.state.profile.images )
                               
-                            ); 
+    //                         ); 
                             
-                            //record in analytics that photo was successfully swapped 
-                            RNfirebase.analytics().logEvent('newMainPhoto', {
-                              testParam: 'testParam'
-                            });
-                          }
+    //                         //record in analytics that photo was successfully swapped 
+    //                         // analytics().logEvent('newMainPhoto', {
+    //                         //   testParam: 'testParam'
+    //                         // });
+    //                       }
 
-                          if ((buttonIndex) === 2) { //delete image
+    //                       if ((buttonIndex) === 2) { //delete image
 
-                            //if only one photo exists, disable deleting, else allow user to delete image. 
-                            if(this.state.profile.images.length == 1){
-                              Alert.alert('Sorry','Can not delete only photo');
+    //                         //if only one photo exists, disable deleting, else allow user to delete image. 
+    //                         if(this.state.profile.images.length == 1){
+    //                           Alert.alert('Sorry','Can not delete only photo');
 
-                            }else{ //remove image
+    //                         }else{ //remove image
 
-                              //save copy of profile images from state
-                              var profile_images = this.state.profile.images;                                                   
+    //                           //save copy of profile images from state
+    //                           var profile_images = this.state.profile.images;                                                   
  
-                              // Create a root reference to our storage bucket
-                              var storageRef = firebase.storage().ref(); 
+    //                           // Create a root reference to our storage bucket
+    //                           var storageRef = storage().ref(); 
 
-                              //derive which image to delete via the key property on the image object
-                              var image_delete = profile_images[key];
+    //                           //derive which image to delete via the key property on the image object
+    //                           var image_delete = profile_images[key];
 
-                              // Create a reference to 'images/userid/i.jpg'
-                              var imagesRef = storageRef.child('images/'+userId+'/'+image_delete.file+'.jpg');
+    //                           // Create a reference to 'images/userid/i.jpg'
+    //                           var imagesRef = storageRef.child('images/'+userId+'/'+image_delete.file+'.jpg');
 
-                              // Delete the file
-                              imagesRef.delete().then(function() {
-                                // File deleted successfully
-                                console.log('deleted successfully');
-                              }).catch(function(error) {
-                                // Uh-oh, an error occurred!
-                                console.log('deleted NOT successfully, error is: '+JSON.stringify(error));
-                              });
+    //                           // Delete the file
+    //                           imagesRef.delete().then(function() {
+    //                             // File deleted successfully
+    //                             console.log('deleted successfully');
+    //                           }).catch(function(error) {
+    //                             // Uh-oh, an error occurred!
+    //                             console.log('deleted NOT successfully, error is: '+JSON.stringify(error));
+    //                           });
                                  
-                              //save original state of images array
-                              var arrayImages = [...this.state.profile.images];
+    //                           //save original state of images array
+    //                           var arrayImages = [...this.state.profile.images];
                               
-                              //save the index of image to remove
-                              var index = arrayImages.indexOf(key)
+    //                           //save the index of image to remove
+    //                           var index = arrayImages.indexOf(key)
                               
-                              //remove image at index
-                              arrayImages.splice(key, 1);
+    //                           //remove image at index
+    //                           arrayImages.splice(key, 1);
                               
-                              //set state to new image array
-                              this.setState({profile: { ...this.state.profile, images: arrayImages}},
+    //                           //set state to new image array
+    //                           this.setState({profile: { ...this.state.profile, images: arrayImages}},
                               
-                                //in callback (after state is set), use multi-path update with new array of images from state. 
-                                () => this.updateData('images', userId, this.state.profile.images )
+    //                             //in callback (after state is set), use multi-path update with new array of images from state. 
+    //                             () => this.updateData('images', userId, this.state.profile.images )
                                 
-                              ); 
+    //                           ); 
 
-                              //record in analytics that photo was deleted successfully 
-                              RNfirebase.analytics().logEvent('photoDeleted', {
-                                testParam: 'testParamValue1'
-                              });
+    //                           //record in analytics that photo was deleted successfully 
+    //                           // analytics().logEvent('photoDeleted', {
+    //                           //   testParam: 'testParamValue1'
+    //                           // });
 
-                            }
-                          }
-                        }
-                      )
-                    } >
+    //                         }
+    //                       }
+    //                     }
+    //                   )
+    //                 } 
+    >
               <Image 
                style={{  
                 //borderWidth: 0.6, 
@@ -553,7 +562,7 @@ class ManageAboutMe extends Component {
   //generate the preferred age range of user based off users age
   preferredAgeRange = (birthday) => {
   
-    let firebaseRef = firebase.database().ref('/users/' + userId);
+    let firebaseRef = database().ref('/users/' + userId);
     let age = this.getAge(birthday);
     let gender = this.state.profile.gender;
     let maxAgePreferred = 70;
@@ -601,18 +610,18 @@ class ManageAboutMe extends Component {
   updateData = (type, userid, payload) => {
 
     //record in analytics the event that a profile was updated successfully 
-    RNfirebase.analytics().logEvent('profileUpdated', {
+    analytics().logEvent('profileUpdated', {
       type: payload
     });
                               
     //create ref to list of coversations for userid
-    const userConversations = firebase.database().ref('users/'+userid+'/conversations/');
+    const userConversations = database().ref('users/'+userid+'/conversations/');
 
     //create ref to list of matches for userid
-    const userMatches = firebase.database().ref('matches/'+userid+'/');
+    const userMatches = database().ref('matches/'+userid+'/');
 
     //save ref for reviews current user created
-    const userReviews = firebase.database().ref('codes').orderByChild("created_by").equalTo(userId);
+    const userReviews = database().ref('codes').orderByChild("created_by").equalTo(userId);
 
     //create empty placeholder object for all paths to update
     let updateObj = {};
@@ -682,7 +691,7 @@ class ManageAboutMe extends Component {
               }               
 
             //query firebase for each users matches. 'friend.userid'
-            firebase.database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
+            database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
             
               //convert friend objects into array of friend id's, so that can loop over them. . 
               let friendsMatches = Object.keys(friendMatchesSnap.val());
@@ -707,7 +716,7 @@ class ManageAboutMe extends Component {
               });
 
               //update all paths in multi-path update on udateObj2 array.
-              firebase.database().ref().update(updateObj2, function(error) {
+              database().ref().update(updateObj2, function(error) {
 
                 console.log('LOOK HERE updateObj2 is: '+JSON.stringify(updateObj2));
                 if (error) {
@@ -810,7 +819,7 @@ class ManageAboutMe extends Component {
 
           console.log('LOOK HERE updateObj1 is: '+JSON.stringify(updateObj));
 
-          firebase.database().ref().update(updateObj, function(error) {
+          database().ref().update(updateObj, function(error) {
             if (error) {
               // The write failed...
               console.log('write failed')
@@ -951,7 +960,7 @@ class ManageAboutMe extends Component {
     firebaseRef.update({genderOnProfile: value});
 
     // Record in analytics that photo was successfully uploaded and count of images user has thus far
-    RNfirebase.analytics().logEvent('genderShowProfile', {
+    analytics().logEvent('genderShowProfile', {
       value: value
     });
 
@@ -1083,6 +1092,7 @@ class ManageAboutMe extends Component {
         }
       }
 
+
       //functions to manage/navigate step data in state
       manageStep = (action) => {
 
@@ -1126,7 +1136,7 @@ class ManageAboutMe extends Component {
               let step = this.state.steps[this.state.stepIndex].input;
               //let valueStep = this.state.profile.step; 
 
-              RNfirebase.analytics().logEvent(step+'Saved', {
+              analytics().logEvent(step+'Saved', {
                 data: this.state.profile.step
               });
 
@@ -1134,23 +1144,23 @@ class ManageAboutMe extends Component {
                 switch (step) {         
                  case 'name': //when name step is selected
                      this.updateData('name', userId, this.state.profile.first_name); 
-                     RNfirebase.analytics().setUserProperty('name', this.state.profile.first_name);           
+                      analytics().setUserProperty('name', this.state.profile.first_name);           
                      break;
                  case 'last_name': //when name step is selected
                      this.updateData('last_name', userId, this.state.profile.last_name); 
-                     RNfirebase.analytics().setUserProperty('name', this.state.profile.first_name);           
+                      analytics().setUserProperty('name', this.state.profile.first_name);           
                      break;
                  case 'work': //when work step is selected
                      this.updateData('work', userId, this.state.profile.work);
-                     RNfirebase.analytics().setUserProperty('work', this.state.profile.work);           
+                      analytics().setUserProperty('work', this.state.profile.work);           
                      break;
                  case 'school'://when school step is selected
                       this.updateData('education', userId, this.state.profile.education);
-                      RNfirebase.analytics().setUserProperty('education', this.state.profile.education);           
+                      analytics().setUserProperty('education', this.state.profile.education);           
                       break;
                  case 'gender'://when gender step is selected
                      this.updateData('gender', userId, this.state.profile.gender);
-                     RNfirebase.analytics().setUserProperty('gender', this.state.profile.gender);           
+                      analytics().setUserProperty('gender', this.state.profile.gender);           
                       break;
                  } 
               
@@ -1167,6 +1177,108 @@ class ManageAboutMe extends Component {
             }
         }
       }
+
+      //show gender action sheet
+      showGenderIdentityActionSheet = () => {
+        this.genderIdentityActionSheetRef.show();
+      };
+    
+      //show imageManagement action sheet
+      showImageManagementActionSheet = () => {
+        this.imageManagementActionSheetRef.show();
+      };
+
+      //delete specific image
+      deleteImage = () => {
+
+          //if only one photo exists, disable deleting, else allow user to delete image. 
+          if(this.state.profile.images.length == 1){
+            Alert.alert('Sorry','Can not delete only photo');
+
+          }else{ //remove image
+
+            //save copy of profile images from state
+            var profileImagesCopy = [...this.state.profile.images];
+
+            // get the selected image key
+            var selectedImageKey = this.state.selectedImage[0].key;
+            
+            // Create reference to image to delete in storage bucket
+            var path = 'images/' + userId + '/' + profileImagesCopy[selectedImageKey].file + '.jpg';
+            var imagesRef = storage().ref(path);
+
+            // remove the image from the profile images array
+            profileImagesCopy.splice(selectedImageKey, 1);
+
+            // Delete the file
+            imagesRef
+              .delete()
+              .then(() => {
+                // File deleted successfully
+                console.log('Deleted successfully');
+
+                  // if delete successful, set state to new image array
+                  this.setState(
+                    {
+                      profile: { ...this.state.profile, images: profileImagesCopy },
+                    },
+                    () => {
+                      // in callback (after state is set), use multi-path update with new array of images from state.
+                      this.updateData('images', userId, profileImagesCopy);
+                    }
+                  );
+
+                //record in analytics that photo was deleted successfully 
+                analytics().logEvent('photoDeleted', {
+                  testParam: 'testParamValue1'
+                });
+
+              })
+              .catch((error) => {
+                // Uh-oh, an error occurred!
+                console.log('Deletion failed, error is:', error);
+              });
+
+          }
+      };
+
+
+      // Make specific image the main image
+      makeMainImage = () => {
+        // Save the selected image key
+        const selectedImageKey = this.state.selectedImage[0].key;
+
+        // Save a copy of the profile images from state
+        const profileImagesCopy = [...this.state.profile.images];
+
+        // Retrieve the selected image object
+        const selectedImage = profileImagesCopy[selectedImageKey];
+
+        // Remove the selected image from the array
+        profileImagesCopy.splice(selectedImageKey, 1);
+
+        // Insert the selected image at the beginning of the array
+        profileImagesCopy.unshift(selectedImage);
+
+        // Set the state with the updated image array
+        this.setState(
+          {
+            profile: {
+              ...this.state.profile,
+              images: profileImagesCopy,
+            },
+          },
+          () => {
+            // After the state is set, perform a multi-path update with the new array of images
+            this.updateData('images', userId, profileImagesCopy);
+
+            //record in analytics that photo was successfully swapped 
+            analytics().logEvent('newMainPhoto', {
+              testParam: 'testParam'
+            });
+          }
+        );
+      };
 
 
   render() {
@@ -1188,8 +1300,7 @@ class ManageAboutMe extends Component {
     let charRemainingCopy = (30 - this.state.profile.about.length);
 
     //format images for imageViewer .. not sure why images obj in state didnt' work direclty... 
-    let profileImages = this.state.profile.images.map(image => ({ url: image.url }));
-    console.log('profileImages? :'+JSON.stringify(profileImages));
+    // let profileImages = this.state.profile.images.map(image => ({ url: image.url }));
 
     return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} >
@@ -1250,16 +1361,21 @@ class ManageAboutMe extends Component {
                 
                 }}>
                 <Button onPress = {() => this.manageStep('back')} transparent >
-                  <FontAwesomeIcon size={ 28 } style={{ color: 'white'}} icon={ faChevronLeft } />
+                  <FontAwesomeIcon size={ 28 } style={{ color: 'white', marginLeft: 5}} icon={ faChevronLeft } />
                 </Button>
               </View>
 
               <View style={{
                 display: this.state.steps[this.state.stepIndex].required == false ? 'flex' : 'none', //if required is false, show skip button
-                flex: 1, 
-                alignItems: "flex-end",
                 }}>
-                <Button onPress = {() => this.manageStep('skip')} transparent >
+                <Button 
+                  onPress = {() => this.manageStep('skip')} 
+                  transparent
+                  style={{
+                    // justifyContent: 'center', 
+                    // flex: 1, 
+                    marginRight: 5,
+                    }} >
                   <Text style={{color: 'white'}} >Skip</Text>
                 </Button>
               </View>
@@ -1369,10 +1485,64 @@ class ManageAboutMe extends Component {
               }}>
                 {this.state.steps[this.state.stepIndex].title}
               </Text>
+              <View>
+              
+              <ActionSheet
+                ref="genderIdentityActionSheet"
+                title={'Gender Identity'}
+                options={['Male', 'Female', 'Nonbinary', 'Cancel']}
+                cancelButtonIndex={3}
+                destructiveButtonIndex={3}
+                onPress={buttonIndex => {
+                  // Handle gender identity selection
+                  // based on the index
+                    Keyboard.dismiss();
+                    if ((buttonIndex) === 3) {
+                          console.log(GENDER_OPTIONS[buttonIndex]);
+                    } else {
+                      this.setState({
+                        profile: { ...this.state.profile, gender: GENDER_OPTIONS[buttonIndex]}
+                    }, () => {
+                        this.updateGenderOrInterested('gender');
+                        this.updateData('gender', userId, GENDER_OPTIONS[buttonIndex]);
+                        this.setState({ forceUpdate: true}); //force update set to true, so that swipes will update if settings are changes and new matches need to be reflected. 
+                    })                   
+                }
+                }}
+              />
+
+              <ActionSheet
+                ref="imageManagementActionSheet"
+                title={'Photo'}
+                options={['View Photo', 'Make Main Photo', 'Remove Photo', 'Cancel']}
+                cancelButtonIndex={3}
+                destructiveButtonIndex={3}
+                onPress={buttonIndex => {
+                  // Handle image management actions
+                  // based on the index
+                  if ((buttonIndex) === 0) {
+                    
+                      //view image 
+                      this.setState({
+                        //set image viewer visibility on
+                        imageViewerVisible: true,
+                      })
+                    }
+
+                  if ((buttonIndex) === 1) { //make main image 
+                    this.makeMainImage();
+                  }
+
+                  if ((buttonIndex) === 2) { //delete image
+                    this.deleteImage();
+
+                    }
+                  }
+
+                }
+              />
+            </View>
           </View>
-
-
-
         </View>
         
          <KeyboardAvoidingView 
@@ -1421,7 +1591,8 @@ class ManageAboutMe extends Component {
               opacity = {placeHolderColor}
               style={{ 
                 justifyContent: 'center', 
-                marginBottom: 10,
+                alignSelf: 'center',
+                // bottom: 50,
                 width: 300, 
                 backgroundColor: btnColorState,
                 shadowColor: "#000",
@@ -1439,7 +1610,7 @@ class ManageAboutMe extends Component {
               rounded  
               transparent
               onPress = {() => this.props.navigation.getParam("goback") ? this.props.navigation.navigate("Profile", {profile: this.state.profile}) : this.props.navigation.navigate("ManagePreferences")}
-              style={{ justifyContent: 'center', width: 300, 
+              style={{ alignSelf: 'center', justifyContent: 'center', width: 300, 
                }}> 
                 <Text style={{color: btnTextColor, fontFamily:'HelveticaNeue'}}>Close</Text>
               </Button> 
@@ -1489,7 +1660,7 @@ class ManageAboutMe extends Component {
                       onChangeText={(newname) => this.setState({ profile: { ...this.state.profile, first_name: newname} }, () => {
                         this.validateCurrentStep();
                       })}  
-                      onEndEditing={(e: any) => this.updateData('name', userId, e.nativeEvent.text)}                         
+                      onEndEditing={(e) => this.updateData('name', userId, e.nativeEvent.text)}                         
                     />
                 </InputGroup> 
 
@@ -1574,34 +1745,7 @@ class ManageAboutMe extends Component {
 
                 <Button 
                   transparent
-                  onPress={
-
-                    ()=> ActionSheet.show
-                    (
-                      {
-                        options: GENDER_OPTIONS,
-                        cancelButtonIndex: CANCEL_INDEX,
-                        destructiveButtonIndex: DESTRUCTIVE_INDEX,
-                        title: 'Gender Identity'
-                      },
-                      (buttonIndex) => {
-                        Keyboard.dismiss();
-                        if ((buttonIndex) === 3) {
-                              console.log(GENDER_OPTIONS[buttonIndex]);
-                              
-                        } else {
-                          this.setState({
-                            profile: { ...this.state.profile, gender: GENDER_OPTIONS[buttonIndex]}
-                        }, () => {
-                            this.updateGenderOrInterested('gender');
-                            this.updateData('gender', userId, GENDER_OPTIONS[buttonIndex]);
-                            this.setState({ forceUpdate: true}); //force update set to true, so that swipes will update if settings are changes and new matches need to be reflected. 
-                        })
-                      } 
-                    }
-                  )
-
-                  }
+                  onPress={this.showGenderIdentityActionSheet}
                   style={{
                     width: deviceWidth-130
                   }}>
@@ -1612,32 +1756,7 @@ class ManageAboutMe extends Component {
                       style={{  textTransform: 'capitalize', paddingLeft: 0, fontSize: 25, minHeight: 40, maxHeight: 250, color: 'white',}}
                       autoCorrect = {false}
                       value = {this.state.profile.gender[0].toUpperCase() + this.state.profile.gender.substring(1)} //capitlize gender in only input                     
-                      onFocus={
-                        ()=> ActionSheet.show
-                        (
-                          {
-                            options: GENDER_OPTIONS,
-                            cancelButtonIndex: CANCEL_INDEX,
-                            destructiveButtonIndex: DESTRUCTIVE_INDEX,
-                            title: 'Gender Identity'
-                          },
-                          (buttonIndex) => {
-                            Keyboard.dismiss();
-                            if ((buttonIndex) === 3) {
-                                  console.log(GENDER_OPTIONS[buttonIndex]);
-                                  
-                            } else {
-                              this.setState({
-                                profile: { ...this.state.profile, gender: GENDER_OPTIONS[buttonIndex]}
-                            }, () => {
-                                this.updateGenderOrInterested('gender');
-                                this.updateData('gender', userId, GENDER_OPTIONS[buttonIndex]);
-                                this.setState({ forceUpdate: true}); //force update set to true, so that swipes will update if settings are changes and new matches need to be reflected. 
-                            })
-                          } 
-                        }
-                      )
-                    }                        
+                      onFocus={this.showGenderIdentityActionSheet}                      
                     >
                   </TextInput>
                 </Button>
@@ -1761,7 +1880,7 @@ class ManageAboutMe extends Component {
                     onPress = {() => this.manageStep('continue')}
                     opacity = {placeHolderColor}
                     style={{
-                      
+                      alignSelf: 'center',
                       justifyContent: 'center', 
                       fontFamily:'HelveticaNeue',
                       width: 300, 

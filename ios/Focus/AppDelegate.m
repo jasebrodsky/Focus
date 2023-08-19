@@ -6,13 +6,10 @@
  */
 #import <Firebase.h>
 #import "AppDelegate.h"
-#import "RNFirebaseNotifications.h"
-#import "RNFirebaseMessaging.h"
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 #import <React/RCTLinkingManager.h>
-#import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import "RNSplashScreen.h"
 
 #import "AppCenterReactNative.h"
@@ -23,25 +20,6 @@
 
 
 @implementation AppDelegate
-
-
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-  [FBSDKAppEvents activateApp];
-}
-
-- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
-  [[RNFirebaseNotifications instance] didReceiveLocalNotification:notification];
-}
-
-- (void)application:(UIApplication *)application didReceiveRemoteNotification:(nonnull NSDictionary *)userInfo
-fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHandler{
-  [[RNFirebaseNotifications instance] didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
-}
-
-- (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
-  [[RNFirebaseMessaging instance] didRegisterUserNotificationSettings:notificationSettings];
-}
-
 
 
 
@@ -63,7 +41,6 @@ fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHand
   [AppCenterReactNativeCrashes registerWithAutomaticProcessing];
   
   [FIRApp configure];
-  [RNFirebaseNotifications configure];
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
                                                    moduleName:@"Focus"
@@ -78,9 +55,6 @@ fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHand
   [self.window makeKeyAndVisible];
   
   
-  // You can skip this line if you have the latest version of the SDK installed
-  [[FBSDKApplicationDelegate sharedInstance] application:application
-  didFinishLaunchingWithOptions:launchOptions];
   
   [RNSplashScreen show];  // here
   // or

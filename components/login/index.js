@@ -1,15 +1,20 @@
 import React, { Component, useEffect } from "react";
 import PropTypes from 'prop-types';
 import { Keyboard, Modal, TouchableWithoutFeedback, KeyboardAvoidingView, LayoutAnimation, Image, Alert, Dimensions, Animated, StyleSheet, TextInput, StatusBar, Linking } from "react-native";
-import RNfirebase from 'react-native-firebase';
-import * as firebase from "firebase";
+// import RNfirebase from 'react-native-firebase';
+// import * as firebase from "firebase";
+
+import firebase from '@react-native-firebase/app';
+import analytics from '@react-native-firebase/analytics';
+import auth from '@react-native-firebase/auth';
+import database from '@react-native-firebase/database';
+
 import Geocoder from 'react-native-geocoding';
 import LinearGradient from 'react-native-linear-gradient';
 import  SvgCssUri from 'react-native-svg-uri';
 import { SvgUri } from 'react-native-svg';
 import 'react-native-url-polyfill/auto';
 import IAP, { purchaseUpdatedListener } from "react-native-iap";
-import dynamicLinks from '@react-native-firebase/dynamic-links';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 const geofire = require('geofire-common');
 
@@ -22,7 +27,7 @@ import {
 } from "native-base";
 
 //import styles from "./styles";
-import { AccessToken, LoginButton, LoginManager, GraphRequest, GraphRequestManager } from 'react-native-fbsdk';
+// import { AccessToken, LoginButton, LoginManager, GraphRequest, GraphRequestManager } from 'react-native-fbsdk';
 
 const logo = require("../../images/focus-logo-old.svg");
 const logoTextSvg = require("../../images/logoText.svg");
@@ -75,16 +80,17 @@ class Login extends Component {
   componentDidMount() {
 
     //run analytics
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setCurrentScreen('Login', 'Login');
+    analytics().logScreenView({
+      screen_name: 'Login',
+      screen_class: 'Login'
+    });
+    
 
   
     //Hide Splash screen on app load.
     setTimeout(() => {
       this.spinLogo();
-    }, 3000)
-
-    LoginManager.logOut();
+    }, 3000);
 
     const { navigate } = this.props.navigation;
 
@@ -108,7 +114,7 @@ class Login extends Component {
     }
     
     //check if user is authenticated in, if so, redirect to the appropriate flow. 
-    firebase.auth().onAuthStateChanged( user => {
+    auth().onAuthStateChanged( user => {
 
       if (user) {
         // User is signed in.
@@ -127,7 +133,7 @@ class Login extends Component {
 getLocation = () => {
 
   //save ref to current user in db. 
-  firebaseRefCurrentUser = firebase.database().ref('/users/' + userId);
+  firebaseRefCurrentUser = database().ref('/users/' + userId);
 
   let date = new Date();
   let offsetInMin = date.getTimezoneOffset();
@@ -198,7 +204,7 @@ haveSubscription = async (userid) => {
       }else{
         console.log('no receipt to validate');
         //if no reciept history, update db with subscription as false
-        firebase.database().ref('/users/' + userid).update({subscribed: false})       
+        database().ref('/users/' + userid).update({subscribed: false})       
       }
     })
   })
@@ -225,11 +231,11 @@ haveSubscription = async (userid) => {
         if (!expired){
           console.log('Purchase history validated');
           //update firebase with subcription status, for logged in user
-         firebase.database().ref('/users/' + userid).update({subscribed: true})
+         database().ref('/users/' + userid).update({subscribed: true})
         }else{
           console.log('Purchase expired');
           //update firebase with subcription status, for logged in user
-          firebase.database().ref('/users/' + userid).update({subscribed: false})
+          database().ref('/users/' + userid).update({subscribed: false})
         }
       } catch (error) {
         console.log('error is: '+error)
@@ -302,7 +308,7 @@ forgotPassword = (email) => {
       },
       {
         text: 'Submit',
-        onPress: (email) => firebase.auth().sendPasswordResetEmail(email)
+        onPress: (email) => auth().sendPasswordResetEmail(email)
         .then((email) => {
           Alert.alert(
             'Email Sent',
@@ -325,7 +331,7 @@ redirectUser = async (userId) => {
 
 
   //setUserIid to analytics
-  RNfirebase.analytics().setUserId(userId);
+  analytics().setUserId(userId);
 
   //get subscriptions for updating firebase with
   //let subscribed = await this.haveSubscription(userId);
@@ -337,11 +343,11 @@ redirectUser = async (userId) => {
 
   //console.log('subscribed is: '+JSON.stringify(subscribed));
 
-  firebase.database().ref('/users/' + userId).once('value')
+  database().ref('/users/' + userId).once('value')
   .then((snapshot) => {
 
       //update last login and timezone offset of user
-      firebase.database().ref('/users/' + snapshot.val().userid).update({last_login: Date.now(), utc_offset_min: new Date().getTimezoneOffset()})
+      database().ref('/users/' + snapshot.val().userid).update({last_login: Date.now(), utc_offset_min: new Date().getTimezoneOffset()})
 
       //save user date in variables check that all required fields are present.
       let first_nameValidated = snapshot.val().first_name !== '';
@@ -386,14 +392,23 @@ redirectUser = async (userId) => {
       }
 
       //update analytics
-      RNfirebase.analytics().setUserProperty('status', this.state.profile.status);           
-      RNfirebase.analytics().setUserProperty('city_state', this.state.profile.city_state);           
-      RNfirebase.analytics().setUserProperty('intialUser', this.state.profile.intialUser);           
-      RNfirebase.analytics().setUserProperty('latitude', this.state.profile.latitude); 
-      RNfirebase.analytics().setUserProperty('longitude', this.state.profile.longitude); 
-      RNfirebase.analytics().setUserProperty('max_age', this.state.profile.max_age); 
-      RNfirebase.analytics().setUserProperty('min_age', this.state.profile.min_age); 
+      // analytics().setUserProperty('status', this.state.profile.status);           
+      // analytics().setUserProperty('city_state', this.state.profile.city_state);           
+      // analytics().setUserProperty('intialUser', this.state.profile.intialUser);           
+      // analytics().setUserProperty('latitude', this.state.profile.latitude); 
+      // analytics().setUserProperty('longitude', this.state.profile.longitude); 
+      // analytics().setUserProperty('max_age', this.state.profile.max_age); 
+      // analytics().setUserProperty('min_age', this.state.profile.min_age); 
 
+      analytics().setUserProperties({
+        status: this.state.profile.status,
+        city_state: this.state.profile.city_state,
+        intialUser: this.state.profile.intialUser,
+        latitude: this.state.profile.latitude,
+        longitude: this.state.profile.longitude,
+        max_age: this.state.profile.max_age,
+        min_age: this.state.profile.min_age
+      });
 
       
 
@@ -446,7 +461,7 @@ handleLogin = () => {
   const { email, password } = this.state
   var that = this;
 
-  firebase.auth()
+  auth()
       //signin with email to firebase
       .signInWithEmailAndPassword(email, password)
       
@@ -466,10 +481,10 @@ handleSignUp = () => {
 
   let offsetInMin = new Date().getTimezoneOffset();
 
-  firebase.auth()
+    auth()
       .createUserWithEmailAndPassword(email, password)
       //.then((data) => console.log('user id is: '+data.user.uid))
-      .then((data) => firebase.database().ref('/users/' + data.user.uid).set({
+      .then((data) => database().ref('/users/' + data.user.uid).set({
         userid: data.user.uid,
         first_name: '',
         fb_id: '',
@@ -509,6 +524,7 @@ handleSignUp = () => {
         notifications_message: true,
         notifications_match: true,
         notifications_daily_match: true,
+        sneekPeakCount: 0, 
         error: null,
         }, function(error) {
           if (error) {
@@ -590,155 +606,155 @@ linkOut = (url) => {
   });
 };
 
-onLoginOrRegister = () => {
+// onLoginOrRegister = () => {
   
-  LoginManager.logInWithPermissions(['public_profile', 'email', 'user_birthday', 'user_gender'])
-    .then((result) => {
-      if (result.isCancelled) {
-        console.log("Login cancelled");
-      }
-        console.log( "Login success with permissions: " + result.grantedPermissions.toString());
+//   LoginManager.logInWithPermissions(['public_profile', 'email', 'user_birthday', 'user_gender'])
+//     .then((result) => {
+//       if (result.isCancelled) {
+//         console.log("Login cancelled");
+//       }
+//         console.log( "Login success with permissions: " + result.grantedPermissions.toString());
       
-        // Return the access token
-      return AccessToken.getCurrentAccessToken();
+//         // Return the access token
+//       return AccessToken.getCurrentAccessToken();
       
-    }) 
-    .then((data) => {
-      // Create a new Firebase credential with the token
-      const credential = firebase.auth.FacebookAuthProvider.credential(data.accessToken);
-      //console.log('credential is: '+credential);
-      // Login with the credential
-      return firebase.auth().signInWithCredential(credential);
+//     }) 
+//     .then((data) => {
+//       // Create a new Firebase credential with the token
+//       const credential = firebase.auth.FacebookAuthProvider.credential(data.accessToken);
+//       //console.log('credential is: '+credential);
+//       // Login with the credential
+//       return firebase.auth().signInWithCredential(credential);
 
-    })
-    .then((data) => {
-      let userId = data.user.uid;
-      console.log('user id is: '+userId);
+//     })
+//     .then((data) => {
+//       let userId = data.user.uid;
+//       console.log('user id is: '+userId);
 
-      firebase.database().ref('/users/' + userId).once('value').then((snapshot) => {
-        //check if user exists
-        let existing_user = snapshot.exists();
+//       firebase.database().ref('/users/' + userId).once('value').then((snapshot) => {
+//         //check if user exists
+//         let existing_user = snapshot.exists();
 
-        if (existing_user){
-          //user already exists
-          console.log('user already exists!');
+//         if (existing_user){
+//           //user already exists
+//           console.log('user already exists!');
           
-          //redirect user to appropriate flow. 
-          this.redirectUser(userId);
+//           //redirect user to appropriate flow. 
+//           this.redirectUser(userId);
           
-        }else{
+//         }else{
         
-        var that = this;
+//         var that = this;
 
-        console.log('user doesnt exist start making profile form fb data');
+//         console.log('user doesnt exist start making profile form fb data');
           
-        //user does not exist yet
-         AccessToken.getCurrentAccessToken().then(
-            (data) => {
+//         //user does not exist yet
+//          AccessToken.getCurrentAccessToken().then(
+//             (data) => {
               
-              let accessToken = data.accessToken;
+//               let accessToken = data.accessToken;
 
-              console.log('accessToken is: '+accessToken);
+//               console.log('accessToken is: '+accessToken);
               
-              const responseInfoCallback = (error, result) => {
-                if (error) {
-                  console.log(error)
-                  alert('Error fetching data: ' + error.toString());
-                } else {
-                  fb_result = result;
-                  let gender = (fb_result.gender == null) ? 'select' : fb_result.gender;
-                  let birthday = (fb_result.birthday == null) ? '' : fb_result.birthday; 
-                  largePhotoURL = "https://graph.facebook.com/"+fb_result.id+"/picture?width=600&height=800";
-                  let location = (fb_result.location == null) ? 'select' : fb_result.location; ////gets the location object you get from your response now
-                  let latitude = 40.759211;
-                  let longitude = -73.984638;
-                  let city_state = 'New York City';
-                  let database = firebase.database();
-                  // FB.api('/' + location.id, {
-                  //     fields: 'location'
-                  // }, function(locationResponse) {
-                  //     console.log('locationResponse is: '+JSON.stringify(locationResponse)); //will print your desired location object               
-                  //     let latitude =  locationResponse.latitude;             
-                  //     let longitude = locationResponse.latitude;             
-                  // });
+//               const responseInfoCallback = (error, result) => {
+//                 if (error) {
+//                   console.log(error)
+//                   alert('Error fetching data: ' + error.toString());
+//                 } else {
+//                   fb_result = result;
+//                   let gender = (fb_result.gender == null) ? 'select' : fb_result.gender;
+//                   let birthday = (fb_result.birthday == null) ? '' : fb_result.birthday; 
+//                   largePhotoURL = "https://graph.facebook.com/"+fb_result.id+"/picture?width=600&height=800";
+//                   let location = (fb_result.location == null) ? 'select' : fb_result.location; ////gets the location object you get from your response now
+//                   let latitude = 40.759211;
+//                   let longitude = -73.984638;
+//                   let city_state = 'New York City';
+//                   let database = firebase.database();
+//                   // FB.api('/' + location.id, {
+//                   //     fields: 'location'
+//                   // }, function(locationResponse) {
+//                   //     console.log('locationResponse is: '+JSON.stringify(locationResponse)); //will print your desired location object               
+//                   //     let latitude =  locationResponse.latitude;             
+//                   //     let longitude = locationResponse.latitude;             
+//                   // });
 
-                  console.log('userId is: '+userId);
+//                   console.log('userId is: '+userId);
                   
-                  database.ref('users/' + userId).set({
-                    userid: userId,
-                    first_name: fb_result.first_name,
-                    fb_id: fb_result.id,
-                    last_name: fb_result.last_name,
-                    email: fb_result.email,
-                    images: [{file: '0', url: largePhotoURL, cache: 'force-cache'}],
-                    last_login: Date.now(),
-                    intialUser: true,
-                    showInstructionsSettings: false,
-                    showInstructionsSwipes: false,
-                    swipe_count: 0,
-                    score: 1000,
-                    //last_swipe_sesh_date: Date.now(),
-                    latitude: latitude,
-                    fcmToken: 'null',
-                    longitude: longitude,
-                    city_state: city_state,
-                    gender: gender,
-                    genderOnProfile: true,
-                    gender_pref: (gender == 'male') ? 'male_straight' : (gender == 'female') ? 'female_straight' : 'select', //default to straight
-                    interested: (gender == 'male') ? 'female' : (gender == 'female') ? 'male' : 'select', //default to straight
-                    birthday: birthday,
-                    about: '',
-                    work: '',
-                    education: '',
-                    status: 'onboard',
-                    code_accepted: (fb_result.gender == 'female') ? true : false, //if new user is female set code accepted to true, check this before letting user (men) in next time. 
-                    min_age: 18,
-                    max_age: 60,
-                    max_distance: 160934.4,
-                    error: null,
-                    last_conversation_count: 0,
-                    notifications_message: true,
-                    notifications_match: true,
-                    notifications_daily_match: true,
-                    error: null,
-                    //religion: fb_result.religion,
-                    //political: fb_result.political,
-                    //hometown: fb_resutl.hometown
-                  }, function(error) {
-                    if (error) {
-                      console.log("Data could not be saved." + error);
-                    } else {
-                      console.log("Data saved successfully.");
-                      //redirect to Intro flow. Send gender and user id via navigation prop.                           
-                      that.props.navigation.navigate("Intro", {user_id: userId, gender: gender});
-                    }
-                  });
-                }
-              }
+//                   database.ref('users/' + userId).set({
+//                     userid: userId,
+//                     first_name: fb_result.first_name,
+//                     fb_id: fb_result.id,
+//                     last_name: fb_result.last_name,
+//                     email: fb_result.email,
+//                     images: [{file: '0', url: largePhotoURL, cache: 'force-cache'}],
+//                     last_login: Date.now(),
+//                     intialUser: true,
+//                     showInstructionsSettings: false,
+//                     showInstructionsSwipes: false,
+//                     swipe_count: 0,
+//                     score: 1000,
+//                     //last_swipe_sesh_date: Date.now(),
+//                     latitude: latitude,
+//                     fcmToken: 'null',
+//                     longitude: longitude,
+//                     city_state: city_state,
+//                     gender: gender,
+//                     genderOnProfile: true,
+//                     gender_pref: (gender == 'male') ? 'male_straight' : (gender == 'female') ? 'female_straight' : 'select', //default to straight
+//                     interested: (gender == 'male') ? 'female' : (gender == 'female') ? 'male' : 'select', //default to straight
+//                     birthday: birthday,
+//                     about: '',
+//                     work: '',
+//                     education: '',
+//                     status: 'onboard',
+//                     code_accepted: (fb_result.gender == 'female') ? true : false, //if new user is female set code accepted to true, check this before letting user (men) in next time. 
+//                     min_age: 18,
+//                     max_age: 60,
+//                     max_distance: 160934.4,
+//                     error: null,
+//                     last_conversation_count: 0,
+//                     notifications_message: true,
+//                     notifications_match: true,
+//                     notifications_daily_match: true,
+//                     error: null,
+//                     //religion: fb_result.religion,
+//                     //political: fb_result.political,
+//                     //hometown: fb_resutl.hometown
+//                   }, function(error) {
+//                     if (error) {
+//                       console.log("Data could not be saved." + error);
+//                     } else {
+//                       console.log("Data saved successfully.");
+//                       //redirect to Intro flow. Send gender and user id via navigation prop.                           
+//                       that.props.navigation.navigate("Intro", {user_id: userId, gender: gender});
+//                     }
+//                   });
+//                 }
+//               }
 
-              const infoRequest = new GraphRequest(
-                '/me',
-                {
-                  accessToken: accessToken,
-                  parameters: {
-                    fields: {
-                      string: 'email,gender,name,first_name,last_name,birthday'
-                    }
-                  }
-                },
-                responseInfoCallback
-              );
+//               const infoRequest = new GraphRequest(
+//                 '/me',
+//                 {
+//                   accessToken: accessToken,
+//                   parameters: {
+//                     fields: {
+//                       string: 'email,gender,name,first_name,last_name,birthday'
+//                     }
+//                   }
+//                 },
+//                 responseInfoCallback
+//               );
 
-              // Start the graph request.
-              new GraphRequestManager().addRequest(infoRequest).start()
+//               // Start the graph request.
+//               new GraphRequestManager().addRequest(infoRequest).start()
 
-            }
+//             }
             
-          )
-        }
-      })
-    })
-}
+//           )
+//         }
+//       })
+//     })
+// }
 
   render() {
 
@@ -825,6 +841,7 @@ onLoginOrRegister = () => {
                         bordered 
                         style={{
                           justifyContent: 'center', 
+                          alignSelf: 'center',
                           marginTop: 20,
                           marginBottom: 10,
                           width: 250, 
@@ -841,13 +858,13 @@ onLoginOrRegister = () => {
                             <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Login</Text>
                         </Button>
                         
-                        <Button transparent onPress = {() => this.forgotPassword()} style={{ justifyContent: 'center', }}>
+                        <Button transparent onPress = {() => this.forgotPassword()} style={{ justifyContent: 'center', alignSelf: 'center', }}>
                             <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Forgot Password</Text>
                         </Button>
 
                         <Button transparent 
                           onPress = {() => this.setState({choice: true, showModal: false, email: '', password: ''})} 
-                          style={{ justifyContent: 'center', }}>
+                          style={{ justifyContent: 'center', alignSelf: 'center', }}>
                             <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Go Back</Text>
                         </Button>
                         
@@ -932,6 +949,7 @@ onLoginOrRegister = () => {
                         rounded 
                         style={{
                           justifyContent: 'center', 
+                          alignSelf: 'center',
                           marginTop: 20,
                           marginBottom: 10,
                           width: 250, 
@@ -950,7 +968,7 @@ onLoginOrRegister = () => {
 
                       <Button transparent 
                           onPress = {() => this.setState({choice: true, showModal: false, email: '', password: ''})} 
-                          style={{ justifyContent: 'center', }}>
+                          style={{ justifyContent: 'center', alignSelf: 'center', }}>
                             <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Go Back</Text>
                       </Button>
                                   
@@ -1211,7 +1229,7 @@ onLoginOrRegister = () => {
                                  <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Create Account</Text>
                             </Button>
                             
-                            <Button transparent onPress = {() => this.setState({login: true, createAccount: false, showModal: true, choice: false, email: '', password: ''})} style={{flexDirection: 'column', justifyContent: 'center'}}>
+                            <Button transparent onPress = {() => this.setState({login: true, createAccount: false, showModal: true, choice: false, email: '', password: ''})} style={{flexDirection: 'column', alignSelf: 'center', justifyContent: 'center'}}>
                                 <Text style={{fontFamily:'Helvetica', color: primaryColor}}>Already have an account?</Text>
                             </Button>
 

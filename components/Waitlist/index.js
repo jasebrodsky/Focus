@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
 import { StyleSheet, Alert, Share, StatusBar, Keyboard, KeyboardAvoidingView, Dimensions } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEye, faHistory, faUsers, faAddressCard } from '@fortawesome/free-solid-svg-icons';import * as firebase from "firebase";
-import RNfirebase from 'react-native-firebase';
+import { faEye, faHistory, faUsers, faAddressCard } from '@fortawesome/free-solid-svg-icons';
+import firebase from '@react-native-firebase/app';
+import analytics from '@react-native-firebase/analytics';
+import auth from '@react-native-firebase/auth';
+import database from '@react-native-firebase/database';
 import dynamicLinks from '@react-native-firebase/dynamic-links';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 
@@ -72,11 +75,11 @@ class Waitlist extends Component {
 
   componentDidMount() {
 
-    let userId = firebase.auth().currentUser.uid;
+    let userId = auth().currentUser.uid;
     const { navigate } = this.props.navigation;
     
     //query for logged in users information needed and set state with it.     
-    firebase.database().ref('/users/' + userId).on('value', ((snapshot) => {
+    database().ref('/users/' + userId).on('value', ((snapshot) => {
                 
         //set state with user data. 
         this.setState({ 
@@ -93,7 +96,7 @@ class Waitlist extends Component {
           navigate("Swipes");
         }else{
           //if theyre not active yet, set them to waitlist, since they got to the waitlist module. 
-          firebase.database().ref('/users/' + userId).update({
+          database().ref('/users/' + userId).update({
             status: 'waitlist'
           })
         }
@@ -101,9 +104,11 @@ class Waitlist extends Component {
     ) 
 
     //run analytics
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setCurrentScreen('Waitlist', 'Waitlist');
-    RNfirebase.analytics().setUserId(userId);
+    analytics().logScreenView({
+      screen_name: 'Waitlist',
+      screen_class: 'Waitlist'
+    });
+    analytics().setUserId(userId)
     
   }
 
@@ -158,6 +163,7 @@ class Waitlist extends Component {
             width: deviceWidth,
             alignItems: 'center',
             justifyContent: 'center',
+            
             //backgroundColor: primaryColor, dimensions
             }}
             colors={[primaryColor, primaryColor]}
@@ -172,6 +178,7 @@ class Waitlist extends Component {
                 borderRadius: 20,
                 shadowColor: "#000",
                 width: 300, 
+                alignSelf: 'center',
                 //flex: 1,
                 justifyContent: 'center',
                 shadowOffset: {
@@ -190,6 +197,7 @@ class Waitlist extends Component {
             </Button>
             <Button transparent 
               style={{ 
+                alignSelf: 'center',
                 shadowOffset: {
                   width: 0,
                   height: 3,

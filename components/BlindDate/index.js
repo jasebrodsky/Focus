@@ -31,8 +31,13 @@ import {
   H3
 } from "native-base";
 
-import RNfirebase from 'react-native-firebase';
-import * as firebase from "firebase";
+// import RNfirebase from 'react-native-firebase';
+// import * as firebase from "firebase";
+import firebase from '@react-native-firebase/app';
+import auth from '@react-native-firebase/auth';
+import analytics from '@react-native-firebase/analytics';
+import database from '@react-native-firebase/database';
+
 import Slider from '@react-native-community/slider';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import LinearGradient from 'react-native-linear-gradient';
@@ -63,7 +68,7 @@ class BlindDate extends Component {
     this.state = {
       //flow: 'create', //create, approve, propose, proposeConfirmation, details, confirmationNextWaiting, confirmationNext
       hideAddress: true,
-      userId: firebase.auth().currentUser.uid, 
+      userId: auth().currentUser.uid, 
       matchName: 'TEST',
       proposedTime: 3,
       proposedTimeTimeStamp: (new Date().getTime() + (86400000 * 3)), //default proposedTimeTimestamp to current time + 3 days in the future. 
@@ -104,6 +109,10 @@ class BlindDate extends Component {
         hookah: {
           timeRange: '7PM - 10PM',
           timeSliderValues: ['7:00 PM','7:15 PM','7:30 PM','7:45 PM','8:00 PM','8:15 PM','8:30 PM','8:45 PM','9:00 PM','9:15 PM','9:30 PM','9:45 PM','10:00 PM']
+        },
+        juice: {
+          timeRange: '11AM - 3PM',
+          timeSliderValues: ['11:00 AM', '11:15 AM', '11:30 AM', '11:45 AM', '12:00 PM', '12:15 PM', '12:30 PM', '12:45 PM', '1:00 PM', '1:15 PM', '1:30 PM', '1:45 PM', '2:00 PM', '2:15 PM', '2:30 PM', '2:45 PM', '3:00 PM']
         },
         dessert: {
           timeRange: '7PM - 10PM',
@@ -156,6 +165,11 @@ class BlindDate extends Component {
           title:"Tea",
           imageSrc: require("../../images/tea.jpg"),
           type: "tea"
+        },
+        {
+          title:"Juice",
+          imageSrc: require("../../images/juice.jpeg"),
+          type: "juice"
         },
         {
           title:"Hookah",
@@ -254,7 +268,7 @@ class BlindDate extends Component {
         'didBlur',
         payload => {
                 
-          let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+          let query = database().ref('/matches/' + userId).orderByChild('showNotification');
   
           //remove listener when leaving. 
           query.off('child_changed', this.state.listener);
@@ -292,7 +306,7 @@ class BlindDate extends Component {
 
 
     //get matches real-time geo location, to eventually create date with. 
-    firebaseRef = firebase.database().ref('/users/' + userIdMatch);
+    firebaseRef = database().ref('/users/' + userIdMatch);
 
     //save data snapshot from firebaseRef, so that geo code can be updated in realtime. 
     firebaseRef.on('value', (dataSnapshot) => {
@@ -353,7 +367,7 @@ class BlindDate extends Component {
         })
 
     //get dates real-time data, to eventually create date with. 
-    let firebaseDateRef = firebase.database().ref('/dates/' + dateId);
+    let firebaseDateRef = database().ref('/dates/' + dateId);
 
     //save date snapshot from firebaseDateRef, so that dates can be updated in realtime. 
     firebaseDateRef.on('value', (dateSnap) => {
@@ -411,7 +425,7 @@ class BlindDate extends Component {
           confirmedLat: dateSnap.val().confirmedLat,
           confirmedLong: dateSnap.val().confirmedLong,
           placeAddress: dateSnap.val().placeAddress,
-          placeUrl: dateSnap.val().url,
+          placeUrl: dateSnap.val().placeUrl,
           placeImage: dateSnap.val().imageUrl,
           placeName: dateSnap.val().placeName,
           priceMax: dateSnap.val().priceMax,
@@ -425,9 +439,12 @@ class BlindDate extends Component {
 
 
     //Run analytics
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setCurrentScreen('BlindDate', 'BlindDate');
-    RNfirebase.analytics().setUserId(userId);
+    analytics().logScreenView({
+      screen_name: 'BlindDate',
+      screen_class: 'BlindDate'
+    });
+
+    analytics().setUserId(userId);
   }
 
     //get age function
@@ -445,7 +462,7 @@ class BlindDate extends Component {
   //handle notifications
   handleNotification = (userId, screen, matchUseridExclude ) => {
     
-    let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+    let query = database().ref('/matches/' + userId).orderByChild('showNotification');
 
     let listener = query.on('child_changed', (notifySnapshot) => {
             
@@ -498,7 +515,7 @@ class BlindDate extends Component {
         }
 
         //turn off notificationShow bool so it doesn't show again. 
-        firebase.database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
+        database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
           'showNotification': false
         });       
 
@@ -618,7 +635,7 @@ class BlindDate extends Component {
             placeName: item.name,
             placeCoordinatesLat: item.coordinates.latitude,
             placeCoordinatesLong: item.coordinates.longitude,
-            placeUrl: item.url
+            placeUrl: item.placeUrl
 
             
             
@@ -745,18 +762,18 @@ get pagination () {
           //this.props.navigation.navigate("Payments", { flow: 'peek'})
   
           //record in analytics the event that a date status was updated 
-          RNfirebase.analytics().logEvent('dateStatusUpdated', {
+          analytics().logEvent('dateStatusUpdated', {
             dateStatusUpdated: newStatus
           });
                                       
           //create ref to list of dates 
-          let datesRef1 = firebase.database().ref('dates/'+this.state.conversationId);
-          let datesRef2 = firebase.database().ref('conversations/'+this.state.conversationId+'/date');
-          let datesRef3 = firebase.database().ref('matches/'+this.state.userIdMatch+'/'+this.state.userId);
-          let datesRef4 = firebase.database().ref('matches/'+this.state.userId+'/'+this.state.userIdMatch);
+          let datesRef1 = database().ref('dates/'+this.state.conversationId);
+          let datesRef2 = database().ref('conversations/'+this.state.conversationId+'/date');
+          let datesRef3 = database().ref('matches/'+this.state.userIdMatch+'/'+this.state.userId);
+          let datesRef4 = database().ref('matches/'+this.state.userId+'/'+this.state.userIdMatch);
 
           //save system message that blind date status has changed. 
-          let conversationsRef = firebase.database().ref('/conversations/'+this.state.conversationId+'/messages/');
+          let conversationsRef = database().ref('/conversations/'+this.state.conversationId+'/messages/');
 
           //compute system message to display
           //show date requested in all cases except when accepted - show, date accepted.
@@ -867,7 +884,7 @@ get pagination () {
               system: true,
               user: this.state.userId, 
               userTo: this.state.userIdMatch,
-              createdAt: firebase.database.ServerValue.TIMESTAMP
+              createdAt: database.ServerValue.TIMESTAMP
             });
 
 
@@ -961,7 +978,7 @@ get pagination () {
               system: true,
               user: this.state.userId, 
               userTo: this.state.userIdMatch,
-              createdAt: firebase.database.ServerValue.TIMESTAMP
+              createdAt: database.ServerValue.TIMESTAMP
             });
 
           //notification handled via cloud functions
@@ -1042,6 +1059,10 @@ get pagination () {
         break;
       case 'hookah':
         whichText = 'Which hookah bar?'; //bars
+        // openAt = new Date(date.proposedTime).setHours(20 + utc_offset, 30, 0); //8:30pm
+        break;
+      case 'juice':
+        whichText = 'Which juice bar?'; //bars
         // openAt = new Date(date.proposedTime).setHours(20 + utc_offset, 30, 0); //8:30pm
         break;
       default:
@@ -1888,6 +1909,7 @@ get pagination () {
                     bordered 
                     style={{
                       marginTop: 0, 
+                      alignSelf: 'center',
                       borderColor: 'white', 
                       backgroundColor: 'white', 
                       borderRadius: 20,
@@ -1916,7 +1938,7 @@ get pagination () {
                        })                  
                     }
                     >
-                      <Text style={{color: primaryColor, width: 300, textAlign:'center'}}>I want {this.state.carouselItems[this.state.activeIndex].type}</Text>
+                      <Text  style={{color: primaryColor, width: 300, textAlign:'center', textTransform: 'capitalize'}}>{this.state.carouselItems[this.state.activeIndex].type} date</Text>
                   </Button>
                     }
 
@@ -1924,7 +1946,8 @@ get pagination () {
                     <Button 
                     bordered 
                     style={{
-                      marginTop: 0, 
+                      marginTop: 0,
+                      alignSelf: 'center', 
                       borderColor: 'white', 
                       backgroundColor: 'white', 
                       borderRadius: 20,
@@ -1948,7 +1971,8 @@ get pagination () {
                     <Button 
                     bordered 
                     style={{
-                      marginTop: 0, 
+                      marginTop: 0,
+                      alignSelf: 'center', 
                       borderColor: 'white', 
                       backgroundColor: 'white', 
                       borderRadius: 20,
@@ -1971,7 +1995,8 @@ get pagination () {
                     <Button 
                     bordered 
                     style={{
-                      marginTop: 0, 
+                      marginTop: 0,
+                      alignSelf: 'center', 
                       borderColor: 'white', 
                       backgroundColor: 'white', 
                       borderRadius: 20,
@@ -1991,11 +2016,12 @@ get pagination () {
                     }      
 
                   { (this.state.flow == 'approveNewProposalPickLocation' ) && 
-                  <View>
+                  <View style={{alignSelf: 'center'}}>
                     <Button 
                     bordered 
                     style={{
-                      marginTop: 0, 
+                      marginTop: 0,
+                      alignSelf: 'center', 
                       borderColor: 'white', 
                       backgroundColor: 'white', 
                       borderRadius: 20,
@@ -2019,6 +2045,7 @@ get pagination () {
                       transparent 
                       style={{
                         marginTop: 0, 
+                        alignSelf: 'center',
                         //borderColor: 'white', 
                         //backgroundColor: primaryColor, 
                         borderRadius: 20,
@@ -2044,6 +2071,7 @@ get pagination () {
                     bordered 
                     style={{
                       marginTop: 0, 
+                      alignSelf: 'center',
                       borderColor: 'white', 
                       backgroundColor: 'white', 
                       borderRadius: 20,
@@ -2089,6 +2117,7 @@ get pagination () {
                       transparent 
                       style={{
                         marginTop: 0, 
+                        alignSelf: 'center',
                         //borderColor: 'white', 
                         //backgroundColor: primaryColor, 
                         borderRadius: 20,
@@ -2116,6 +2145,7 @@ get pagination () {
                           bordered 
                           style={{
                             marginTop: 15, 
+                            alignSelf: 'center',
                             borderColor: 'white', 
                             backgroundColor: 'white', 
                             borderRadius: 20,
@@ -2143,6 +2173,7 @@ get pagination () {
                           transparent 
                           style={{
                             marginTop: 0, 
+                            alignSelf: 'center',
                             borderColor: 'white', 
                             //backgroundColor: 'white', 
                             borderRadius: 20,
@@ -2162,6 +2193,7 @@ get pagination () {
                           transparent 
                           style={{
                             marginTop: -10, 
+                            alignSelf: 'center',
                             borderColor: 'white', 
                             //backgroundColor: 'white', 
                             borderRadius: 20,
@@ -2192,6 +2224,7 @@ get pagination () {
                           bordered 
                           style={{
                             marginTop: -10, 
+                            alignSelf: 'center',
                             borderColor: 'white', 
                             backgroundColor: 'white', 
                             borderRadius: 20,
@@ -2234,7 +2267,8 @@ get pagination () {
                             <Button 
                               transparent 
                               style={{
-                                //marginTop: 5, 
+                                //marginTop: 5,
+                                alignSelf: 'center', 
                                 backgroundColor: (this.state.flow == 'proposalAccepted' || this.state.flow == 'detailsShow' || this.state.flow == 'waitingAcceptanceNewProposal' || this.state.flow == 'waitingAcceptanceUpdatedProposal') ? 'white' : null, //make close button primary button when on these flows
                                 borderRadius: 20,
                                 shadowColor: "#000",
@@ -2254,6 +2288,7 @@ get pagination () {
                               transparent 
                               style={{
                                 //marginBottom: -30,
+                                alignSelf: 'center',
                                 borderRadius: 20,
                                 shadowColor: "#000",
                                 shadowOffset: {
@@ -2292,6 +2327,7 @@ get pagination () {
                             <Button 
                               transparent 
                               style={{
+                                alignSelf: 'center',
                                 borderRadius: 20,
                                 shadowColor: "#000",
                                 //backgroundColor: 'white',
@@ -2319,6 +2355,7 @@ get pagination () {
                             transparent 
                             style={{
                               marginTop: -10,
+                              alignSelf: 'center',
                               borderRadius: 20,
                               shadowColor: "#000",
                               shadowOffset: {

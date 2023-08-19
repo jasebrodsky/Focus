@@ -3,14 +3,41 @@ const functions = require('firebase-functions');
 
 // The Firebase Admin SDK to access the Firebase Realtime Database.
 const admin = require('firebase-admin');
-admin.initializeApp();
+
+// Initialize the Firebase Admin SDK with your Firebase project credentials
+//var serviceAccount = require("./serviceAccountKey.json"); // Note the "./" before the file name
+
+const serviceAccount = require('./serviceAccountKey.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://blurred-195721.firebaseio.com"
+});
+
+
+
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   apiKey: "AIzaSyA5RHfMVtj36x0f9KAMw_iLFYKfCxFjuuo",
+//   authDomain: "blurred-195721.firebaseapp.com",
+//   databaseURL: "https://blurred-195721.firebaseio.com",
+//   projectId: "blurred-195721",
+//   storageBucket: "blurred-195721.appspot.com",
+//   messagingSenderId: "479759716253",
+//   appId: "1:479759716253:web:01edde286058b5deff2974",
+//   measurementId: "G-M2K9XKMHXY",
+//   databaseURL: "https://blurred-195721.firebaseio.com"
+// });
+
+
+
+const fetch = require('node-fetch'); // Import the node-fetch modules
 
 const yelp = require('yelp-fusion');
 const client = yelp.client('CKia7Mz51NpAHxvG-thuvuZk0RGPeGmyVyYVsYJEfAOI_nO2acc3NRZROLq-VgkXVD2RvqzVzKiMz3tdoVKc8NPhc8-5prI7VFZMWTtXpSKmp0J_HVsEyCS_1IrLYXYx');
 
 const createReservationFlow = require('./functions/createReservationFlow');
 const createDateFlow = require('./functions/createDateFlow');
-const getDates = require('./functions/getDates');
 const geofire = require('geofire-common');
 const Elo = require('arpad');
 
@@ -35,23 +62,23 @@ const Elo = require('arpad');
 
 
 
-  //sync swipes btw firebase (for UX purposes) and firestore (for querying purposes)
-  exports.syncSwipesReceived = functions.database.ref('/swipesReceived/{userId}').onWrite((change, context) => {
-    // Get the swipe data
-    const swipe = change.after.val();
+  // //sync swipes btw firebase (for UX purposes) and firestore (for querying purposes)
+  // exports.syncSwipesReceived = functions.database.ref('/swipesReceived/{userId}').onWrite((change, context) => {
+  //   // Get the swipe data
+  //   const swipe = change.after.val();
 
-    // Add the swipe to the Firestore collection
-    return admin.firestore().collection('swipesReceived').doc(context.params.userId).set(swipe);
-  });
+  //   // Add the swipe to the Firestore collection
+  //   return admin.firestore().collection('swipesReceived').doc(context.params.userId).set(swipe);
+  // });
 
-  //sync swipes btw firebase (for UX purposes) and firestore (for querying purposes)
-  exports.syncSwipes = functions.database.ref('/swipes/{userId}').onWrite((change, context) => {
-    // Get the user data
-    const swipe = change.after.val();
+  // //sync swipes btw firebase (for UX purposes) and firestore (for querying purposes)
+  // exports.syncSwipes = functions.database.ref('/swipes/{userId}').onWrite((change, context) => {
+  //   // Get the user data
+  //   const swipe = change.after.val();
 
-    // Add the user to the Firestore collection
-    return admin.firestore().collection('swipes').doc(context.params.userId).set(swipe);
-  });
+  //   // Add the user to the Firestore collection
+  //   return admin.firestore().collection('swipes').doc(context.params.userId).set(swipe);
+  // });
 
   //getMatchingUsers that query user colletion for all appropriate users based off current users preferences and swipe history
   exports.getMatchingUsers = functions.https.onRequest( async (req, res) => {
@@ -102,11 +129,15 @@ const Elo = require('arpad');
     const currentUserGender = req.body.gender; // can be: 'male', 'female', 'non-binary'
 
     // build geo coding data to use for start/end of queryies. 
-   // const center = [Number(currentUserLatitude), Number(currentUserLongitude)];
+    //const center = [Number(currentUserLatitude), Number(currentUserLongitude)];
+    //const center = [Number(40.7128), Number(-74.0060)];
     
     const center = isNaN(currentUserLatitude) || isNaN(currentUserLongitude) ?
       [40.7128, -74.0060] : // New York City
       [Number(currentUserLatitude), Number(currentUserLongitude)]; //else use lat/long
+
+      //LOOKS LIKE SOME WAITLISTED USERS HAVE A NUMBER (isn't isNAN) FOR CurrentUserLatitude and currentUserLongitude
+      //Therefore hardcoded NYC coords aren't being saved, instead an invalid number is being used, causing an error here. 
     
     const radiusInM = currentUserMaxDistance;
 
@@ -117,9 +148,11 @@ const Elo = require('arpad');
     //console.log('bounds is: '+bounds);
     const promises = [];
     for (const b of bounds) {
-      let q = admin.firestore().collection('users')
-        .where("status", "==", 'active')
-        .where("intialUser", "==", false)
+      let q = admin.firestore().collection('users').where("status", "in", ['waitlist', 'active'])
+
+        //.where("status", "==", 'active')
+        //conditional status = waitlist, when used for waitlistManagement
+        //.where("intialUser", "==", false)
 
       //if current user is into either male or females' (not 'everyone')
       if (currentUserGenderPreference !== 'everyone') {
@@ -312,15 +345,14 @@ const Elo = require('arpad');
       console.log('excludedUsersArray are: '+excludedUsersArray);
       console.log('swipesReceivedRight are: '+(swipesReceivedRight));
       console.log('top10Matches are: '+(top10Matches));
-
+           
       //return rankedMatches to client.
       // how to think about limits, since you only want to send 10 back.. should we paginate process until there's 10?
-     
-     //send array of user objects to client.     
+    
+      //send array of user objects to client.     
       return res.status(200).json(top10Matches);
-        
+    
   });
-
   //schedule function to calculate/update users ELO score for all new swipes, and maybe other actions as well like logging in and sending messages? 
 
 });
@@ -370,6 +402,9 @@ const Elo = require('arpad');
           case 'hookah':
             categories = 'hookah_bars';
             // openAt = new Date(date.proposedTime).setHours(20 + utc_offset, 30, 0); //8:30pm
+            break;
+          case 'juice':
+            categories = 'juicebars';
             break;
           default:
             categories = 'bars';
@@ -501,71 +536,105 @@ const Elo = require('arpad');
         return null;
     })
 
-      //update score for users every time a swipe write is trigered
-        exports.updateScoresTrigger = functions
-        .runWith({
-          timeoutSeconds: 300,
-          memory: '2GB',
-        })
-        .region('us-central1')
-        .database.ref('/swipes/{userid}/{match_userid}/').onWrite(async (change, context) => {
-        //query all swipesGiven with flag scoreUpdateNeeded = true (will only find swipes that haven't been reflect in score yet.)  
-          
-          const updates = {};
 
-          //get variables from context and write
-          const match_userid = context.params.match_userid;
-          const user_userid = context.params.userid;
 
-          //ref to user object to read and update their scores
-          let userRef = admin.database().ref('users/'+user_userid+'/');
-          let matchRef = admin.database().ref('users/'+match_userid+'/');
+    // Cloud Function triggered when data in the "swipes" collection is written (onWrite)
+    exports.updateScoresTrigger2 = functions.firestore
+            // .runWith({
+        //   timeoutSeconds: 300,
+        //   memory: '2GB',
+        // })
+        // .region('us-central1')
+      .document('swipes/{userid}/')
+      .onWrite(async (change, context) => {
+        // Get the new and old data objects from the change event
+        const afterData = change.after.data();
 
-          let user_score = 1000;
-          let match_score = 1000;
+        // Use .filter() to create a new array containing only the swipes that have updateScoreNeeded set to true
+        const swipesToUpdate = Object.values(afterData).filter(swipe => swipe.updateScoreNeeded === true);
+        console.log('swipesToUpdate is: '+swipesToUpdate);
 
-          //get realtime scores from realtime database here. 
-          await userRef.once('value', (snapshot) => {
-            user_score = snapshot.val().score;
-          });
+        // Create a new object with the updated swipe data and the updated flag
+        const updatedAfterData = { ...afterData }; // Create a copy of afterData to avoid modifying it directly
+        swipesToUpdate.forEach(swipe => {
+          updatedAfterData[swipe.userid_match] = { ...swipe, updateScoreNeeded: false };
+        });
 
-          await userRef.once('value', (snapshot) => {
-            match_score = snapshot.val().score;
-          });
+        console.log('updatedAfterData is: '+updatedAfterData);
 
-          let like = change.after.val().like;
-       
-          //compute new scores
-          const elo = new Elo();
-          let new_user_score, new_match_score;
-      
-          //if user swiped right -- count as a loss and update scores
-          if (like){ //if
-            new_user_score = elo.newRatingIfLost(user_score, match_score);
-            new_match_score = elo.newRatingIfWon(match_score, user_score);
-          }else if(!like){ //if lost
-            new_match_score = elo.newRatingIfLost(match_score, user_score );
-            new_user_score = elo.newRatingIfWon(user_score, match_score);
+
+        // Use an async function to use await inside the loop
+        const processSwipes = async () => {
+
+          // Initialize a batched write
+          const batch = admin.firestore().batch();
+
+          // Iterate through each newly added or updated swipe
+          for (const swipe of swipesToUpdate) {
+            const match_userid = swipe.userid_match;
+            const user_userid = context.params.userid;
+
+            // Set up Firestore references to fetch realtime scores
+            const userRef = admin.firestore().collection('users').doc(user_userid);
+            const matchRef = admin.firestore().collection('users').doc(match_userid);
+
+            // Fetch the current scores of both users
+            const userSnapshot = await userRef.get();
+            const matchSnapshot = await matchRef.get();
+
+            const user_score = userSnapshot.data().score;
+            const match_score = matchSnapshot.data().score;
+            console.log('user_score is: '+user_score);
+            console.log('match_score is: '+match_score);
+
+
+            // Get the user's swipe outcome (like or dislike)
+            const like = swipe.like;
+            const elo = new Elo();
+            let new_user_score, new_match_score;
+
+            // Calculate new scores based on the swipe outcome
+            if (like) {
+              new_user_score = elo.newRatingIfLost(user_score, match_score);
+              new_match_score = elo.newRatingIfWon(match_score, user_score);
+            } else {
+              new_match_score = elo.newRatingIfLost(match_score, user_score);
+              new_user_score = elo.newRatingIfWon(user_score, match_score);
+            }
+
+            // Update scores using batched writes
+            batch.update(userRef, { score: new_user_score });
+            batch.update(matchRef, { score: new_match_score });
+
+            // update swips doc 
+            const swipeDocRef = admin.firestore().collection('swipes').doc(user_userid);
+
+            //push updatedAfterData back to the swipe document, so that these likes won't be processed again. 
+            batch.set(swipeDocRef, updatedAfterData); // Use batch.set() to replace the entire document with updatedAfterData
+
           }
-      
-          //set new scores for users. 
-          userRef.update({
-            score: new_user_score,
-          });
-      
-          matchRef.update({
-            score: new_match_score,
-          });
 
-          // Add the updates for this user and match to the updates object
-          updates[`users/${match_userid}/score`] = new_match_score;
-          updates[`users/${user_userid}/score`] = new_user_score;
+          // Commit the batched write
+          try {
+            await batch.commit();
+            console.log('Scores updated in Firestore.');
+          } catch (error) {
+            console.error('Error updating scores in Firestore:', error);
+          }
+        }
 
-        // Perform all update operations in a single call
-        console.log('update score in firebase');
-        admin.database().ref().update(updates);            
+        // Call the async function to process the newly added or updated swipes
+        await processSwipes();
+
+        // Return null to indicate the function execution is complete
         return null;
-    })
+      });
+
+
+
+
+
+
 
 
   // //create date when a new date changes to fulfill status. 
@@ -637,91 +706,257 @@ const Elo = require('arpad');
 //   })
 
 
-// //function to send notification when user is off waitlist.
-// exports.notifyOffWaitlist = functions.database.ref('/users/{userId}').onUpdate((change, context) => {
-  
-//   //create empty array of fcmTokens
-//   let fcmTokens = [];
-  
-//   //check if user is updated from waitlist to active status
-//   if(change.before.val().status == 'waitlist' && change.after.val().status == 'active' ){
-//     console.log('user is off waitlist.');
-//     //save data of message
-//     const fcmToken = change.after.val().fcmToken;
-//     //push fcmToken to fcmTokens array
-//     fcmTokens.push(fcmToken); 
-//     const messageTitle = 'Welcome to Focus Blind Dating \uD83D\uDE4C';
-//     const messageTxt = 'You are off the waitlist!';
-    
-//     //build media messages notification
-//     // const payload = {
-//     //   notification: {
-//     //       title: messageTitle,
-//     //       body: messageTxt,
-//     //       sound : "default"
-//     //   },
-//     //   data: {
-//     //       VIEW: 'swipes'
-//     //   }
-//     // };
+// //functio to reset all sneakPeaksCount back to 0, each month. 
+// exports.resetSneakPeekCount2 = functions.pubsub.schedule('every minute').onRun(async (context) => {
+//   try {
+//     // Get a snapshot of all users with non-zero sneakPeakCounts
+//     const usersSnapshot = await admin.database().ref('users').orderByChild('sneakPeekCount').startAt(1).once('value');
 
-//       //build media match notification
-//       const payload = {
-//         notification: {
-//           title: messageTitle,
-//           body: messageTxt,
-//         },
-//         data: {
-//           title: messageTitle,
-//           body: messageTxt,
-//           VIEW: 'swipes'
-//         },
-//         apns: {
-//           payload: {
-//             aps: {
-//               alert: {
-//                 title: messageTitle,
-//                 body: messageTxt,    
-//               },
-//               badge: 0,
-//               sound: 'default',
-//             },
-//           },
-//         },
-//         tokens: fcmTokens//end data
-//       }//end payload
+//     // Initialize a batch write
+//     const batch = admin.database().batch();
 
+//     // Loop through each user and queue up update operations in the batch
+//     usersSnapshot.forEach((userSnapshot) => {
+//       const userKey = userSnapshot.key;
+//       const userRef = admin.database().ref('users').child(userKey);
+//       batch.update(userRef, { sneakPeekCount: 0 });
+//     });
 
-    
+//     // Commit the batch write
+//     await batch.commit();
 
+//     console.log('sneakPeekCount properties updated for selected users.');
 
-//     // Send a message to the device corresponding to the provided registration token.
-
-//     // send message to each token in the payload
-//     return admin.messaging().sendMulticast(payload)
-//       .then((response) => {
-//         if (response.failureCount > 0) {
-//           const failedTokens = [];
-//           response.responses.forEach((resp, idx) => {
-//             if (!resp.success) {
-//               failedTokens.push(fcmTokens[idx]);              
-//             }
-//           });
-//           console.log('List of tokens that caused failures: ' + failedTokens);
-//         }
-//         console.log('response:', JSON.stringify(response));
-//       });
-
-
-//     // return admin.messaging().sendToDevice(fcmToken, payload)
-//     //   .then((response) => {
-//     //     console.log('Successfully sent message:', response);
-//     //   })
-//     //   .catch((error) => {
-//     //     console.log('Error sending message:', error);
-//     //   });
+//     return null;
+//   } catch (error) {
+//     console.error('Error updating sneakPeekCount properties:', error);
+//     return null;
 //   }
-// })
+// });
+
+
+
+exports.resetSneakPeekCount = functions.https.onRequest(async (request, response) => {
+  try {
+    // Get a snapshot of all users with non-zero sneakPeakCounts
+    const usersSnapshot = await admin.database().ref('users').orderByChild('sneakPeekCount').startAt(1).once('value');
+
+    // Loop through each user and update their sneakPeekCount property to 0
+    usersSnapshot.forEach((userSnapshot) => {
+      const userKey = userSnapshot.key;
+      admin.database().ref('users').child(userKey).update({ sneakPeekCount: 0 });
+    });
+
+    response.send('sneakPeekCount property added to selected users and set to 0.');
+  } catch (error) {
+    console.error('Error adding sneakPeekCount property:', error);
+    response.status(500).send('An error occurred.');
+  }
+});
+
+
+exports.manageWaitlist = functions.https.onRequest(async (req, res) => {
+
+  try {
+      // Retrieve waitlisted users from the Firestore collection
+      console.log('getting waitlistedUsersSnapshot');
+      const waitlistedUsersSnapshot = await admin.firestore().collection('users').where('status', '==', 'waitlist').get();
+
+      // Fetch the remote config parameter value for numMatchesThreshold
+      //const remoteConfig = await admin.remoteConfig().getTemplate();
+      //const numMatchesThreshold = remoteConfig.parameters.numMatchesThreshold.default;
+      const numMatchesThreshold = 1000;
+
+      // Loop through each waitlisted user
+      waitlistedUsersSnapshot.forEach(async (waitlistedUserDoc) => {
+        const waitlistedUserId = waitlistedUserDoc.id;
+        const waitlistedUserData = waitlistedUserDoc.data();
+        
+        // compute time current time to use to determin age data 
+        const currentTime = new Date();
+        const birthday = new Date(waitlistedUserData.birthday);
+        const currentUserAge = currentTime.getFullYear() - birthday.getFullYear();
+    
+        //if users birthday hasn't occured this year, then subtract one from the birthday. 
+        if (currentTime.getTime() < birthday.getTime()) {
+          currentUserAge -= 1;
+        }
+    
+        // save min and max ages 
+        const minAgeBirthDate = currentTime.getFullYear() - waitlistedUserData.min_age;
+        const maxAgeBirthDate = currentTime.getFullYear() - waitlistedUserData.max_age;
+        const maxBirthDay = new Date(maxAgeBirthDate, currentTime.getMonth(), currentTime.getDate());
+        const minBirthDay = new Date(minAgeBirthDate, currentTime.getMonth(), currentTime.getDate());
+    
+        // Subtract an additional year if the maximum birth date is in the future
+        maxBirthDay.setFullYear(maxBirthDay.getFullYear() - 1);
+
+        // compute array of users gender preferences, in order to be used to filter for appropriate matches.
+        const currentUserGenderPreference = waitlistedUserData.interested //can be either male,female, everyone
+        const currentUserGender = waitlistedUserData.gender; // can be: 'male', 'female', 'non-binary'
+    
+        // build geo coding data to use for start/end of queryies. 
+        const center = isNaN(waitlistedUserData.latitude) || isNaN(waitlistedUserData.longitude) ?
+          [40.7128, -74.0060] : // New York City
+          [Number(waitlistedUserData.latitude), Number(waitlistedUserData.longitude)]; //else use lat/long
+            
+        const radiusInM = waitlistedUserData.max_distance;
+  
+        const promises = [];
+
+        // Each item in 'bounds' represents a startAt/endAt pair. We have to issue
+        // a separate query for each pair. There can be up to 9 pairs of bounds
+        // depending on overlap, but in most cases there are 4.
+        const bounds = geofire.geohashQueryBounds(center, radiusInM); 
+
+        for (const b of bounds) {
+          let q = admin.firestore().collection('users').where("status", "in", ['waitlist', 'active'])
+    
+          //if current user is into either male or females' (not 'everyone')
+          if (currentUserGenderPreference !== 'everyone') {
+            //look for users that have gender that the current user prefers (male or female)
+            q = q.where("gender", "==", currentUserGenderPreference);
+          }
+            
+          q = q.orderBy('geohash')
+              .startAt(b[0])
+              .endAt(b[1]);
+        
+          promises.push(q.get());
+        }
+    
+        // Collect all the query results together into a single list
+        Promise.all(promises).then((snapshots) => {
+          const allUsers = [];
+    
+          for (const snap of snapshots) {
+            for (const doc of snap.docs) {
+              const lat = doc.get('latitude');
+              const lng = doc.get('longitude');
+    
+              // We have to filter out a few false positives due to GeoHash
+              // accuracy, but most will match
+              const distanceInKm = geofire.distanceBetween([lat, lng], center);
+              const distanceInM = distanceInKm * 1000;
+              if (distanceInM <= radiusInM) {
+                allUsers.push(doc.data());
+              }
+            }
+          }
+    
+          return allUsers;
+        }).then( async (allUsers) => {
+
+            //additional filters on client to exclude incompatiable users
+            const rankedMatchesNoSort = allUsers.filter(
+              user => 
+                 user.birthdayTimeStamp > maxBirthDay.getTime() //exclude users who are too old for the current users preferences
+                && user.birthdayTimeStamp <= minBirthDay.getTime() //exclude users who are too young for the current users preferences
+                && user.min_age <= currentUserAge //exclude users who think the current user is too young for their preferences
+                && user.max_age >= currentUserAge //exclude users who think the current user is too old for their preferences
+                && ((user.interested == currentUserGender) || (user.interested == 'everyone'))  //exclude users who are not interested in the current users gender.
+            );
+
+            console.log(`rankedMatchesNoSort.length is: ${rankedMatchesNoSort.length}`);
+
+          if (rankedMatchesNoSort.length >= numMatchesThreshold) {
+            // Update the waitlisted user's status to 'active' in the Realtime Database
+            //await admin.database().ref(`/users/${waitlistedUserId}/status`).set('active');
+            console.log(`now active! - user: ${waitlistedUserId}`);
+
+            }else{
+              console.log(`remain on waitilst! - user: ${waitlistedUserId}`);
+            }
+        })
+      });
+    } catch (error) {
+      console.error('Error managing waitlist:', error);
+    }
+  });
+
+// look into gcloud --set-env-vars. Need to set env var on google cloud servers, not my local. looks like i can do in the function deploy call as a flag.. .
+
+//function to send notification when user is off waitlist.
+exports.notifyOffWaitlist = functions.database.ref('/users/{userId}').onUpdate(async (change, context) => {
+
+  //create empty array of fcmTokens
+  let fcmTokens = [];
+  
+  //check if user is updated from waitlist to active status
+  if(change.before.val().status == 'waitlist' && change.after.val().status == 'active' ){
+    console.log('user is off waitlist.');
+    //save data of message
+    const fcmToken = change.after.val().fcmToken;
+    //push fcmToken to fcmTokens array
+    fcmTokens.push(fcmToken); 
+    const messageTitle = 'Welcome to Focus Blind Dating \uD83D\uDE4C';
+    const messageTxt = 'You are off the waitlist!';
+    
+    //build media messages notification
+    // const payload = {
+    //   notification: {
+    //       title: messageTitle,
+    //       body: messageTxt,
+    //       sound : "default"
+    //   },
+    //   data: {
+    //       VIEW: 'swipes'
+    //   }
+    // };
+
+      //build media match notification
+      const payload = {
+        notification: {
+          title: messageTitle,
+          body: messageTxt,
+        },
+        data: {
+          title: messageTitle,
+          body: messageTxt,
+          VIEW: 'swipes'
+        },
+        apns: {
+          payload: {
+            aps: {
+              alert: {
+                title: messageTitle,
+                body: messageTxt,    
+              },
+              badge: 0,
+              sound: 'default',
+            },
+          },
+        },
+        tokens: fcmTokens//end data
+      }//end payload
+
+    // Send a message to the device corresponding to the provided registration token.
+
+    // send message to each token in the payload
+    return admin.messaging().sendMulticast(payload)
+      .then((response) => {
+        if (response.failureCount > 0) {
+          const failedTokens = [];
+          response.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+              failedTokens.push(fcmTokens[idx]);              
+            }
+          });
+          console.log('List of tokens that caused failures: ' + failedTokens);
+        }
+        console.log('response:', JSON.stringify(response));
+      });
+
+
+    // return admin.messaging().sendToDevice(fcmToken, payload)
+    //   .then((response) => {
+    //     console.log('Successfully sent message:', response);
+    //   })
+    //   .catch((error) => {
+    //     console.log('Error sending message:', error);
+    //   });
+  }
+})
 
 //function to send notification after blindDate is created, accepted, proposed a new time.
 exports.notifyBlindDate = functions.database.ref('/dates/{dateId}').onWrite( async (change, context) => {

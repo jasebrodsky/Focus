@@ -104,7 +104,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     [self.collectionView reloadData];
 
     // Scroll to bottom
-    if (self.fetchResult.count > 0 && self.isMovingToParentViewController && !self.disableScrollToBottom) {
+    if (self.fetchResult.count > 0 && !self.disableScrollToBottom) {
         NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(self.fetchResult.count - 1) inSection:0];
         [self.collectionView scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionTop animated:NO];
     }
@@ -245,6 +245,15 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
             default:
                 break;
+        }
+
+
+        if ([self.imagePickerController.sortOrder isEqualToString:@"asc"]) {
+            options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending: YES]];
+        }
+
+        if ([self.imagePickerController.sortOrder isEqualToString:@"desc"]) {
+            options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending: NO]];
         }
 
         self.fetchResult = [PHAsset fetchAssetsInAssetCollection:self.assetCollection options:options];

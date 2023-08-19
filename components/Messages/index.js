@@ -1,7 +1,12 @@
 import React, { Component } from 'react';
 import {Dimensions, Animated, ScrollView, Share, StatusBar} from 'react-native';
-import RNfirebase from 'react-native-firebase';
-import * as firebase from "firebase";
+// import RNfirebase from 'react-native-firebase';
+// import * as firebase from "firebase";
+import firebase from '@react-native-firebase/app';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+import analytics from '@react-native-firebase/analytics';
+
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faUsers, faComments,faInbox } from '@fortawesome/free-solid-svg-icons';
 import ProgressCircle from 'react-native-progress-circle';
@@ -74,7 +79,7 @@ class Messages extends Component {
     //handle notifications
     handleNotification = (userId, screen, matchUseridExclude ) => {
     
-      let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+      let query = database().ref('/matches/' + userId).orderByChild('showNotification');
 
       let listener = query.on('child_changed', (notifySnapshot) => {
   
@@ -127,7 +132,7 @@ class Messages extends Component {
           }
   
           //turn off notificationShow bool so it doesn't show again. 
-          firebase.database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
+          database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
             'showNotification': false
           }); 
           
@@ -159,7 +164,7 @@ class Messages extends Component {
         }).then(({action, activityType}) => {
           if(action === Share.dismissedAction) {
             //delete unsent code from db
-            firebase.database().ref('codes/' + codeDelete).remove();
+            database().ref('codes/' + codeDelete).remove();
 
           } 
           else {
@@ -350,15 +355,14 @@ class Messages extends Component {
     
 
     const { state, navigate } = this.props.navigation;
-    let Analytics = RNfirebase.analytics();
-    userId = firebase.auth().currentUser.uid;
+    userId = auth().currentUser.uid;
 
-    firebaseRef = firebase.database().ref('/matches/'+userId+'/').orderByChild('last_message_date').limitToFirst(50);
+    let firebaseRef = database().ref('/matches/'+userId+'/').orderByChild('last_message_date').limitToFirst(50);
     
-    firebaseRefProfile = firebase.database().ref('/users/'+userId+'/');
+    //let firebaseRefProfile = database().ref('/users/'+userId+'/');
 
     //query for logged in users information needed and set state with it.     
-    firebase.database().ref('/users/' + userId).once('value', ((snapshot) => {
+    database().ref('/users/' + userId).once('value', ((snapshot) => {
             
       //set state with user data. 
       this.setState({ 
@@ -385,7 +389,7 @@ class Messages extends Component {
         'didBlur',
         payload => {
                 
-          let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+          let query = database().ref('/matches/' + userId).orderByChild('showNotification');
   
           //remove listener when leaving. 
           query.off('child_changed', this.state.listener);
@@ -452,12 +456,15 @@ class Messages extends Component {
             ),
 
               //run analytics
-              Analytics.setAnalyticsCollectionEnabled(true);
-              Analytics.setCurrentScreen('Messages', 'Messages');
-              Analytics.setUserId(userId);
+              analytics().logScreenView({
+                screen_name: 'Messages',
+                screen_class: 'Messages'
+              });
+              analytics().setUserId(userId)
+            
 
               //firebase ref to user obj
-              firebaseProfileRef = firebase.database().ref('/users/' + userId);
+              let firebaseProfileRef = database().ref('/users/' + userId);
 
               //update db with current_conversations_count, as the last_conversation_count, so that user won't see a notificaiotn until they have unseen match. 
               firebaseProfileRef.update({last_conversation_count: convos.length});

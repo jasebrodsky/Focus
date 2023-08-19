@@ -1,14 +1,23 @@
 import React, { Component } from 'react';
 import {TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Image, Alert, Dimensions, Linking, ScrollView, Platform, TextInput, StatusBar, TouchableOpacity } from 'react-native';
-import RNfirebase from 'react-native-firebase';
+// import RNfirebase from 'react-native-firebase';
+// import * as firebase from "firebase";
+import firebase from '@react-native-firebase/app';
+import analytics from '@react-native-firebase/analytics';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+import storage from '@react-native-firebase/storage';
+
 import DatePicker from 'react-native-datepicker';
 import ImagePicker from 'react-native-image-crop-picker';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import Geocoder from 'react-native-geocoding';
 import * as Progress from 'react-native-progress';
 import Geolocation from '@react-native-community/geolocation';
-import RNFetchBlob from 'react-native-fetch-blob';
-import * as firebase from "firebase";
+// import RNFetchBlob from 'react-native-fetch-blob';
+import ReactNativeBlobUtil from 'react-native-blob-util'
+
+
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faChevronLeft, faCamera } from '@fortawesome/free-solid-svg-icons';
@@ -53,7 +62,6 @@ class ManageAboutMe extends Component {
 
   constructor(props, contexts){
     super(props, contexts)
-    //Analytics.setAnalyticsCollectionEnabled(true);
 
   this.state = {
       imageViewerVisible: false,
@@ -121,8 +129,8 @@ class ManageAboutMe extends Component {
   //before component mounts, update state with value from database
   componentWillMount() {
   //save intial data for user
-   userId = firebase.auth().currentUser.uid;
-   firebaseRef = firebase.database().ref('/users/' + userId);
+   userId = auth().currentUser.uid;
+   firebaseRef = database().ref('/users/' + userId);
 
     //save data snapshot from firebaseRef
     firebaseRef.on('value', (dataSnapshot) => {
@@ -131,9 +139,12 @@ class ManageAboutMe extends Component {
         profile: dataSnapshot.val()
       }), this.validateCurrentStep('name'), //validate the first after state loads.
 
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setCurrentScreen('ManagePreferences', 'ManagePreferences');
-    RNfirebase.analytics().setUserId(userId);
+    //run analytics
+    analytics().logScreenView({
+      screen_name: 'ManagePreferences',
+      screen_class: 'ManagePreferences'
+    });
+    analytics().setUserId(userId)
     })
   }  
 
@@ -145,7 +156,7 @@ class ManageAboutMe extends Component {
 
   // check if permission for notification has been granted previously, then getToken. 
   async checkPermission() {
-    const enabled = await RNfirebase.messaging().hasPermission();
+    const enabled = await messaging().requestPermission();;
     if (enabled) {
         this.getToken();
     } else {
@@ -155,26 +166,26 @@ class ManageAboutMe extends Component {
 
   // getToken if permission has been granted previously
   async getToken() {
-    fcmToken = await RNfirebase.messaging().getToken();
+    fcmToken = await messaging().getToken();
     firebaseRef.update({fcmToken: fcmToken});
   }
 
   // if permission has not been granted, request for permission. 
   async requestPermission() {
     try {
-        await RNfirebase.messaging().requestPermission();
+        await messaging().requestPermission();;
         // User has authorised
         this.getToken();
 
-        RNfirebase.analytics().logEvent('permissionMessageAccepted', {
+        analytics().logEvent('permissionMessageAccepted', {
           accepted: true
         });
 
     } catch (error) {
         // User has rejected permissions
         console.log('permission rejected');
-            //record in analytics that photo was successfully swapped 
-        RNfirebase.analytics().logEvent('permissionMessageAccepted', {
+        //record in analytics that photo was successfully swapped 
+        analytics().logEvent('permissionMessageAccepted', {
           accepted: false
         });
     }
@@ -187,7 +198,7 @@ class ManageAboutMe extends Component {
     let offsetInMin = date.getTimezoneOffset();
   
     //save ref to current user in db. 
-    firebaseRefCurrentUser = firebase.database().ref('/users/' + userId);
+    firebaseRefCurrentUser = database().ref('/users/' + userId);
     //request authorization to location services
     Geolocation.requestAuthorization();
     //convert location geo data into location data
@@ -252,270 +263,13 @@ class ManageAboutMe extends Component {
     return age;
   }
 
-//update this function to put selected images in storage bucket, then realtime database with URI of images, then connect state to realtime db on change. 
-// 1. STORE: put selected images (imagesPhone) in storage bucket
-// 2. UPDATE DB: update users/images obj's URI of stored images in realtime db
-// 3. REFLECT: when images in db changes, update component state
 
-  pickImage() {
-    let imagesLength = Object.keys(this.state.profile.images).length;
-    console.log('images length is: '+imagesLength);
 
-    if(imagesLength < 10){
-      ImagePicker.openPicker({
-        compressImageQuality: 0.6,
-        multiple: false,
-        forceJpg: true,
-        cropping: true,
-        width: 600,
-        height: 800,
-        showCropGuidelines: true,
-        mediaType: 'photo',
-        includeBase64: true,
-        waitAnimationEnd: false,
-        includeExif: true,
-      }).then(image => {
-          
-            // Create a root reference to our storage bucket       
-            var storageRef = firebase.storage().ref(); 
-
-            // Create a unique key based off current timestamp
-            var uniqueKey = new Date().getTime();
-
-            // Create a reference to 'images/userid/uniqueKey.jpg' - where to save new image in storage bucket
-            var imagesRef = storageRef.child('images/'+userId+'/'+uniqueKey+'.jpg');
-    
-            // Save copy of exisiting images into imagesObj - to manipulate, then eventually push back to database and state. 
-            var imagesObj = this.state.profile.images;
-
-            // Set up properties for image
-            let imagePath = image.path;
-            let Blob = RNFetchBlob.polyfill.Blob
-            let fs = RNFetchBlob.fs
-            const originalXMLHttpRequest = window.XMLHttpRequest;
-            const originalBlob = window.Blob;
-            window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest
-            window.Blob = Blob
-            let mime = 'image/jpg'
-            let uploadUri = Platform.OS === 'ios' ? imagePath.replace('file://', '') : imagePath
-                        
-            // Create file metadata specific to caching.
-            let newMetadata = {
-              cacheControl: 'public,max-age=31536000',
-              contentType: 'image/jpeg'
-            }
-
-            // Read selected image          
-            fs.readFile(imagePath, 'base64')
-              
-            // then build blob
-            .then((data) => {
-                //console.log(data);
-                return Blob.build(data, { type: `${mime};BASE64` })
-            })
-            // Then upload blob to firebase storage
-            .then((blob) => {
-                uploadBlob = blob;
-                return imagesRef.put(blob, { contentType: mime })
-              })
-            
-            // Then close blob and set blob back to original values (for bug with fetching later)
-            .then(() => {
-              uploadBlob.close();
-              window.XMLHttpRequest = originalXMLHttpRequest
-              window.Blob = originalBlob;
-
-              // Update metadata properties to image reference
-              imagesRef.updateMetadata(newMetadata)
-            
-            .catch(function(error) {
-              // Uh-oh, an error occurred!
-              console.log(error);
-            })  
-
-            // Record in analytics that photo was successfully uploaded and count of images user has thus far
-            RNfirebase.analytics().logEvent('photoUploaded', {
-              imageCount: Object.keys(this.state.profile.images).length
-            });
-
-            // Finally return the URL of saved image - to use in database and state. 
-              return imagesRef.getDownloadURL()
-            })               
-            
-            // Then update all image references for user in multi-path update
-            .then((url) => {
-
-              //if first image in state is the default image, then delete that default image from the images object. then continue and add the new image to the object. 
-              if (imagesObj[0].url ==  "https://focusdating.co/images/user.jpg" ){
-                imagesObj.splice(0,1);
-              }
-              
-              // push new image object into imagesObj 
-              imagesObj.push({url: url, file: uniqueKey, cache: 'force-cache'});
-
-              //call updateData function with new URI's to pass in multi-path update
-              this.updateData('images', userId, imagesObj );
-            
-            })
-            .catch(console.error);                  
-        } 
-      ).catch(e => console.log(e));
-    }else{
-
-      Alert.alert('Sorry','Please delete a photo first');
-    }
-
-  }
-
-  //funtion to scale height of image
-  scaledHeight(oldW, oldH, newW) {
-    return (oldH / oldW) * newW;
-  }
-
-  //function to renderImage into markup
-  renderImage(image, key) {
-
-    //hide default image if user only has the default image Otherise breaks UI. Should fix in data flow to have accurate images in state/db. 
-    let displayImages =  this.state.profile.images['0'].url == 'https://focusdating.co/images/user.jpg' ? 'none' : 'flex'
-
-    // console.log('image is: '+JSON.stringify(image));
-    return <TouchableOpacity style = {{display: displayImages}} onPress={()=> ActionSheet.show
-                      (
-                        {
-                          options: PHOTO_OPTIONS,
-                          cancelButtonIndex: 3,
-                          destructiveButtonIndex: 3,
-                          title: 'Photo'
-                        },
-                        (buttonIndex) => {
-                          if ((buttonIndex) === 0) {
-                              //view image 
-                              this.setState({
-                                //set image viewer visibility on
-                                imageViewerVisible: true,
-                                // save to state the selected image to view 
-                                selectedImage: [{url: image.url, cache: 'force-cache'}]  
-                              })
-                            }
-
-                          if ((buttonIndex) === 1) { //make main image 
-
-                            //save original state of images array
-                            var arrayImages = [...this.state.profile.images];
-                            
-                            // save selected image to new variable to re-insert into images later
-                            let main_image = arrayImages[key];
-                            //console.log('profile images are first: '+JSON.stringify(arrayImages));
-
-                            //save the index of image to remove
-                            var index = arrayImages.indexOf(key)
-                            
-                            //remove image at index
-                            arrayImages.splice(key, 1);
-
-                            //insert new main image into first position of profile images
-                            arrayImages.unshift(main_image);
-
-                            //set state to new image array
-                            this.setState({profile: { ...this.state.profile, images: arrayImages}},
-                              
-                              //in callback (after state is set), use multi-path update with new array of images from state. 
-                              () => this.updateData('images', userId, this.state.profile.images )
-                              
-                            ); 
-                            
-                            //record in analytics that photo was successfully swapped 
-                            RNfirebase.analytics().logEvent('newMainPhoto', {
-                              testParam: 'testParam'
-                            });
-                          }
-
-                          if ((buttonIndex) === 2) { //delete image
-
-                            //if only one photo exists, disable deleting, else allow user to delete image. 
-                            if(this.state.profile.images.length == 1){
-                              Alert.alert('Sorry','Can not delete only photo');
-
-                            }else{ //remove image
-
-                              //save copy of profile images from state
-                              var profile_images = this.state.profile.images;                                                   
- 
-                              // Create a root reference to our storage bucket
-                              var storageRef = firebase.storage().ref(); 
-
-                              //derive which image to delete via the key property on the image object
-                              var image_delete = profile_images[key];
-
-                              // Create a reference to 'images/userid/i.jpg'
-                              var imagesRef = storageRef.child('images/'+userId+'/'+image_delete.file+'.jpg');
-
-                              // Delete the file
-                              imagesRef.delete().then(function() {
-                                // File deleted successfully
-                                console.log('deleted successfully');
-                              }).catch(function(error) {
-                                // Uh-oh, an error occurred!
-                                console.log('deleted NOT successfully, error is: '+JSON.stringify(error));
-                              });
-                                 
-                              //save original state of images array
-                              var arrayImages = [...this.state.profile.images];
-                              
-                              //save the index of image to remove
-                              var index = arrayImages.indexOf(key)
-                              
-                              //remove image at index
-                              arrayImages.splice(key, 1);
-                              
-                              //set state to new image array
-                              this.setState({profile: { ...this.state.profile, images: arrayImages}},
-                              
-                                //in callback (after state is set), use multi-path update with new array of images from state. 
-                                () => this.updateData('images', userId, this.state.profile.images )
-                                
-                              ); 
-
-                              //record in analytics that photo was deleted successfully 
-                              RNfirebase.analytics().logEvent('photoDeleted', {
-                                testParam: 'testParamValue1'
-                              });
-
-                            }
-                          }
-                        }
-                      )
-                    } >
-              <Image 
-                style={{
-                  width: 90, 
-                  height: 90,
-                  shadowColor: "#000",
-                  shadowOffset: {
-                    width: 0,
-                    height: 3,
-                  },
-                  shadowOpacity: 0.29,
-                  shadowRadius: 4.65,
-                  
-                  }} 
-                source={image} />
-          </TouchableOpacity>
-  }
-
-  //function to render image or video
-  renderAsset(image, key) {
-    if (image.mime && image.mime.toLowerCase().indexOf('video/') !== -1) {
-      return this.renderVideo(image);
-    }
-
-    return this.renderImage(image, key);
-  }
 
   //generate the preferred age range of user based off users age
   preferredAgeRange = (birthday) => {
   
-    let firebaseRef = firebase.database().ref('/users/' + userId);
+    let firebaseRef = database().ref('/users/' + userId);
     let age = this.getAge(birthday);
     let gender = this.state.profile.gender;
     let maxAgePreferred = 70;
@@ -557,221 +311,6 @@ class ManageAboutMe extends Component {
 
       }
   
-  }
-
-  //function to update name or images or reviews
-  updateData = (type, userid, payload) => {
-
-    //record in analytics the event that a profile was updated successfully 
-    RNfirebase.analytics().logEvent('profileUpdated', {
-      type: payload
-    });
-                              
-    //create ref to list of coversations for userid
-    const userConversations = firebase.database().ref('users/'+userid+'/conversations/');
-
-    //create ref to list of matches for userid
-    const userMatches = firebase.database().ref('matches/'+userid+'/');
-
-    //save ref for reviews current user created
-    const userReviews = firebase.database().ref('codes').orderByChild("created_by").equalTo(userId);
-
-    //create empty placeholder object for all paths to update
-    let updateObj = {};
-    let updateObj2 = {};
-
-    //return list of all users' conversations
-    userConversations.once('value').then(snap => {
-
-      //if user has had a conversation, prepare to update each of their convesations with updated data. 
-      if(snap.exists()){
-
-        //turn list of objects into array on it's keys
-        let conversationsKeys = Object.keys(snap.val());
-
-        //CONVERSATIONS: add path to update inside updateObj for each conversation record. Switch case for images and name updates. 
-        conversationsKeys.forEach((key, $type) => {
-          switch (type) {
-            case 'images':
-              updateObj[`conversations/${key}/participants/${userid}/images`] = payload;
-              break;
-            case 'name':
-              updateObj[`conversations/${key}/participants/${userid}/name`] = payload;            
-              break;
-          }
-        });
-
-      }
-    }).then(function() {
-
-    //return list of all users' reviews
-    userReviews.once('value').then(reviewsData => {
-
-      //if user has reviews they created, prepare to update each of their reviews with updated data. 
-      if(reviewsData.exists()){
-
-        //turn dataSnapShot into array on it's values
-        let userReviewArray = Object.values(reviewsData.val());
-        let userReviewArrayKeys = Object.keys(reviewsData.val());
-      
-        console.log('userReviewArray is: '+userReviewArray);
-        //for each of the current users' created reviews, find their associated matches, which need to be updated with new review data. 
-        userReviewArray.forEach((friend, i) => {
-
-          //let friend = friendObj.val();
-          let friendKey = userReviewArrayKeys[i];
-
-          console.log('friend is: '+JSON.stringify(friend));
-          console.log('friendKey is: '+JSON.stringify(friendKey));
-
-          
-          //update code object only when code has yet to be used, in case the friend will use code. 
-          //if (friend.expired == false){
-
-            //save path to update the reviews object of each friend the current user reviewed. 
-            switch (true) {
-              case (type == 'images'):
-                updateObj[`users/${friend.created_for}/reviews/${friendKey}/photo`] = payload[0].url; 
-                updateObj[`codes/${friendKey}/photo_creator`] = payload[0].url;     
-                break;
-              case (type == 'name'):
-                updateObj[`users/${friend.created_for}/reviews/${friendKey}/name`] = payload;
-                updateObj[`codes/${friendKey}/name_creator`] = payload; 
-                break;
-              }  
-          //}
-
-
-          //query firebase for each users matches. 'friend.userid'
-          firebase.database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
-          
-            //convert friend objects into array of friend id's, so that can loop over them. . 
-            let friendsMatches = Object.keys(friendMatchesSnap.val());
-
-            //for each of my friends matches, update their match object with my updated name or images
-            friendsMatches.forEach((my_friends_match, i) => {
-
-              console.log('payload is: '+JSON.stringify(payload));
-
-              //save path to update
-              switch (type) {
-                case 'images':
-                  updateObj2[`matches/${my_friends_match}/`+friend.created_for+`/reviews/`+friend.code_key+`/photo`] = payload[0].url;
-                  break;
-                case 'name':
-                  updateObj2[`matches/${my_friends_match}/`+friend.created_for+`/reviews/`+friend.code_key+`/name`] = payload;
-                  break;
-                }             
-             });
-
-             //update all paths in multi-path update on udateObj2 array.
-             firebase.database().ref().update(updateObj2, function(error) {
-              if (error) {
-                // The write failed...
-                console.log('write failed updateObj2')
-              } else {
-                // Data saved successfully!
-                console.log('Data saved successfully updateObj2')
-              }
-          })
-        })
-        })
-      }
-    })
-    }).then(function() {
- 
-     //return list of all users' matches
-      userMatches.once('value').then(snap => {
-
-        //if user has matches start to prepare updating all matches with new data. 
-        if (snap.exists()){
-
-          //turn list of objects into array on it's keys
-          let matchesKeys = Object.keys(snap.val());
-
-          //MATCHES: add path to update inside updateObj for each appropriate match record
-          matchesKeys.forEach((key, $type) => {
-            switch (type) {
-              case 'images':
-                updateObj[`matches/${key}/${userid}/images`] = payload;
-                break;
-              case 'name':
-                updateObj[`matches/${key}/${userid}/name`] = payload;
-                updateObj[`matches/3nQajya619ZEVl55TVTAduw2hNv2/6CSGJ2ak39hVkzQYRuPEuO00B932/reviews/-LypRQkDfCOb7jntXIrX/name`] = payload;
-                break;
-              case 'about':
-                updateObj[`matches/${key}/${userid}/about`] = payload;
-                break;
-              case 'birthday':
-                updateObj[`matches/${key}/${userid}/birthday`] = payload;
-                break;
-              case 'gender':
-                updateObj[`matches/${key}/${userid}/gender`] = payload;
-                break;
-              case 'city_state':
-                updateObj[`matches/${key}/${userid}/city_state`] = payload;
-                break;
-              case 'work':
-                updateObj[`matches/${key}/${userid}/work`] = payload;
-                break;
-              case 'reviews':
-                updateObj[`matches/${key}/${userid}/reviews`] = payload;
-                break;
-              case 'education':
-                updateObj[`matches/${key}/${userid}/education`] = payload;
-                break;
-              case 'status':
-                updateObj[`matches/${key}/${userid}/status`] = payload;
-                break;
-            }
-          });
-        }
-      }).then(function() {
-
-        //USERS: add path to update inside updateObj for userid record
-        switch (type) {
-          case 'images':
-            updateObj[`users/${userid}/images`] = payload;
-            break;
-          case 'name':
-            updateObj[`users/${userid}/first_name`] = payload;
-            break;
-          case 'about':
-            updateObj[`users/${userid}/about`] = payload;
-            break;
-          case 'work':
-            updateObj[`users/${userid}/work`] = payload;
-            break;
-          case 'education':
-            updateObj[`users/${userid}/education`] = payload;
-            break;
-          case 'reviews':
-            updateObj[`users/${userid}/reviews`] = payload;
-            break;
-          case 'status':
-            updateObj[`users/${userid}/status`] = payload;
-            break;
-        }
-      }).then(function(){
-          //console.log('updateObj outside .then function: '+JSON.stringify(updateObj));
-          
-          //return statement with updating all the paths that need to be updated
-
-          console.log(updateObj);
-          //return firebase.database().ref().update(updateObj);
-
-          firebase.database().ref().update(updateObj, function(error) {
-            if (error) {
-              // The write failed...
-              console.log('write failed')
-            } else {
-              // Data saved successfully!
-              console.log('Data saved successfully')
-
-            }
-          });
-      })
-    })
   }
 
 
@@ -894,53 +433,7 @@ class ManageAboutMe extends Component {
 	}
 
 
-  _renderPlacedholderImages = () => {
 
-    //let placeholderImagesNeeded = this.state.profile.images['0'].url == "https://focusdating.co/images/user.jpg" ? 6 : 5
-      
-    
-    if (true) {
-
-        //calculate if first iamge is default image, if so we'll need 6 additional placeholder iamges, if not we'll need 5. 
-        let placeholderImagesNeeded = this.state.profile.images['0'].url == "https://focusdating.co/images/user.jpg" ? 10 : 9
-
-        //calculate images to render based off how many real images are uploaded to state. 
-        let placeholderImagesToRender = placeholderImagesNeeded - this.state.profile.images.length;
-        
-        //array to keep markup for placeholder iamges
-        let placeholderImages = [];
-
-        //iterate all placeholder images and add to array. 
-        for (let i = 0; i < placeholderImagesToRender; i++) {
-          placeholderImages[i] = (
-            <Button 
-              key={placeholderImages[i]}
-              onPress={this.pickImage.bind(this, () => {
-                this.validateCurrentStep()
-                })  
-              }                    
-              style={{  
-                borderWidth: 0.6, 
-                backgroundColor: 'white', 
-                borderColor: '#d6d7da', 
-                width: 90, 
-                height: 90, 
-                justifyContent: 'center',
-                shadowColor: "#000",
-                shadowOffset: {
-                  width: 0,
-                  height: 3,
-                },
-                shadowOpacity: 0.29,
-                shadowRadius: 4.65, }}>
-              <FontAwesomeIcon size={ 40 } style={{ color: 'lightgrey'}} icon={ faCamera } />
-            </Button>);
-        }
-
-        //retrun array of placeholder imgages to embed into markup. 
-        return placeholderImages; 
-    }
-  }
 
 
   validateCurrentStep = () => {
@@ -1016,28 +509,26 @@ class ManageAboutMe extends Component {
               console.log('go next');
               let step = this.state.steps[this.state.stepIndex].input;
 
-              RNfirebase.analytics().logEvent(step+'Saved', {
+              analytics().logEvent(step+'Saved', {
                 data: this.state.profile.step
               });
   
               //update with db with new data from current step
                 switch (step) {  
                  case 'lookingFor': //when lookingFor step is selected
-                     RNfirebase.analytics().setUserProperty('genderPref', this.state.profile.gender_pref);                       
+                    analytics().setUserProperty('genderPref', this.state.profile.gender_pref);                       
                      break;
                  case 'preferredAge': //when preferredAge step is selected // CAN'T SEEM TO RESOLVE THE MIN/MAX AGE FROM STATE???
-                     //RNfirebase.analytics().setUserProperty('preferredMaxAge', this.state.profile.min_age);                       
-                     //RNfirebase.analytics().setUserProperty('preferredMinAge', this.state.profile.min_age);                       
-                     
-
+                     analytics().setUserProperty('preferredMaxAge', this.state.profile.min_age.toString());                       
+                     analytics().setUserProperty('preferredMinAge', this.state.profile.min_age.toString());                       
                      break;
                  case 'preferredMaxDistance'://when preferredMaxDistance step is selected
-                      // RNfirebase.analytics().setUserProperty('preferredMaxDistance', this.state.profile.max_distance);  
+                      analytics().setUserProperty('preferredMaxDistance', this.state.profile.max_distance);  
                       
-                      // this.setState({profile: { ...this.state.profile, max_distance: this.getMeters(this.state.profile.max_distance)}})
+                      this.setState({profile: { ...this.state.profile, max_distance: this.getMeters(this.state.profile.max_distance)}})
                       
-                      // this.getLocation();
-                      alert('ask for location');
+                      this.getLocation();
+                      //alert('ask for location');
                       
                       break;
                  } 
@@ -1046,10 +537,6 @@ class ManageAboutMe extends Component {
                 this.setState({stepIndex: currentStepIndex+1, aboutMeRows: 16}, () => {
                   this.validateCurrentStep();
                   
-                  // Record in analytics that photo was successfully uploaded and count of images user has thus far
-                  // RNfirebase.analytics().logEvent('photoUploaded', {
-                  //   imageCount: Object.keys(this.state.profile.images).length
-                  // });
                   
                 });
   
@@ -1139,7 +626,7 @@ class ManageAboutMe extends Component {
                 
                 }}>
                 <Button onPress = {() => this.manageStep('back')} transparent >
-                  <FontAwesomeIcon size={ 28 } style={{ color: 'white'}} icon={ faChevronLeft } />
+                  <FontAwesomeIcon size={ 28 } style={{ color: 'white', marginLeft: 5}} icon={ faChevronLeft } />
                 </Button>
               </View>
 
@@ -1544,16 +1031,24 @@ class ManageAboutMe extends Component {
 
           { (this.state.steps[this.state.stepIndex].input != 'lookingFor' && this.state.steps[this.state.stepIndex].input != 'preferredMaxDistance') && //show continue button if not on photos or lookingfor step
               
-            
+            <View  style={{
+              // justifyContent: 'center',
+                alignContent: 'center',
+                alignItems: 'center',
+              
+               }}>
               <Button 
                 rounded  
                 disabled = {!this.state.currentStepValidated}
                 onPress = {() => this.manageStep('continue')}
                 opacity = {placeHolderColor}
                 style={{
-                  marginBottom: 40, 
-                  justifyContent: 'center', 
-                  width: 300,  
+                  justifyContent: 'center',
+                  alignItems: 'center', 
+                  marginBottom: 10,
+                  width: 300,
+                  borderRadius: 40,
+                  padding: 15, 
                   backgroundColor: btnColorState,
                   shadowColor: "#000",
                   shadowOffset: {
@@ -1564,6 +1059,9 @@ class ManageAboutMe extends Component {
                   shadowRadius: 4.65,}}> 
                   <Text style={{color: btnTextColor}}>Continue</Text>
               </Button> 
+
+            </View>
+
           }
 
 

@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import {Share, Linking, AsyncStorage, Image, ImageBackground, Alert, Dimensions, Modal, StyleSheet, ScrollView, FlatList, Platform, TouchableOpacity } from 'react-native';
-import RNfirebase from 'react-native-firebase';
+
+import firebase from '@react-native-firebase/app';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+import storage from '@react-native-firebase/storage';
+
 import { DrawerNavigator, NavigationActions } from "react-navigation";
 import BlurOverlay,{closeOverlay,openOverlay} from 'react-native-blur-overlay';
 import DatePicker from 'react-native-datepicker';
@@ -47,7 +52,7 @@ import {
 } from "native-base";
 
 //shortcut to Analytics
-// let Analytics = RNfirebase.analytics();
+// let Analytics = RNanalytics();
 
 const primaryColor = "#8A6077";
 const secondaryColor = "#EF8275";
@@ -145,8 +150,8 @@ class Settings extends Component {
   componentWillMount() {
 
   //save intial data for user
-   userId = firebase.auth().currentUser.uid;
-   firebaseRef = firebase.database().ref('/users/' + userId);
+   userId = auth().currentUser.uid;
+   firebaseRef = database().ref('/users/' + userId);
 
 
 
@@ -157,28 +162,28 @@ class Settings extends Component {
         profile: dataSnapshot.val()
       }), this.showInstructions(), //showInstruction after state loads.
 
-    RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-    RNfirebase.analytics().setCurrentScreen('Settings', 'Settings');
-    RNfirebase.analytics().setUserId(userId);
+    RNanalytics().setAnalyticsCollectionEnabled(true);
+    RNanalytics().setCurrentScreen('Settings', 'Settings');
+    RNanalytics().setUserId(userId);
     //trigger these user property functions when user updates each of their settings
-    RNfirebase.analytics().setUserProperty('name', dataSnapshot.val().first_name+' '+dataSnapshot.val().last_name);
-    RNfirebase.analytics().setUserProperty('about', dataSnapshot.val().about);
-    RNfirebase.analytics().setUserProperty('birthday', (dataSnapshot.val().birthday ? dataSnapshot.val().birthday : 'empty' ));
-    RNfirebase.analytics().setUserProperty('education', dataSnapshot.val().education);
-    RNfirebase.analytics().setUserProperty('gender', dataSnapshot.val().gender);
-    RNfirebase.analytics().setUserProperty('gender_pref', dataSnapshot.val().gender_pref);
-    RNfirebase.analytics().setUserProperty('interested', dataSnapshot.val().interested);
-    RNfirebase.analytics().setUserProperty('status', dataSnapshot.val().status);
-    RNfirebase.analytics().setUserProperty('work', dataSnapshot.val().work);
+    RNanalytics().setUserProperty('name', dataSnapshot.val().first_name+' '+dataSnapshot.val().last_name);
+    RNanalytics().setUserProperty('about', dataSnapshot.val().about);
+    RNanalytics().setUserProperty('birthday', (dataSnapshot.val().birthday ? dataSnapshot.val().birthday : 'empty' ));
+    RNanalytics().setUserProperty('education', dataSnapshot.val().education);
+    RNanalytics().setUserProperty('gender', dataSnapshot.val().gender);
+    RNanalytics().setUserProperty('gender_pref', dataSnapshot.val().gender_pref);
+    RNanalytics().setUserProperty('interested', dataSnapshot.val().interested);
+    RNanalytics().setUserProperty('status', dataSnapshot.val().status);
+    RNanalytics().setUserProperty('work', dataSnapshot.val().work);
    //convert the below numbers to strings
-    RNfirebase.analytics().setUserProperty('last_conversation_count', dataSnapshot.val().last_conversation_count.toString());
-    RNfirebase.analytics().setUserProperty('swipe_count', dataSnapshot.val().swipe_count.toString());
-    RNfirebase.analytics().setUserProperty('max_age', dataSnapshot.val().max_age.toString());
-    RNfirebase.analytics().setUserProperty('max_distance', dataSnapshot.val().max_distance.toString());
-    RNfirebase.analytics().setUserProperty('min_age', dataSnapshot.val().min_age.toString());
-    RNfirebase.analytics().setUserProperty('last_login', dataSnapshot.val().last_login.toString());
-    RNfirebase.analytics().setUserProperty('notifications_match', dataSnapshot.val().notifications_match.toString());
-    RNfirebase.analytics().setUserProperty('notifications_message', dataSnapshot.val().notifications_message.toString());
+    RNanalytics().setUserProperty('last_conversation_count', dataSnapshot.val().last_conversation_count.toString());
+    RNanalytics().setUserProperty('swipe_count', dataSnapshot.val().swipe_count.toString());
+    RNanalytics().setUserProperty('max_age', dataSnapshot.val().max_age.toString());
+    RNanalytics().setUserProperty('max_distance', dataSnapshot.val().max_distance.toString());
+    RNanalytics().setUserProperty('min_age', dataSnapshot.val().min_age.toString());
+    RNanalytics().setUserProperty('last_login', dataSnapshot.val().last_login.toString());
+    RNanalytics().setUserProperty('notifications_match', dataSnapshot.val().notifications_match.toString());
+    RNanalytics().setUserProperty('notifications_message', dataSnapshot.val().notifications_message.toString());
     })
 
     this.getLocation();
@@ -212,7 +217,7 @@ class Settings extends Component {
 
   // check if permission for notification has been granted previously, then getToken. 
   async checkPermission() {
-    const enabled = await RNfirebase.messaging().hasPermission();
+    const enabled = await RNmessaging().hasPermission();
     if (enabled) {
         this.getToken();
     } else {
@@ -224,12 +229,12 @@ class Settings extends Component {
 
   // getToken if permission has been granted previously
   async getToken() {
-    fcmToken = await RNfirebase.messaging().getToken();
+    fcmToken = await RNmessaging().getToken();
     firebaseRef.update({fcmToken: fcmToken});
     // try {
     //   let fcmToken = await AsyncStorage.getItem('fcmToken');
     //   if (!fcmToken) {
-    //       fcmToken = await RNfirebase.messaging().getToken();
+    //       fcmToken = await RNmessaging().getToken();
     //       if (fcmToken) {
     //           // user has a device token
 
@@ -254,7 +259,7 @@ class Settings extends Component {
   // if permission has not been granted, request for permission. 
   async requestPermission() {
     try {
-        await RNfirebase.messaging().requestPermission();
+        await RNmessaging().requestPermission();
         // User has authorised
         this.getToken();
     } catch (error) {
@@ -269,7 +274,7 @@ class Settings extends Component {
     let bool = this.state.profile.notifications_message == true ? false : true;
 
     //record in analytics that user was doesn't want notifications 
-    RNfirebase.analytics().setUserProperty('notifications_message', this.state.profile.notifications_message.toString());
+    RNanalytics().setUserProperty('notifications_message', this.state.profile.notifications_message.toString());
 
     //update firebase with new value, then update state
     firebaseRef.update({notifications_message: bool})
@@ -283,7 +288,7 @@ class Settings extends Component {
     let bool = this.state.profile.notifications_match == true ? false : true;
 
     //record in analytics that user was doesn't want notifications 
-    RNfirebase.analytics().setUserProperty('notifications_match', this.state.profile.notifications_match.toString());
+    RNanalytics().setUserProperty('notifications_match', this.state.profile.notifications_match.toString());
 
     //update firebase with new value, then update state
     firebaseRef.update({notifications_match: bool})
@@ -297,7 +302,7 @@ class Settings extends Component {
   getLocation = () => {
 
     //save ref to current user in db. 
-    firebaseRefCurrentUser = firebase.database().ref('/users/' + userId);
+    firebaseRefCurrentUser = database().ref('/users/' + userId);
 
     //request authorization to location services
     Geolocation.requestAuthorization();
@@ -404,7 +409,7 @@ class Settings extends Component {
   validateSettings = () => {
 
     const { state, navigate } = this.props.navigation;
-    let firebaseRef = firebase.database().ref('/users/' + userId);
+    let firebaseRef = database().ref('/users/' + userId);
 
     //check that all required fields are present.
     let profileComplete = this.profileComplete();
@@ -432,11 +437,11 @@ class Settings extends Component {
 
       try {
           //record in analytics that user was logged out successfully 
-          RNfirebase.analytics().logEvent('userLoggedOut', {
+          RNanalytics().logEvent('userLoggedOut', {
             testParam: 'testParamValue1'
           });
           navigate("Login");
-          await firebase.auth().signOut();
+          await auth().signOut();
       } catch (e) {
           console.log(e);
       }
@@ -487,7 +492,7 @@ _closeAndEndorse = () => {
   deleteUser = async () => {
       const { navigate } = this.props.navigation;
 
-      var user = firebase.auth().currentUser;
+      var user = auth().currentUser;
 
       //alert user for confirmation. On ok delete user's authentication
 
@@ -510,7 +515,7 @@ _closeAndEndorse = () => {
           user.delete().then(function() {
 
           //record in analytics that user was deleted successfully 
-          RNfirebase.analytics().logEvent('userDeleted', {
+          RNanalytics().logEvent('userDeleted', {
             testParam: 'testParamValue1'
           });
 
@@ -552,7 +557,7 @@ _closeAndEndorse = () => {
       }).then(image => {
           
             // Create a root reference to our storage bucket       
-            var storageRef = firebase.storage().ref(); 
+            var storageRef = storage().ref(); 
 
             // Create a unique key based off current timestamp
             var uniqueKey = new Date().getTime();
@@ -609,7 +614,7 @@ _closeAndEndorse = () => {
             })  
 
             // Record in analytics that photo was successfully uploaded and count of images user has thus far
-            RNfirebase.analytics().logEvent('photoUploaded', {
+            RNanalytics().logEvent('photoUploaded', {
               imageCount: Object.keys(this.state.profile.images).length
             });
 
@@ -698,7 +703,7 @@ _closeAndEndorse = () => {
                             ); 
                             
                             //record in analytics that photo was successfully swapped 
-                            RNfirebase.analytics().logEvent('newMainPhoto', {
+                            RNanalytics().logEvent('newMainPhoto', {
                               testParam: 'testParam'
                             });
                           }
@@ -715,7 +720,7 @@ _closeAndEndorse = () => {
                               var profile_images = this.state.profile.images;                                                   
  
                               // Create a root reference to our storage bucket
-                              var storageRef = firebase.storage().ref(); 
+                              var storageRef = storage().ref(); 
 
                               //derive which image to delete via the key property on the image object
                               var image_delete = profile_images[key];
@@ -750,7 +755,7 @@ _closeAndEndorse = () => {
                               ); 
 
                               //record in analytics that photo was deleted successfully 
-                              RNfirebase.analytics().logEvent('photoDeleted', {
+                              RNanalytics().logEvent('photoDeleted', {
                                 testParam: 'testParamValue1'
                               });
 
@@ -776,23 +781,23 @@ _closeAndEndorse = () => {
   updateData = (type, userid, payload) => {
 
     //record in analytics the event that a profile was updated successfully 
-    RNfirebase.analytics().logEvent('profileUpdated', {
+    RNanalytics().logEvent('profileUpdated', {
       type: payload
     });
 
     // console.log('type: '+JSON.stringify(type) +'payload length is: '+JSON.stringify(payload.length.toString()));
     //THIS IS BREAKING SINCE WHEN PASSING TO DB OBJECT FOR CASE REVIEWS, IT CAN'T BE CONVERTED TO STRING. 
     // //record in analytics the updated user property 
-    // RNfirebase.analytics().setUserProperty(type, payload.length.toString());
+    // RNanalytics().setUserProperty(type, payload.length.toString());
                                                   
     //create ref to list of coversations for userid
-    const userConversations = firebase.database().ref('users/'+userid+'/conversations/');
+    const userConversations = database().ref('users/'+userid+'/conversations/');
 
     //create ref to list of matches for userid
-    const userMatches = firebase.database().ref('matches/'+userid+'/');
+    const userMatches = database().ref('matches/'+userid+'/');
 
     //save ref for reviews current user created
-    const userReviews = firebase.database().ref('codes').orderByChild("created_by").equalTo(userId);
+    const userReviews = database().ref('codes').orderByChild("created_by").equalTo(userId);
 
     //create empty placeholder object for all paths to update
     let updateObj = {};
@@ -861,7 +866,7 @@ _closeAndEndorse = () => {
 
 
           //query firebase for each users matches. 'friend.userid'
-          firebase.database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
+          database().ref('matches/'+friend.created_for+'/').once('value').then(friendMatchesSnap => {
           
             //convert friend objects into array of friend id's, so that can loop over them. . 
             let friendsMatches = Object.keys(friendMatchesSnap.val());
@@ -883,7 +888,7 @@ _closeAndEndorse = () => {
              });
 
              //update all paths in multi-path update on udateObj2 array.
-             firebase.database().ref().update(updateObj2, function(error) {
+             database().ref().update(updateObj2, function(error) {
               if (error) {
                 // The write failed...
                 console.log('write failed updateObj2')
@@ -976,9 +981,9 @@ _closeAndEndorse = () => {
           //return statement with updating all the paths that need to be updated
 
           console.log(updateObj);
-          //return firebase.database().ref().update(updateObj);
+          //return database().ref().update(updateObj);
 
-          firebase.database().ref().update(updateObj, function(error) {
+          database().ref().update(updateObj, function(error) {
             if (error) {
               // The write failed...
               console.log('write failed')
@@ -1097,9 +1102,9 @@ _closeAndEndorse = () => {
   _checkCode = (userCode) => {
 
     //save analytics in let
-    let Analytics = RNfirebase.analytics();
+    let Analytics = RNanalytics();
     //call firebase if code exists and is not expired
-    firebase.database().ref("/codes").orderByChild("sharable_code").equalTo(userCode.toUpperCase()).once("value",codeSnap => {
+    database().ref("/codes").orderByChild("sharable_code").equalTo(userCode.toUpperCase()).once("value",codeSnap => {
         //check if code exists
         if (codeSnap.exists()){
 
@@ -1137,10 +1142,10 @@ _closeAndEndorse = () => {
             });
 
             //update code to expired at the specific code key and add created_for as well, to reference later. 
-            firebase.database().ref('/codes/'+key).update({expired_date: new Date().getTime(), expired: true, created_for: userId });
+            database().ref('/codes/'+key).update({expired_date: new Date().getTime(), expired: true, created_for: userId });
             
             // save reference to where to save the new review object 
-            firebaseProfileRefReviews = firebase.database().ref('/users/'+userId+'/reviews/'+key);
+            firebaseProfileRefReviews = database().ref('/users/'+userId+'/reviews/'+key);
 
             //build review object to update db with. 
             let reviewObj = {name: name_creator, photo: photo_creator, reason: reason, code_key: key[0]}
@@ -1288,7 +1293,7 @@ _viewProfile = () => {
               this.updateData('reviews', userId, userReviewsObject );
 
               //record in analytics that review was deleted successfully 
-              RNfirebase.analytics().logEvent('reviewDeleted', {
+              RNanalytics().logEvent('reviewDeleted', {
                 testParam: 'testParamValue1'
               });
             }

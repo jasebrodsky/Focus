@@ -8,8 +8,9 @@ import {
   Alert,
   Dimensions } from 'react-native';
 
+import ActionSheet from 'react-native-actionsheet';
+
 import {
-  ActionSheet,
   Card,
   CardItem,
   Container,
@@ -24,8 +25,14 @@ import {
   H3
 } from "native-base";
 
-import RNfirebase from 'react-native-firebase';
-import * as firebase from "firebase";
+// import RNfirebase from 'react-native-firebase';
+// import * as firebase from "firebase";
+import firebase from '@react-native-firebase/app';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+import analytics from '@react-native-firebase/analytics';
+
+
 import ImageViewer from 'react-native-image-zoom-viewer';
 import LinearGradient from 'react-native-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -54,7 +61,7 @@ class Profile extends Component {
     super(props)
 
     this.state = {
-      loggedInUserId: firebase.auth().currentUser.uid,
+      loggedInUserId: auth().currentUser.uid,
       profile: '',
       sortedContentArray: [],
       imagesArray: [],
@@ -73,16 +80,17 @@ class Profile extends Component {
       //save intial user as the userid passed in state - check if either userid or match_userid is passed
       let userId = this.props.navigation.state.params.profile.userid ? this.props.navigation.state.params.profile.userid : this.props.navigation.state.params.profile.match_userid;
       
-
-      let Analytics = RNfirebase.analytics();
-      Analytics.setAnalyticsCollectionEnabled(true);
-      Analytics.setCurrentScreen('Profle', 'Profile');
-      Analytics.setUserId(userId);
+      //run analytics
+      analytics().logScreenView({
+        screen_name: 'Profile',
+        screen_class: 'Profile'
+      });
+      analytics().setUserId(userId)
 
       console.log('userId is: '+userId);
-      let firebaseRefUser = firebase.database().ref('/users/' + userId);
+      let firebaseRefUser = database().ref('/users/' + userId);
       let conversationId = this.props.navigation.getParam('conversationId');
-      let firebaseConversationMatch = firebase.database().ref('/conversations/'  +conversationId);
+      let firebaseConversationMatch = database().ref('/conversations/'  +conversationId);
       let from = this.props.navigation.getParam('from');
         
 
@@ -103,12 +111,16 @@ class Profile extends Component {
           'didBlur',
           payload => {
                     
-            let query = firebase.database().ref('/matches/' + this.state.loggedInUserId).orderByChild('showNotification');
+            let query = database().ref('/matches/' + this.state.loggedInUserId).orderByChild('showNotification');
     
             //remove listener when leaving. 
             query.off('child_changed', this.state.listener);
           }
         );
+
+      // Assign references to the ActionSheet components
+      this.blockActionSheetRef = this.refs.blockActionSheet;
+      this.reviewActionSheetRef = this.refs.reviewActionSheet;
     
 
         
@@ -389,7 +401,7 @@ class Profile extends Component {
 
     //handle notifications
     handleNotification = (userId, screen, matchUseridExclude ) => {
-      let query = firebase.database().ref('/matches/' + userId).orderByChild('showNotification');
+      let query = database().ref('/matches/' + userId).orderByChild('showNotification');
   
       let listener = query.on('child_changed', (notifySnapshot) => {
        
@@ -442,7 +454,7 @@ class Profile extends Component {
           }
   
           //turn off notificationShow bool so it doesn't show again. 
-          firebase.database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
+          database().ref('/matches/' + userId +'/'+ notifySnapshot.key).update({
             'showNotification': false
           });    
           
@@ -458,68 +470,84 @@ class Profile extends Component {
   //trigger actionsheets and alerts for blocking and reporting and hiding flow. 
   blockReportFlow = (from) => {
     
-    //from = Swipes, Dashboard, ChatOrBlindDate
+    //from = Swipes, Dashboard, ChatOrBlindDate, set in state to access so markup can use conditionally language in actionSheet, based off state. 
+    this.setState({ from : from});
 
-    ActionSheet.show(
-      {
-        options: [
-          from == 'Swipes' ? 'Just hide':'Just unmatch',
-          from == 'Swipes' ? 'Hide and report':'Unmatch and report', 
-           "Cancel"
-        ],
-        title: 'Confirm',
-        cancelButtonIndex: 2,
-        destructiveButtonIndex: 2
+    this.blockActionSheetRef.show();
+
+    // CONVERT THIS TO ACTIONSHEET IMPLEMEMENTATION... 
+    // ActionSheet.show(
+    //   {
+    //     options: [
+    //       from == 'Swipes' ? 'Just hide':'Just unmatch',
+    //       from == 'Swipes' ? 'Hide and report':'Unmatch and report', 
+    //        "Cancel"
+    //     ],
+    //     title: 'Confirm',
+    //     cancelButtonIndex: 2,
+    //     destructiveButtonIndex: 2
         
-      },
-      buttonIndex => {
+    //   },
+    //   buttonIndex => {
 
-        //handle blocking profile
-        if ((buttonIndex) == 0){
+    //     //handle blocking profile
+    //     if ((buttonIndex) == 0){
 
-          //block user
-          this.profileAction('unmatch');
-          console.log('this is block report flow: UNMATCHING');
+    //       //block user
+    //       this.profileAction('unmatch');
+    //       console.log('this is block report flow: UNMATCHING');
 
         
-          //handle block and report a user
-        }else if ((buttonIndex) == 1){
+    //       //handle block and report a user
+    //     }else if ((buttonIndex) == 1){
 
-          Alert.alert(
-            'Report',
-            "We take reports seriously. We'll investigate this person and block them from interacting with you in the future.",
-            [
+    //       Alert.alert(
+    //         'Report',
+    //         "We take reports seriously. We'll investigate this person and block them from interacting with you in the future.",
+    //         [
 
-              {text: from == 'Swipes' ? 'Just hide':'Just unmatch', 
-                onPress: () =>  
-                 //if from swipes and not a match -> hide. If not coming from swipes and is a match -> unmatch.
-                from == 'Swipes' ? this.profileAction('hide') : this.profileAction('unmatch')
-              },    
+    //           {text: from == 'Swipes' ? 'Just hide':'Just unmatch', 
+    //             onPress: () =>  
+    //              //if from swipes and not a match -> hide. If not coming from swipes and is a match -> unmatch.
+    //             from == 'Swipes' ? this.profileAction('hide') : this.profileAction('unmatch')
+    //           },    
              
-              {text: from == 'Swipes' ? 'Report and hide':'Report and unmatch', 
-               onPress: () => 
-               //if from swipes and not a match -> report and hide. If not coming from swipes and is a match -> report and unmatch.
-               from == 'Swipes' ? this.profileAction('hideAndReport') : this.profileAction('unmatchAndReport')
-              },   
-              {text: 'Cancel', 
-              onPress: () => console.log('Cancel Pressed'), style: 'destructive'
-            },  
+    //           {text: from == 'Swipes' ? 'Report and hide':'Report and unmatch', 
+    //            onPress: () => 
+    //            //if from swipes and not a match -> report and hide. If not coming from swipes and is a match -> report and unmatch.
+    //            from == 'Swipes' ? this.profileAction('hideAndReport') : this.profileAction('unmatchAndReport')
+    //           },   
+    //           {text: 'Cancel', 
+    //           onPress: () => console.log('Cancel Pressed'), style: 'destructive'
+    //         },  
             
-            ],
-            { cancelable: false }
-          )         
-        }
-      }
-    )
+    //         ],
+    //         { cancelable: false }
+    //       )         
+    //     }
+    //   }
+    // )
   }
+
+  //show report actions sheet
+  showBlockActionSheet = () => {
+    this.blockActionSheetRef.show();
+  };
+
+  //show review actions sheet
+  showReviewActionSheet = () => {
+    this.reviewActionSheetRef.show();
+    //this.setState({ reviewName: name });
+  };
+
 
 
 
   excludeUsers = (useridExcluded, useridExcluder) => {
 
     //save ref to users to exclude from eachother
-    let firebaseRefUseridExcluded = firebase.database().ref('/users/' + useridExcluded +'/excludedUsers');
-    let firebaseRefUseridExcluder = firebase.database().ref('/users/' + useridExcluder +'/excludedUsers');
+    let firebaseRefUseridExcluded = database().ref('/users/' + useridExcluded +'/excludedUsers');
+    let firebaseRefUseridExcluder = database().ref('/users/' + useridExcluder +'/excludedUsers');
 
     //add excluded data to profile of the excluded user
     firebaseRefUseridExcluded.push({
@@ -552,13 +580,13 @@ class Profile extends Component {
       
       // disable matches anddisable conversation
       //create ref to set new match object with match_id associated with conversation_id generated above. 
-      let matchesRef1 = firebase.database().ref('matches/'+this.state.loggedInUserId+'/'+this.state.profile.userid+'/');
+      let matchesRef1 = database().ref('matches/'+this.state.loggedInUserId+'/'+this.state.profile.userid+'/');
 
       //create ref to set new match object with match_id associated with conversation_id generated above. 
-      let matchesRef2 = firebase.database().ref('matches/'+this.state.profile.userid+'/'+this.state.loggedInUserId+'/');
+      let matchesRef2 = database().ref('matches/'+this.state.profile.userid+'/'+this.state.loggedInUserId+'/');
 
       //save fb ref for quering conversation data
-      let convoRef = firebase.database().ref('/conversations/'+conversationId+'/');
+      let convoRef = database().ref('/conversations/'+conversationId+'/');
 
       //add removed property to match
       matchesRef1.update({removed: true});
@@ -577,9 +605,9 @@ class Profile extends Component {
       this.excludeUsers(this.state.profile.userid, this.state.loggedInUserId);
 
       //save ref to users to involved in report
-      let firebaseRefUseridReported = firebase.database().ref('/users/' + this.state.profile.userid +'/report');
-      let firebaseRefUseridReportedBol = firebase.database().ref('/users/' + this.state.profile.userid);
-      let firebaseRefUseridReporter = firebase.database().ref('/users/' + this.state.loggedInUserId +'/report');
+      let firebaseRefUseridReported = database().ref('/users/' + this.state.profile.userid +'/report');
+      let firebaseRefUseridReportedBol = database().ref('/users/' + this.state.profile.userid);
+      let firebaseRefUseridReporter = database().ref('/users/' + this.state.loggedInUserId +'/report');
 
       //push data report to profile of user who is being reported
       firebaseRefUseridReported.push({
@@ -638,6 +666,137 @@ class Profile extends Component {
     return (
       <Container>
         <StatusBar hidden={true} />
+
+
+
+        <ActionSheet
+            ref="reviewActionSheet"
+            title={'Endorse'}
+            options={REVIEW_OPTIONS}
+            cancelButtonIndex={3}
+            destructiveButtonIndex={3}
+            onPress={buttonIndex => {
+              if ((buttonIndex) === 0) {
+                //open intersitial module -> Refer module
+                this.props.navigation.navigate("Intersitial", { flow: 'refer'})
+                }
+  
+              if ((buttonIndex) === 1) {
+                //open refer module
+                this.props.navigation.navigate("Refer", {name: this.state.reviewerwName, flow: 'endorse' });
+              }
+  
+              if ((buttonIndex) === 2) {
+  
+                //copy of users reviews in order to not directly delete from state.
+                let userReviewsObject = this.state.profile.reviews;
+         
+                //delete review selected from userReviewsObject above.
+                delete userReviewsObject[content.code_key];
+  
+                //setState with userReviewsObject now that the removed review is gone. 
+                this.setState({profile: { ...this.state.profile, reviews: userReviewsObject}});
+  
+                // query for current users' matches
+                const userMatches = database().ref('matches/'+userId+'/');
+
+                //create empty placeholder object for all paths to update
+                let updateObj = {};
+               
+                //USERS: add path to update inside updateObj for userid record
+                updateObj[`users/${userId}/reviews`] = userReviewsObject;
+                
+                //return list of all users' matches
+                userMatches.once('value').then(snap => {
+
+                  //if user has matches start to prepare updating all matches with new review data. 
+                  if (snap.exists()){
+
+                    //turn list of objects into array on it's keys
+                    let matchesKeys = Object.keys(snap.val());
+
+                    //MATCHES: add path to update inside updateObj for each appropriate match record
+                    matchesKeys.forEach( key => {
+
+                      updateObj[`matches/${key}/${userId}/reviews`] = userReviewsObject;
+                        
+                    });
+                  }
+                })
+                .then(function(){
+
+                  console.log('updateObj1 is '+JSON.stringify(updateObj));
+
+                    database().ref().update(updateObj, function(error) {
+                      if (error) {
+                        // The write failed...
+                        console.log('write failed')
+                      } else {
+                        // Data saved successfully!
+                        console.log('Data saved successfully')
+
+                      }
+                    });
+                })
+
+                // record in analytics that review was deleted successfully 
+                analytics().logEvent('reviewDeleted', {
+                  testParam: 'testParamValue1'
+                });
+
+             }
+
+          }}
+        />
+        
+        <ActionSheet
+            ref="blockActionSheet"
+            title={'Confirm'}
+            options={[
+              from == 'Swipes' ? 'Just hide':'Just unmatch',
+              from == 'Swipes' ? 'Hide and report':'Unmatch and report', "Cancel"
+            ]}  
+            cancelButtonIndex={2}
+            destructiveButtonIndex={2}
+            onPress={buttonIndex => {
+              
+            //handle blocking profile
+            if ((buttonIndex) == 0){
+
+              //block user
+              this.profileAction('unmatch');
+              console.log('this is block report flow: UNMATCHING');
+
+            
+              //handle block and report a user
+            }else if ((buttonIndex) == 1){
+
+              Alert.alert(
+                'Report',
+                "We take reports seriously. We'll investigate this person and block them from interacting with you in the future.",
+                [
+
+                  {text: from == 'Swipes' ? 'Just hide':'Just unmatch', 
+                    onPress: () =>  
+                    //if from swipes and not a match -> hide. If not coming from swipes and is a match -> unmatch.
+                    from == 'Swipes' ? this.profileAction('hide') : this.profileAction('unmatch')
+                  },    
+                
+                  {text: from == 'Swipes' ? 'Report and hide':'Report and unmatch', 
+                  onPress: () => 
+                  //if from swipes and not a match -> report and hide. If not coming from swipes and is a match -> report and unmatch.
+                  from == 'Swipes' ? this.profileAction('hideAndReport') : this.profileAction('unmatchAndReport')
+                  },   
+                  {text: 'Cancel', 
+                  onPress: () => console.log('Cancel Pressed'), style: 'destructive'
+                },  
+                
+                ],
+                { cancelable: false }
+              )         
+            }
+          }}
+          />
 
 
         <View style={{ 
@@ -717,12 +876,13 @@ class Profile extends Component {
                   />
 
                   {this.props.navigation.state.params.flow == 'edit' &&
-                    <View style={{ flex: 1, alignItems: 'center' }}>
+                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                       <Button transparent 
                         onPress = {() => this.props.navigation.navigate("ManageAboutMeModal", {profile: this.state.profile, step: 5, from: 'editProfile', goback: true})}
                         style={{                     
                           position: 'absolute',
                           bottom: (deviceHeight-240)/2,
+                          alignSelf: 'center',
                         }}>                     
                          <FontAwesomeIcon 
                         size={ 40 }  
@@ -837,6 +997,7 @@ class Profile extends Component {
                             style={{                     
                               position: 'absolute',
                               bottom: (deviceHeight-240)/2,
+                              alignSelf: 'center',
                             }}>                     
                             <FontAwesomeIcon 
                             size={ 40 }  
@@ -887,7 +1048,7 @@ class Profile extends Component {
                                         <Button transparent 
                                           onPress = {() => this.props.navigation.navigate("ManageConversationPromptsModal", {profile: this.state.profile, from: 'editProfile', goback: true})}
                                           style={{                     
-                                            flex: 1, justifyContent: 'center'
+                                            flex: 1, alignSelf: 'center'
                                           }}>                     
                                           <FontAwesomeIcon 
                                           size={ 40 }  
@@ -895,6 +1056,7 @@ class Profile extends Component {
                                           style={{
                                             color: 'white', 
                                             shadowColor: "#000",
+                                            alignSelf: 'center',
                                             shadowOffset: {
                                               width: 0,
                                               height: 3,
@@ -949,89 +1111,13 @@ class Profile extends Component {
                                 
                                 {this.props.navigation.state.params.flow == 'edit' &&
                                 <Button transparent 
-                                  onPress = {()=> 
-                                    
-                                    
-                                    ActionSheet.show(
-                                    {
-                                      options: REVIEW_OPTIONS,
-                                      cancelButtonIndex: 3,
-                                      destructiveButtonIndex: 3,
-                                      title: 'Endorse'
-                                    },
-                                    (buttonIndex) => {
-                                      if ((buttonIndex) === 0) {
-                                        //open intersitial module -> Refer module
-                                        this.props.navigation.navigate("Intersitial", { flow: 'refer'})
-                                        }
-                          
-                                      if ((buttonIndex) === 1) {
-                                        //open refer module
-                                        this.props.navigation.navigate("Refer", {name: content.name, flow: 'endorse' });
-                                      }
-                          
-                                      if ((buttonIndex) === 2) {
-                          
-                                        //copy of users reviews in order to not directly delete from state.
-                                        let userReviewsObject = this.state.profile.reviews;
-                                 
-                                        //delete review selected from userReviewsObject above.
-                                        delete userReviewsObject[content.code_key];
-                          
-                                        //setState with userReviewsObject now that the removed review is gone. 
-                                        this.setState({profile: { ...this.state.profile, reviews: userReviewsObject}});
-                          
-                                        // query for current users' matches
-                                        const userMatches = firebase.database().ref('matches/'+userId+'/');
-
-                                        //create empty placeholder object for all paths to update
-                                        let updateObj = {};
-                                       
-                                        //USERS: add path to update inside updateObj for userid record
-                                        updateObj[`users/${userId}/reviews`] = userReviewsObject;
-                                        
-                                        //return list of all users' matches
-                                        userMatches.once('value').then(snap => {
-
-                                          //if user has matches start to prepare updating all matches with new review data. 
-                                          if (snap.exists()){
-
-                                            //turn list of objects into array on it's keys
-                                            let matchesKeys = Object.keys(snap.val());
-
-                                            //MATCHES: add path to update inside updateObj for each appropriate match record
-                                            matchesKeys.forEach( key => {
-
-                                              updateObj[`matches/${key}/${userId}/reviews`] = userReviewsObject;
-                                                
-                                            });
-                                          }
-                                        }).then(function(){
-
-                                          console.log('updateObj1 is '+JSON.stringify(updateObj));
-
-                                            firebase.database().ref().update(updateObj, function(error) {
-                                              if (error) {
-                                                // The write failed...
-                                                console.log('write failed')
-                                              } else {
-                                                // Data saved successfully!
-                                                console.log('Data saved successfully')
-
-                                              }
-                                            });
-                                        })
-
-                                        //record in analytics that review was deleted successfully 
-                                        RNfirebase.analytics().logEvent('reviewDeleted', {
-                                          testParam: 'testParamValue1'
-                                        });
-
-                                      }
-                                    }                       
-                                  )}
+                                  onPress={() => {
+                                    this.setState({ reviewerwName: content.name }, () => {
+                                      this.showReviewActionSheet();
+                                    });
+                                  }}
                                   style={{                     
-                                    flex: 1, justifyContent: 'center'
+                                    flex: 1, justifyContent: 'center', alignSelf: 'center'
                                   }}>                     
                                   <FontAwesomeIcon 
                                   size={ 40 }  
@@ -1060,67 +1146,47 @@ class Profile extends Component {
                   </View>
                 </View>
 
-                  <Button  
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center',}}>
+                  <Button
                     rounded
-                    onPress={this.goToTop}  
-        
-                    transparent 
-                    style={{ 
-                      width: 90, 
-                      height: 90, 
-                      marginTop: 30,
-                      marginBottom: 0,
-                      justifyContent: 'center',
+                    onPress={this.goToTop}
+                    transparent
+                    style={{
+                       marginTop: 30,
+                       marginBottom: 10,
+                      alignSelf: 'center',
                       shadowColor: "black",
-                      //backgroundColor: 'black',
                       shadowOffset: {
                         width: 4,
                         height: 4,
                       },
                       shadowOpacity: 0.29,
-                      shadowRadius: 4.65, 
-                    }
-                    }
-                    >
-                        <FontAwesomeIcon 
-                          size={ 50 } 
-                          style={{
-                           color: primaryColor,
-                           }} 
-                          icon={ faArrowAltCircleUp} 
-                          //icon={ faArrowCircleUp } 
-                        
-                        />   
+                      shadowRadius: 4.65,
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      size={50}
+                      style={{
+                        color: primaryColor,
+                      }}
+                      icon={faArrowAltCircleUp}
+                    />
+                  </Button>
 
-                        
-                                 
-                  </Button>  
-
-
-
-
-
-                  { this.props.navigation.state.params.flow =='edit' && //editing profile, show Add Prompt
-                    <Button  
+                  {this.props.navigation.state.params.flow === 'edit' && (
+                    <Button
                       rounded
                       transparent
-                      onPress = {() =>  this.props.navigation.navigate("ManageConversationPromptsModal", {profile: this.state.profile, from: 'editProfile', goback: true})  }
-                      style={{  
-                        //marginTop: 30,
+                      onPress={() => this.props.navigation.navigate("ManageConversationPromptsModal", { profile: this.state.profile, from: 'editProfile', goback: true })}
+                      style={{
                         justifyContent: 'center',
-                        // shadowColor: "#000",
-                        // //backgroundColor: primaryColor,
-                        // shadowOffset: {
-                        //   width: 0,
-                        //   height: 3,
-                        // },
-                        // shadowOpacity: 0.29,
-                        // shadowRadius: 4.65, 
                       }}
-                      >
-                          <Text style={{color: primaryColor}}>Talk to me about</Text>            
-                    </Button>  
-                  }
+                    >
+                      <Text style={{ color: primaryColor }}>Talk to me about</Text>
+                    </Button>
+                  )}
+              </View>
+
 
                   { this.props.navigation.state.params.from =='Swipes' &&
                     <View>
@@ -1130,6 +1196,7 @@ class Profile extends Component {
                         transparent
                         onPress = {() =>  this.blockReportFlow('Swipes') }
                         style={{  
+                          alignSelf: 'center',
                           justifyContent: 'center',
                           backgroundColor: 'white',
                          }}
@@ -1140,6 +1207,7 @@ class Profile extends Component {
                       <Button  
                         onPress = {() =>  this.blockReportFlow('Swipes') }
                         style={{  
+                          alignSelf: 'center',
                           justifyContent: 'center',
                           backgroundColor: 'white',
                          }}
@@ -1167,6 +1235,7 @@ class Profile extends Component {
                     rounded
                     onPress = {() =>  this.blockReportFlow('ChatOrBlindDate') }
                     style={{  
+                      alignSelf: 'center',
                       justifyContent: 'center',
                       backgroundColor: 'white',
                     }}

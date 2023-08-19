@@ -4,10 +4,15 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faRestroom, faHeart,  faCog, faCommentDots, faCoffee, faDoorOpen, faLockAlt,  faUnlockAlt,faMale, faFemale, faHeartbeat, faBriefcase, faBook, faSchool, faUniversity,  faUsers, faComments, faUserClock, faLockOpen, faBolt,  faEye, faUserLock, faUtensils, faCheckDouble } from '@fortawesome/free-solid-svg-icons';
 import LinearGradient from 'react-native-linear-gradient';
-import RNfirebase from 'react-native-firebase';
+// import RNfirebase from 'react-native-firebase';
+import firebase from '@react-native-firebase/app';
+import analytics from '@react-native-firebase/analytics';
+import auth from '@react-native-firebase/auth';
+import database from '@react-native-firebase/database';
+
 import AppIntroSlider from 'react-native-app-intro-slider';
-import * as firebase from "firebase";
-import dynamicLinks from '@react-native-firebase/dynamic-links';
+// import * as firebase from "firebase";
+
 import DeepLinkContext from "../DeepLinkContext"
 import {doSomethingWithInput, justAnAlert, linkReview} from "../DeepLinkContext/functions.js"
 import PropTypes from 'prop-types';
@@ -84,7 +89,7 @@ class Intro extends Component {
       deepLinkParams: {},
       reviewObj: {},
       gender: '',
-      userId: firebase.auth().currentUser.uid,
+      userId: auth().currentUser.uid,
       reason: '',
       slides: [
 
@@ -230,7 +235,7 @@ class Intro extends Component {
     const { navigate } = this.props.navigation;
 
     //check if user is active status now, if so redirect over to swipes
-    firebase.database().ref('/users/' + firebase.auth().currentUser.uid).on('value', ((snapshot) => {
+    database().ref('/users/' + auth().currentUser.uid).on('value', ((snapshot) => {
             
         //if status becomes active, redirect to swipes.
         if(snapshot.val().status == 'active'){
@@ -240,9 +245,13 @@ class Intro extends Component {
       })
     )
 
-      RNfirebase.analytics().setAnalyticsCollectionEnabled(true);
-      RNfirebase.analytics().setUserId(this.state.userId);
-      RNfirebase.analytics().setCurrentScreen('Intro', 'Intro');
+      //run analytics
+      analytics().logScreenView({
+        screen_name: 'Intro',
+        screen_class: 'Intro'
+      });
+      analytics().setUserId(auth().currentUser.uid)
+      
   }
 
 
@@ -251,8 +260,6 @@ class Intro extends Component {
   _inviteFlow = () => {
 
     console.log('running invite flow now');
-    //save analytics in let
-    let Analytics = RNfirebase.analytics();
 
     //check if code is not expired
       if(this.context.deepLinkParams.expired == false){
@@ -399,6 +406,7 @@ class Intro extends Component {
             width: 300, 
             height: 40,
             borderRadius: 20,
+            bottom: 20,
             backgroundColor: btnColor,  
             justifyContent: 'center', 
             alignItems: 'center',
@@ -449,6 +457,7 @@ _renderNextButton  =  ()  => {
             width: 300, 
             height: 40,
             borderRadius: 20,
+            bottom: 20,
             backgroundColor: btnColor,  
             justifyContent: 'center', 
             alignItems: 'center',

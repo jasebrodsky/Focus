@@ -1,4 +1,6 @@
-import firebase from 'firebase';
+import firebase from '@react-native-firebase/app';
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
 
 class Backend {
   uid = '';
@@ -14,11 +16,11 @@ class Backend {
       storageBucket: "",
       messagingSenderId: ""
     });
-    firebase.auth().onAuthStateChanged((user) => {
+    auth().onAuthStateChanged((user) => {
       if (user) {
         this.setUid(user.uid);
       } else {
-        firebase.auth().signInAnonymously().catch((error) => {
+        auth().signInAnonymously().catch((error) => {
           alert(error.message);
         });
       }
@@ -35,7 +37,7 @@ class Backend {
 
   //retrive msg from backend
   loadMessages(callback) {
-    this.messageRef = firebase.database().ref('/conversations/1/messages/');
+    this.messageRef = database().ref('/conversations/1/messages/');
     this.messageRef.off();
     const onReceive = (data) => {
       const message = data.val();
@@ -55,7 +57,7 @@ class Backend {
   //send msg to db
   SendMessage(message) {
     for (let i = 0; i < message.length; i++) {
-      this.messageRef.push({text: message[i].text, user: message[i].user, createdAt: firebase.database.ServerValue.TIMESTAMP});
+      this.messageRef.push({text: message[i].text, user: message[i].user, createdAt: database.ServerValue.TIMESTAMP});
     }
   }
 
